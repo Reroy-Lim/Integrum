@@ -42,7 +42,7 @@ export function useSession() {
     await fetch("/api/auth/signout", { method: "POST" })
     setSession(null)
     setStatus("unauthenticated")
-    router.refresh()
+    router.push("/")
   }
 
   return {
