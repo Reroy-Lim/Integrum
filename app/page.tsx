@@ -183,9 +183,8 @@ export default function IntegrumPortal() {
     console.log("[v0] Submit ticket clicked, authenticated:", isAuthenticated)
 
     if (!isAuthenticated) {
-      console.log("[v0] Not authenticated, showing Google Sign In modal")
-      setGoogleSignInType("submit")
-      setShowGoogleSignIn(true)
+      console.log("[v0] Not authenticated, redirecting to OAuth with /submit-ticket callback")
+      window.location.href = "/api/auth/google?callbackUrl=/submit-ticket"
       return
     }
 
