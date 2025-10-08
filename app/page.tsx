@@ -208,7 +208,6 @@ export default function IntegrumPortal() {
     const ticket = urlParams.get("ticket")
     const timestamp = urlParams.get("timestamp")
     const processing = urlParams.get("processing")
-    const returnTo = urlParams.get("returnTo")
 
     console.log("[v0] Page loaded, pathname:", window.location.pathname, "authenticated:", isAuthenticated)
 
@@ -219,13 +218,8 @@ export default function IntegrumPortal() {
       console.log("[v0] Opening Gmail URL:", gmailUrl)
       window.open(gmailUrl, "_blank")
 
-      if (returnTo === "yourTickets") {
-        console.log("[v0] Redirecting main window to Your Ticket Page")
-        window.location.href = "/?view=yourTickets"
-      } else {
-        console.log("[v0] Redirecting main window to home page")
-        window.location.href = "/"
-      }
+      console.log("[v0] Redirecting main window to home page")
+      window.location.href = "/"
       return
     }
 
@@ -275,19 +269,6 @@ export default function IntegrumPortal() {
 
     console.log("[v0] Already authenticated, redirecting to /submit-ticket page")
     window.location.href = "/submit-ticket"
-  }
-
-  const handleSubmitFirstTicket = () => {
-    console.log("[v0] Submit first ticket clicked, authenticated:", isAuthenticated)
-
-    if (!isAuthenticated) {
-      console.log("[v0] Not authenticated, redirecting to OAuth with /submit-ticket?returnTo=yourTickets callback")
-      window.location.href = "/api/auth/google?callbackUrl=/submit-ticket?returnTo=yourTickets"
-      return
-    }
-
-    console.log("[v0] Already authenticated, redirecting to /submit-ticket?returnTo=yourTickets page")
-    window.location.href = "/submit-ticket?returnTo=yourTickets"
   }
 
   const handleReviewTickets = () => {
@@ -734,7 +715,7 @@ export default function IntegrumPortal() {
                   <p className="text-gray-600 mb-6">
                     You haven't submitted any tickets yet. Get started by submitting your first ticket!
                   </p>
-                  <Button onClick={handleSubmitFirstTicket} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button onClick={handleSubmitTicket} className="bg-blue-600 hover:bg-blue-700 text-white">
                     Submit Your First Ticket
                   </Button>
                 </div>
