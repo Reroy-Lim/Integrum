@@ -70,6 +70,7 @@ export default function IntegrumPortal() {
   const [showGmailFlow, setShowGmailFlow] = useState(false)
   const [showAcknowledgement, setShowAcknowledgement] = useState(false)
   const [showSecurityDialog, setShowSecurityDialog] = useState(false)
+  const [showSystemMessage, setShowSystemMessage] = useState(false)
 
   const mapStatusToCategory = (status: string): string => {
     if (!status || typeof status !== "string") {
@@ -137,8 +138,15 @@ export default function IntegrumPortal() {
     const ticket = urlParams.get("ticket")
     const timestamp = urlParams.get("timestamp")
     const processing = urlParams.get("processing")
+    const showMessage = urlParams.get("showMessage")
 
     console.log("[v0] Page loaded, pathname:", window.location.pathname, "authenticated:", isAuthenticated)
+
+    if (showMessage === "true") {
+      console.log("[v0] Showing system message after Gmail submission")
+      setShowSystemMessage(true)
+      window.history.replaceState({}, "", window.location.pathname)
+    }
 
     if (window.location.pathname === "/submit-ticket" && isAuthenticated) {
       console.log("[v0] Detected submit-ticket intent after OAuth, auto-opening Gmail")
@@ -346,6 +354,35 @@ export default function IntegrumPortal() {
       <SnowAnimation />
       {renderNavigation()}
       {renderSecurityDialog()}
+      <Dialog open={showSystemMessage} onOpenChange={setShowSystemMessage}>
+        <DialogContent className="max-w-md w-full bg-white">
+          <DialogHeader className="space-y-4">
+            <div className="flex items-center justify-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <Mail className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-xl font-semibold text-center text-gray-800">System Message</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-gray-700 text-center">
+                Thank you for sending Integrum Email, there will be an Auto-Acknowledgement on the way to you.
+                Auto-Acknowledgement means Integrum has successfully received and there will be a proposal in your
+                ticket soon.
+              </p>
+            </div>
+
+            <Button
+              onClick={() => setShowSystemMessage(false)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <GoogleSignInModal
         isOpen={showGoogleSignIn}
         onClose={() => setShowGoogleSignIn(false)}

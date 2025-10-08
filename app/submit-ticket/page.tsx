@@ -20,8 +20,7 @@ export default function SubmitTicketPage() {
 
       console.log("[v0] Gmail opened, redirecting to home")
 
-      // Redirect back to home page
-      router.push("/")
+      router.push("/?showMessage=true")
     } else if (status === "unauthenticated") {
       console.log("[v0] User not authenticated, redirecting to home")
       // If somehow they reached this page without authentication, redirect home
