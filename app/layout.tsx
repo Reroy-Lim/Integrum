@@ -11,7 +11,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Integrum Global - AI-Powered Helpdesk Portal",
+  title: "Integrum - AI-Powered Helpdesk Portal",
   description: "Transform your support workflow with AI-powered ticket management",
   generator: "v0.app",
 }

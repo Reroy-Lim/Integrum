@@ -138,14 +138,18 @@ export default function IntegrumPortal() {
     const timestamp = urlParams.get("timestamp")
     const processing = urlParams.get("processing")
 
+    console.log("[v0] Page loaded, pathname:", window.location.pathname, "authenticated:", isAuthenticated)
+
     if (window.location.pathname === "/submit-ticket" && isAuthenticated) {
       console.log("[v0] Detected submit-ticket intent after OAuth, auto-opening Gmail")
       const ticketId = `KST-${Date.now()}`
       const gmailUrl = `https://mail.google.com/mail/?view=cm&to=heyroy23415@gmail.com&su=${encodeURIComponent(`Support Request - ${ticketId}`)}&body=${encodeURIComponent(`Hello Integrum Support Team,\n\nI need assistance with the following issue:\n\n[Please describe your issue here]\n\nBest regards,\n${session?.user?.name || "Customer"}\n\n---\nTicket ID: ${ticketId}\nSubmitted: ${new Date().toLocaleString()}\nFrom: ${session?.user?.email}`)}`
 
+      console.log("[v0] Opening Gmail URL:", gmailUrl)
       // Open Gmail in new window
       window.open(gmailUrl, "_blank")
 
+      console.log("[v0] Redirecting main window to home page")
       // Redirect main window to home page
       window.location.href = "/"
       return
@@ -179,11 +183,15 @@ export default function IntegrumPortal() {
   }, [])
 
   const handleSubmitTicket = () => {
+    console.log("[v0] Submit ticket clicked, authenticated:", isAuthenticated)
+
     if (!isAuthenticated) {
+      console.log("[v0] Not authenticated, redirecting to OAuth with /submit-ticket callback")
       window.location.href = "/api/auth/google?callbackUrl=/submit-ticket"
       return
     }
 
+    console.log("[v0] Already authenticated, opening Gmail flow dialog")
     const ticketId = `KST-${Date.now()}`
     setCurrentTicketId(ticketId)
     setShowGmailFlow(true)
