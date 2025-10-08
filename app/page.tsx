@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession, signIn, signOut } from "next-auth/react"
+import { useSession } from "@/lib/use-session"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -66,7 +66,7 @@ const SnowAnimation = () => {
 }
 
 export default function IntegrumPortal() {
-  const { data: session, status } = useSession()
+  const { data: session, status, signOut } = useSession()
   const isAuthenticated = status === "authenticated"
   const isLoading = status === "loading"
 
@@ -106,7 +106,7 @@ export default function IntegrumPortal() {
   }
 
   const handleGoogleAuth = () => {
-    signIn("google", { callbackUrl: "/" })
+    window.location.href = "/api/auth/google"
   }
 
   const handleAccountSelect = (account: any) => {
@@ -310,7 +310,7 @@ export default function IntegrumPortal() {
           <div className="flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span className="text-sm">{session.user.email}</span>
-            <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
+            <Button variant="outline" size="sm" onClick={() => signOut()}>
               Logout
             </Button>
           </div>
@@ -324,7 +324,7 @@ export default function IntegrumPortal() {
   )
 
   const handleGoogleSignInContinue = () => {
-    signIn("google", { callbackUrl: "/" })
+    window.location.href = "/api/auth/google"
   }
 
   const handleNavigateToFAQ = () => {

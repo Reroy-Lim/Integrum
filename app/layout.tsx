@@ -1,10 +1,14 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
+import { Inter } from "next/font/google"
 import { Suspense } from "react"
 import "./globals.css"
 import { Providers } from "@/components/providers"
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+})
 
 export const metadata: Metadata = {
   title: "Integrum Global - AI-Powered Helpdesk Portal",
@@ -18,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} dark`}>
+    <html lang="en" className={`${inter.variable} dark`}>
       <body className="font-sans antialiased">
         <Providers>
           <Suspense fallback={null}>{children}</Suspense>
