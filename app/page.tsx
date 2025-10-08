@@ -139,12 +139,15 @@ export default function IntegrumPortal() {
     const processing = urlParams.get("processing")
 
     if (window.location.pathname === "/submit-ticket" && isAuthenticated) {
-      console.log("[v0] Detected submit-ticket intent after OAuth, opening Gmail flow")
+      console.log("[v0] Detected submit-ticket intent after OAuth, auto-opening Gmail")
       const ticketId = `KST-${Date.now()}`
-      setCurrentTicketId(ticketId)
-      setShowGmailFlow(true)
-      // Clean up URL
-      window.history.replaceState({}, "", "/")
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&to=heyroy23415@gmail.com&su=${encodeURIComponent(`Support Request - ${ticketId}`)}&body=${encodeURIComponent(`Hello Integrum Support Team,\n\nI need assistance with the following issue:\n\n[Please describe your issue here]\n\nBest regards,\n${session?.user?.name || "Customer"}\n\n---\nTicket ID: ${ticketId}\nSubmitted: ${new Date().toLocaleString()}\nFrom: ${session?.user?.email}`)}`
+
+      // Open Gmail in new window
+      window.open(gmailUrl, "_blank")
+
+      // Redirect main window to home page
+      window.location.href = "/"
       return
     }
 
