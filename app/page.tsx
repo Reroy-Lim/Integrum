@@ -205,8 +205,8 @@ export default function IntegrumPortal() {
 
   const handleReviewTickets = () => {
     if (!isAuthenticated) {
-      setGoogleSignInType("review")
-      setShowGoogleSignIn(true)
+      console.log("[v0] Not authenticated, redirecting to OAuth with /review-tickets callback")
+      window.location.href = "/api/auth/google?callbackUrl=/review-tickets"
       return
     }
 
