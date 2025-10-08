@@ -2,38 +2,35 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
 
 interface LogoutConfirmationDialogProps {
   isOpen: boolean
-  onClose: () => void
   onConfirm: () => void
+  onCancel: () => void
 }
 
-export function LogoutConfirmationDialog({ isOpen, onClose, onConfirm }: LogoutConfirmationDialogProps) {
+export function LogoutConfirmationDialog({ isOpen, onConfirm, onCancel }: LogoutConfirmationDialogProps) {
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="bg-white">
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
+      <AlertDialogContent className="max-w-md bg-white">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl font-semibold text-gray-800">Confirm Logout</AlertDialogTitle>
-          <AlertDialogDescription className="text-gray-600">
-            Are you sure you want to logout from Integrum?
-          </AlertDialogDescription>
+          <AlertDialogDescription className="text-gray-600">Are you sure you want to log out?</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800">
-            No, Stay Logged In
-          </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700 text-white">
-            Yes, Logout
-          </AlertDialogAction>
+        <AlertDialogFooter className="flex gap-3">
+          <Button onClick={onCancel} className="flex-1 bg-red-600 hover:bg-red-700 text-white">
+            NO
+          </Button>
+          <Button onClick={onConfirm} className="flex-1 bg-blue-600 hover:bg-blue-700 text-black">
+            CONFIRM
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

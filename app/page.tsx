@@ -13,7 +13,9 @@ import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, Chevron
 import { mockTickets, getTicketsByUser } from "@/lib/mock-tickets"
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
 import { GoogleSignInModal } from "@/components/google-signin-modal"
+import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog"
 import { useSearchParams } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
 
 const SnowAnimation = () => {
   const snowflakes = Array.from({ length: 50 }, (_, i) => (
@@ -59,6 +61,7 @@ export default function IntegrumPortal() {
   const isAuthenticated = status === "authenticated"
   const isLoading = status === "loading"
   const searchParams = useSearchParams()
+  const { toast } = useToast()
 
   const [currentView, setCurrentView] = useState("home")
   const [currentTicketId, setCurrentTicketId] = useState("")
@@ -73,6 +76,7 @@ export default function IntegrumPortal() {
   const [showAcknowledgement, setShowAcknowledgement] = useState(false)
   const [showSecurityDialog, setShowSecurityDialog] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false)
 
   const mapStatusToCategory = (status: string): string => {
     if (!status || typeof status !== "string") {
@@ -350,7 +354,7 @@ export default function IntegrumPortal() {
           <div className="flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span className="text-sm">{session.user.email}</span>
-            <Button variant="outline" size="sm" onClick={() => signOut()}>
+            <Button variant="outline" size="sm" onClick={handleLogoutClick}>
               Logout
             </Button>
           </div>
@@ -386,6 +390,11 @@ export default function IntegrumPortal() {
       {renderNavigation()}
       {renderSecurityDialog()}
       {renderSuccessMessageDialog()}
+      <LogoutConfirmationDialog
+        isOpen={showLogoutConfirmation}
+        onConfirm={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
+      />
       <GoogleSignInModal
         isOpen={showGoogleSignIn}
         onClose={() => setShowGoogleSignIn(false)}
@@ -512,6 +521,11 @@ export default function IntegrumPortal() {
         <SnowAnimation />
         {renderNavigation()}
         {renderSecurityDialog()}
+        <LogoutConfirmationDialog
+          isOpen={showLogoutConfirmation}
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
+        />
 
         <section className="py-12 px-6 relative z-10">
           <div className="max-w-6xl mx-auto">
@@ -641,6 +655,11 @@ export default function IntegrumPortal() {
         <SnowAnimation />
         {renderNavigation()}
         {renderSecurityDialog()}
+        <LogoutConfirmationDialog
+          isOpen={showLogoutConfirmation}
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
+        />
 
         <section className="py-12 px-6 relative z-10">
           <div className="max-w-4xl mx-auto">
@@ -775,6 +794,11 @@ export default function IntegrumPortal() {
       <SnowAnimation />
       {renderNavigation()}
       {renderSecurityDialog()}
+      <LogoutConfirmationDialog
+        isOpen={showLogoutConfirmation}
+        onConfirm={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
+      />
 
       <section className="py-12 px-6 relative z-10">
         <div className="max-w-4xl mx-auto">
@@ -835,6 +859,26 @@ export default function IntegrumPortal() {
       </section>
     </div>
   )
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirmation(true)
+  }
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirmation(false)
+    toast({
+      title: "Logged Out Successfully",
+      description: "You have been logging out of Integrum Apps, and we hope to see you again!",
+      duration: 3000,
+    })
+    setTimeout(() => {
+      signOut()
+    }, 500)
+  }
+
+  const handleLogoutCancel = () => {
+    setShowLogoutConfirmation(false)
+  }
 
   switch (currentView) {
     case "yourTickets":
