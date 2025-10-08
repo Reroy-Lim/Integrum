@@ -94,7 +94,7 @@ export default function IntegrumPortal() {
   }
 
   const handleGoogleAuth = () => {
-    window.location.href = "/api/auth/google"
+    window.location.href = "/api/auth/google?callbackUrl=/submit-ticket"
   }
 
   const handleAccountSelect = (account: any) => {
