@@ -3,7 +3,7 @@ import { JiraApiClient } from "@/lib/jira-api"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const userEmail = searchParams.get("userEmail")
+  const userEmail = searchParams.get("email")
 
   if (!userEmail) {
     return NextResponse.json({ error: "User email is required" }, { status: 400 })
