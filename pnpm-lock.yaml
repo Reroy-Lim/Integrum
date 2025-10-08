@@ -159,7 +159,7 @@ importers:
         specifier: ^1.7.4
         version: 1.7.4(react-dom@18.0.0(react@18.0.0))(react@18.0.0)
       swr:
-        specifier: latest
+        specifier: 2.3.6
         version: 2.3.6(react@18.0.0)
       tailwind-merge:
         specifier: ^2.5.5

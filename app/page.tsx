@@ -15,7 +15,6 @@ import { GoogleSignInModal } from "@/components/google-signin-modal"
 import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog"
 import { useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import useSWR from "swr"
 import type { JiraTicket } from "@/lib/jira-api"
 
 const SnowAnimation = () => {
@@ -79,18 +78,69 @@ export default function IntegrumPortal() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false)
 
+  const [tickets, setTickets] = useState<JiraTicket[]>([])
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false)
+  const [ticketsError, setTicketsError] = useState<string | null>(null)
+
   const userEmail = session?.user?.email || ""
 
-  const fetcher = (url: string) => fetch(url).then((res) => res.json())
-  const {
-    data,
-    error,
-    isLoading: isLoadingTickets,
-    mutate,
-  } = useSWR(userEmail ? `/api/jira/tickets?email=${encodeURIComponent(userEmail)}` : null, fetcher, {
-    refreshInterval: 30000, // Auto-refresh every 30 seconds
-    revalidateOnFocus: true,
-  })
+  useEffect(() => {
+    const fetchTickets = async () => {
+      if (!userEmail) {
+        setTickets([])
+        return
+      }
+
+      setIsLoadingTickets(true)
+      setTicketsError(null)
+
+      try {
+        console.log("[v0] Fetching tickets for user:", userEmail)
+        const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}`)
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch tickets: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        console.log("[v0] Fetched tickets:", data.tickets?.length || 0)
+        setTickets(data.tickets || [])
+      } catch (error) {
+        console.error("[v0] Error fetching tickets:", error)
+        setTicketsError(error instanceof Error ? error.message : "Failed to fetch tickets")
+      } finally {
+        setIsLoadingTickets(false)
+      }
+    }
+
+    fetchTickets()
+
+    const intervalId = setInterval(fetchTickets, 30000)
+    return () => clearInterval(intervalId)
+  }, [userEmail])
+
+  const refreshTickets = async () => {
+    if (!userEmail) return
+
+    setIsLoadingTickets(true)
+    setTicketsError(null)
+
+    try {
+      const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}`)
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch tickets: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      setTickets(data.tickets || [])
+    } catch (error) {
+      console.error("[v0] Error refreshing tickets:", error)
+      setTicketsError(error instanceof Error ? error.message : "Failed to refresh tickets")
+    } finally {
+      setIsLoadingTickets(false)
+    }
+  }
 
   const mapStatusToCategory = (status: string): string => {
     if (!status || typeof status !== "string") {
@@ -501,7 +551,7 @@ export default function IntegrumPortal() {
   )
 
   const renderYourTickets = () => {
-    const userTickets: JiraTicket[] = data?.tickets || []
+    const userTickets: JiraTicket[] = tickets
     const urlParams = new URLSearchParams(window.location.search)
     const isProcessing = urlParams.get("processing") === "true"
     const processingTicketId = urlParams.get("ticket")
@@ -548,9 +598,9 @@ export default function IntegrumPortal() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => mutate()}
+                  onClick={refreshTickets}
                   disabled={isLoadingTickets}
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-2 bg-transparent"
                 >
                   {isLoadingTickets ? <Loader2 className="w-4 h-4 animate-spin" /> : "Refresh"}
                 </Button>
@@ -563,15 +613,13 @@ export default function IntegrumPortal() {
                 </div>
               )}
 
-              {error && (
+              {ticketsError && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <AlertCircle className="w-6 h-6 text-red-600" />
                     <div>
                       <h3 className="text-lg font-semibold text-red-800">Error Loading Tickets</h3>
-                      <p className="text-sm text-red-700">
-                        Failed to load tickets from Jira. Please try refreshing the page.
-                      </p>
+                      <p className="text-sm text-red-700">{ticketsError}. Please try refreshing the page.</p>
                     </div>
                   </div>
                 </div>
@@ -601,7 +649,7 @@ export default function IntegrumPortal() {
                 </div>
               )}
 
-              {isLoadingTickets && !data ? (
+              {isLoadingTickets && tickets.length === 0 ? (
                 <div className="text-center py-12">
                   <Loader2 className="w-16 h-16 text-blue-500 mx-auto mb-4 animate-spin" />
                   <h3 className="text-xl font-semibold text-black mb-2">Loading Your Tickets...</h3>
@@ -697,6 +745,7 @@ export default function IntegrumPortal() {
         <SnowAnimation />
         {renderNavigation()}
         {renderSecurityDialog()}
+        {renderSuccessMessageDialog()}
         <LogoutConfirmationDialog
           isOpen={showLogoutConfirmation}
           onConfirm={handleLogoutConfirm}
