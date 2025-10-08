@@ -574,7 +574,7 @@ export default function IntegrumPortal() {
     }
 
     const handleViewTicket = (ticketKey: string) => {
-      window.location.href = `/ticket/${ticketKey}`
+      window.location.href = `/jira-ticket/${ticketKey}`
     }
 
     const hasTickets = userTickets.length > 0
@@ -600,7 +600,7 @@ export default function IntegrumPortal() {
                   size="sm"
                   onClick={refreshTickets}
                   disabled={isLoadingTickets}
-                  className="flex items-center space-x-2 bg-transparent"
+                  className="flex items-center space-x-2 bg-green-600 text-white border-green-600 hover:bg-green-700"
                 >
                   {isLoadingTickets ? <Loader2 className="w-4 h-4 animate-spin" /> : "Refresh"}
                 </Button>
