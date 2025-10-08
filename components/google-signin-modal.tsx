@@ -22,8 +22,8 @@ export function GoogleSignInModal({ isOpen, onClose, onContinue, type, onNavigat
         title: "Sign in with Google",
         subtitle: "Choose an account",
         description: "to continue on Integrum",
-        message: "Recommending: Check out our FAQ",
-        messageLink: true,
+        message: "Return back to the app, after emails has been sent",
+        messageLink: false,
       }
     } else {
       return {

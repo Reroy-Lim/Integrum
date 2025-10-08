@@ -183,8 +183,9 @@ export default function IntegrumPortal() {
     console.log("[v0] Submit ticket clicked, authenticated:", isAuthenticated)
 
     if (!isAuthenticated) {
-      console.log("[v0] Not authenticated, redirecting to OAuth with /submit-ticket callback")
-      window.location.href = "/api/auth/google?callbackUrl=/submit-ticket"
+      console.log("[v0] Not authenticated, showing Google sign-in modal")
+      setGoogleSignInType("submit")
+      setShowGoogleSignIn(true)
       return
     }
 
@@ -325,7 +326,11 @@ export default function IntegrumPortal() {
   )
 
   const handleGoogleSignInContinue = () => {
-    window.location.href = "/api/auth/google"
+    if (googleSignInType === "submit") {
+      window.location.href = "/api/auth/google?callbackUrl=/submit-ticket"
+    } else {
+      window.location.href = "/api/auth/google"
+    }
   }
 
   const handleNavigateToFAQ = () => {
