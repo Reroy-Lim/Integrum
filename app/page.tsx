@@ -199,11 +199,8 @@ export default function IntegrumPortal() {
       return
     }
 
-    console.log("[v0] Already authenticated, opening Gmail directly")
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=heyroy23415@gmail.com`
-
-    console.log("[v0] Opening Gmail URL:", gmailUrl)
-    window.open(gmailUrl, "_blank")
+    console.log("[v0] Already authenticated, redirecting to /submit-ticket page")
+    window.location.href = "/submit-ticket"
   }
 
   const handleReviewTickets = () => {
