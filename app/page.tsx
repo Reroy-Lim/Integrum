@@ -7,6 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Loader2, Mail, User } from "@/components/icons"
 import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, ChevronDown } from "lucide-react"
@@ -73,6 +83,7 @@ export default function IntegrumPortal() {
   const [showAcknowledgement, setShowAcknowledgement] = useState(false)
   const [showSecurityDialog, setShowSecurityDialog] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const mapStatusToCategory = (status: string): string => {
     if (!status || typeof status !== "string") {
@@ -326,6 +337,31 @@ export default function IntegrumPortal() {
     </Dialog>
   )
 
+  const renderLogoutConfirmDialog = () => (
+    <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+      <AlertDialogContent className="bg-white">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to logout? You will be redirected to the home page.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>No</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              setShowLogoutConfirm(false)
+              signOut()
+            }}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            Yes
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+
   const renderNavigation = () => (
     <nav className="flex items-center justify-between p-6 border-b border-border relative z-10">
       <div className="flex items-center space-x-8">
@@ -350,7 +386,7 @@ export default function IntegrumPortal() {
           <div className="flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span className="text-sm">{session.user.email}</span>
-            <Button variant="outline" size="sm" onClick={() => signOut()}>
+            <Button variant="outline" size="sm" onClick={() => setShowLogoutConfirm(true)}>
               Logout
             </Button>
           </div>
@@ -384,6 +420,7 @@ export default function IntegrumPortal() {
     <div className="min-h-screen bg-black relative">
       <SnowAnimation />
       {renderNavigation()}
+      {renderLogoutConfirmDialog()}
       {renderSecurityDialog()}
       {renderSuccessMessageDialog()}
       <GoogleSignInModal
@@ -511,6 +548,7 @@ export default function IntegrumPortal() {
       <div className="min-h-screen bg-black relative">
         <SnowAnimation />
         {renderNavigation()}
+        {renderLogoutConfirmDialog()}
         {renderSecurityDialog()}
 
         <section className="py-12 px-6 relative z-10">
@@ -640,6 +678,7 @@ export default function IntegrumPortal() {
       <div className="min-h-screen bg-black relative">
         <SnowAnimation />
         {renderNavigation()}
+        {renderLogoutConfirmDialog()}
         {renderSecurityDialog()}
 
         <section className="py-12 px-6 relative z-10">
@@ -774,6 +813,7 @@ export default function IntegrumPortal() {
     <div className="min-h-screen bg-black relative">
       <SnowAnimation />
       {renderNavigation()}
+      {renderLogoutConfirmDialog()}
       {renderSecurityDialog()}
 
       <section className="py-12 px-6 relative z-10">
