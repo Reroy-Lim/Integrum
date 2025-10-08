@@ -18,9 +18,8 @@ export default function SubmitTicketPage() {
       const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=heyroy23415@gmail.com`
       window.open(gmailUrl, "_blank")
 
-      console.log("[v0] Gmail opened, redirecting to home with success message")
-
-      router.push("/?ticketSent=true")
+      console.log("[v0] Gmail opened, redirecting to home")
+      router.push("/")
     } else if (status === "unauthenticated") {
       console.log("[v0] User not authenticated, redirecting to home")
       // If somehow they reached this page without authentication, redirect home
