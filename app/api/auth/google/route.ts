@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(request: Request) {
   try {
     const requestUrl = new URL(request.url)
@@ -12,11 +14,17 @@ export async function GET(request: Request) {
       hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
     })
 
+    const baseUrl = process.env.NEXTAUTH_URL?.trim()
+
+    if (!baseUrl) {
+      throw new Error("NEXTAUTH_URL is not configured")
+    }
+
     // Build Google OAuth URL
     const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth")
 
     googleAuthUrl.searchParams.append("client_id", process.env.GOOGLE_CLIENT_ID!)
-    googleAuthUrl.searchParams.append("redirect_uri", `${process.env.NEXTAUTH_URL}/api/auth/callback/google`)
+    googleAuthUrl.searchParams.append("redirect_uri", `${baseUrl}/api/auth/callback/google`)
     googleAuthUrl.searchParams.append("response_type", "code")
     googleAuthUrl.searchParams.append("scope", "openid email profile")
     googleAuthUrl.searchParams.append("access_type", "offline")

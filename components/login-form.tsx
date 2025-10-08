@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Chrome } from "lucide-react"
+import { Chrome } from "@/components/icons"
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)

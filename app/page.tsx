@@ -8,20 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import {
-  Loader2,
-  Mail,
-  Zap,
-  User,
-  Home,
-  FileText,
-  HelpCircle,
-  Phone,
-  Shield,
-  Key,
-  Lightbulb,
-  ChevronDown,
-} from "lucide-react"
+import { Loader2, Mail, User } from "@/components/icons"
+import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, ChevronDown } from "lucide-react"
 import { mockTickets, getTicketsByUser } from "@/lib/mock-tickets"
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
 import { GoogleSignInModal } from "@/components/google-signin-modal"

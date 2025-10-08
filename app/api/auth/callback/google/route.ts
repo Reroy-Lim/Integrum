@@ -1,22 +1,26 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const code = searchParams.get("code")
   const state = searchParams.get("state") || "/"
   const error = searchParams.get("error")
 
+  const baseUrl = process.env.NEXTAUTH_URL?.trim() || ""
+
   console.log("[v0] OAuth callback received:", { code: !!code, error, state })
 
   if (error) {
     console.error("[v0] OAuth error:", error)
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?error=${error}`)
+    return NextResponse.redirect(`${baseUrl}/?error=${error}`)
   }
 
   if (!code) {
     console.error("[v0] No authorization code received")
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?error=no_code`)
+    return NextResponse.redirect(`${baseUrl}/?error=no_code`)
   }
 
   try {
@@ -30,7 +34,7 @@ export async function GET(request: NextRequest) {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
+        redirect_uri: `${baseUrl}/api/auth/callback/google`,
         grant_type: "authorization_code",
       }),
     })
@@ -82,9 +86,9 @@ export async function GET(request: NextRequest) {
     console.log("[v0] Session created, redirecting to:", state)
 
     // Redirect to the original callback URL
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}${state}`)
+    return NextResponse.redirect(`${baseUrl}${state}`)
   } catch (error) {
     console.error("[v0] OAuth callback error:", error)
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?error=callback_failed`)
+    return NextResponse.redirect(`${baseUrl}/?error=callback_failed`)
   }
 }

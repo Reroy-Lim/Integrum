@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth-utils"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   try {
     const session = await getSession()
@@ -15,7 +17,7 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error("[v0] Session check error:", error)
+    console.error("[v0] Error getting session:", error)
     return NextResponse.json({ session: null })
   }
 }
