@@ -191,10 +191,12 @@ export default function IntegrumPortal() {
       return
     }
 
-    console.log("[v0] Already authenticated, opening Gmail flow dialog")
+    console.log("[v0] Already authenticated, opening Gmail directly")
     const ticketId = `KST-${Date.now()}`
-    setCurrentTicketId(ticketId)
-    setShowGmailFlow(true)
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=heyroy23415@gmail.com&su=${encodeURIComponent(`Support Request - ${ticketId}`)}&body=${encodeURIComponent(`Hello Integrum Support Team,\n\nI need assistance with the following issue:\n\n[Please describe your issue here]\n\nBest regards,\n${session?.user?.name || "Customer"}\n\n---\nTicket ID: ${ticketId}\nSubmitted: ${new Date().toLocaleString()}\nFrom: ${session?.user?.email}`)}`
+
+    console.log("[v0] Opening Gmail URL:", gmailUrl)
+    window.open(gmailUrl, "_blank")
   }
 
   const handleReviewTickets = () => {
