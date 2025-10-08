@@ -969,6 +969,7 @@ export default function IntegrumPortal() {
 
   const handleLogoutConfirm = () => {
     setShowLogoutConfirmation(false)
+    setCurrentView("home")
     toast({
       title: "Logged Out Successfully",
       description: "You have been logging out of Integrum Apps, and we hope to see you again!",
