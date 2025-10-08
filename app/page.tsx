@@ -138,6 +138,16 @@ export default function IntegrumPortal() {
     const timestamp = urlParams.get("timestamp")
     const processing = urlParams.get("processing")
 
+    if (window.location.pathname === "/submit-ticket" && isAuthenticated) {
+      console.log("[v0] Detected submit-ticket intent after OAuth, opening Gmail flow")
+      const ticketId = `KST-${Date.now()}`
+      setCurrentTicketId(ticketId)
+      setShowGmailFlow(true)
+      // Clean up URL
+      window.history.replaceState({}, "", "/")
+      return
+    }
+
     if (view === "yourTickets") {
       if (processing === "true" && ticket && timestamp) {
         console.log("[v0] Immediate redirect from Gmail submission, showing processing state")
@@ -167,18 +177,12 @@ export default function IntegrumPortal() {
 
   const handleSubmitTicket = () => {
     if (!isAuthenticated) {
-      setGoogleSignInType("submit")
-      setShowGoogleSignIn(true)
+      window.location.href = "/api/auth/google?callbackUrl=/submit-ticket"
       return
     }
 
-    window.open(
-      "https://accounts.google.com/AccountChooser?continue=" +
-        encodeURIComponent("https://mail.google.com/mail/?view=cm&to=heyroy23415@gmail.com"),
-      "_blank",
-    )
-
-    setCurrentTicketId(`KST-${Date.now()}`)
+    const ticketId = `KST-${Date.now()}`
+    setCurrentTicketId(ticketId)
     setShowGmailFlow(true)
   }
 
