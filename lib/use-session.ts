@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export interface User {
@@ -16,10 +16,27 @@ export interface Session {
 
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null)
-  const [status, setStatus] = useState<"loading" | "authenticated" | "unauthenticated">("unauthenticated")
+  const [status, setStatus] = useState<"loading" | "authenticated" | "unauthenticated">("loading")
   const router = useRouter()
 
-  // This ensures the page always shows "Login" button on initial load for demo purposes
+  useEffect(() => {
+    // Check session from cookie by making a request to a session endpoint
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.session) {
+          setSession(data.session)
+          setStatus("authenticated")
+        } else {
+          setSession(null)
+          setStatus("unauthenticated")
+        }
+      })
+      .catch(() => {
+        setSession(null)
+        setStatus("unauthenticated")
+      })
+  }, [])
 
   const signOut = async () => {
     await fetch("/api/auth/signout", { method: "POST" })
