@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     googleAuthUrl.searchParams.append("response_type", "code")
     googleAuthUrl.searchParams.append("scope", "openid email profile")
     googleAuthUrl.searchParams.append("access_type", "offline")
-    googleAuthUrl.searchParams.append("prompt", "select_account") // This ensures "Choose an Account" page appears
+    googleAuthUrl.searchParams.append("prompt", "consent")
     googleAuthUrl.searchParams.append("state", callbackUrl) // Store callback URL in state
 
     console.log("[v0] Redirecting to Google OAuth:", googleAuthUrl.toString())
