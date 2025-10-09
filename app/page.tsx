@@ -13,7 +13,7 @@ import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, Chevron
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
 import { GoogleSignInModal } from "@/components/google-signin-modal"
 import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog"
-import { EmailStatusDialog } from "@/components/email-status-dialog"
+import { EmailSuccessDialog } from "@/components/email-success-dialog"
 import { useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import type { JiraTicket } from "@/lib/jira-api"
@@ -76,10 +76,8 @@ export default function IntegrumPortal() {
   const [showGmailFlow, setShowGmailFlow] = useState(false)
   const [showAcknowledgement, setShowAcknowledgement] = useState(false)
   const [showSecurityDialog, setShowSecurityDialog] = useState(false)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false)
-  const [showEmailStatus, setShowEmailStatus] = useState(false)
-  const [emailStatus, setEmailStatus] = useState<"success" | "failure">("success")
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false) // Declared showSuccessMessage variable
 
   const [tickets, setTickets] = useState<JiraTicket[]>([])
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
@@ -227,7 +225,7 @@ export default function IntegrumPortal() {
     }
 
     if (view === "yourTickets") {
-      if (processing === "true" && ticket) {
+      if (processing === "true" && ticket && timestamp) {
         console.log("[v0] Immediate redirect from Gmail submission, showing processing state")
         setCurrentView("yourTickets")
         setTimeout(() => {
@@ -254,21 +252,23 @@ export default function IntegrumPortal() {
   }, [])
 
   useEffect(() => {
+    const emailNotSent = searchParams.get("emailNotSent")
     const ticketSent = searchParams.get("ticketSent")
-    if (ticketSent === "true") {
+
+    if (emailNotSent === "true") {
+      toast({
+        title: "Email Not Sent",
+        description:
+          "We have detected that you did not send the email. To have better assistance, please resend the email. Thank you!",
+        variant: "destructive",
+        duration: 5000,
+      })
+      window.history.replaceState({}, "", "/")
+    } else if (ticketSent === "true") {
       setShowSuccessMessage(true)
       window.history.replaceState({}, "", "/")
     }
-  }, [searchParams])
-
-  useEffect(() => {
-    const status = searchParams.get("emailStatus")
-    if (status === "success" || status === "failure") {
-      setEmailStatus(status)
-      setShowEmailStatus(true)
-      window.history.replaceState({}, "", "/")
-    }
-  }, [searchParams])
+  }, [searchParams, toast])
 
   const handleSubmitTicket = () => {
     console.log("[v0] Submit ticket clicked, authenticated:", isAuthenticated)
@@ -465,7 +465,7 @@ export default function IntegrumPortal() {
       <SnowAnimation />
       {renderNavigation()}
       {renderSecurityDialog()}
-      <EmailStatusDialog isOpen={showEmailStatus} onClose={() => setShowEmailStatus(false)} status={emailStatus} />
+      <EmailSuccessDialog isOpen={showSuccessMessage} onClose={() => setShowSuccessMessage(false)} />
       <LogoutConfirmationDialog
         isOpen={showLogoutConfirmation}
         onConfirm={handleLogoutConfirm}
@@ -757,7 +757,7 @@ export default function IntegrumPortal() {
         <SnowAnimation />
         {renderNavigation()}
         {renderSecurityDialog()}
-        <EmailStatusDialog isOpen={showEmailStatus} onClose={() => setShowEmailStatus(false)} status={emailStatus} />
+        <EmailSuccessDialog isOpen={showSuccessMessage} onClose={() => setShowSuccessMessage(false)} />
         <LogoutConfirmationDialog
           isOpen={showLogoutConfirmation}
           onConfirm={handleLogoutConfirm}
@@ -897,7 +897,7 @@ export default function IntegrumPortal() {
       <SnowAnimation />
       {renderNavigation()}
       {renderSecurityDialog()}
-      <EmailStatusDialog isOpen={showEmailStatus} onClose={() => setShowEmailStatus(false)} status={emailStatus} />
+      <EmailSuccessDialog isOpen={showSuccessMessage} onClose={() => setShowSuccessMessage(false)} />
       <LogoutConfirmationDialog
         isOpen={showLogoutConfirmation}
         onConfirm={handleLogoutConfirm}
@@ -992,11 +992,6 @@ export default function IntegrumPortal() {
     case "contact":
       return renderContact()
     default:
-      return (
-        <>
-          {renderHome()}
-          {renderSuccessMessageDialog()}
-        </>
-      )
+      return renderHome()
   }
 }
