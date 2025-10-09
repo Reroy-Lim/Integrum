@@ -1,40 +1,36 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
 
 export default function SubmitTicketPage() {
   const router = useRouter()
   const { status } = useSession()
-  const [isMonitoring, setIsMonitoring] = useState(false)
+  const monitoringRef = useRef(false)
 
   useEffect(() => {
     console.log("[v0] Submit ticket page loaded, status:", status)
 
-    if (status === "authenticated" && !isMonitoring) {
-      console.log("[v0] User authenticated, opening Gmail and monitoring window")
-      setIsMonitoring(true)
+    if (status === "authenticated" && !monitoringRef.current) {
+      console.log("[v0] User authenticated, opening Gmail")
+      monitoringRef.current = true
 
+      // Open Gmail with pre-filled recipient
       const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=heyroy23415@gmail.com`
       const gmailWindow = window.open(gmailUrl, "_blank")
 
-      if (!gmailWindow) {
-        console.log("[v0] Failed to open Gmail window (popup blocked?)")
-        router.push("/?emailNotSent=true")
-        return
-      }
-
-      console.log("[v0] Gmail window opened, starting monitoring")
+      console.log("[v0] Gmail opened, starting window monitoring")
 
       const checkInterval = setInterval(() => {
-        if (gmailWindow.closed) {
+        if (gmailWindow && gmailWindow.closed) {
           clearInterval(checkInterval)
-          console.log("[v0] Gmail window closed, showing 'Email Not Sent' message")
+          console.log("[v0] Gmail window closed, redirecting with emailNotSent flag")
           router.push("/?emailNotSent=true")
         }
-      }, 500) // Check every 500ms
+      }, 500)
 
+      // Cleanup interval if component unmounts
       return () => {
         clearInterval(checkInterval)
       }
@@ -42,7 +38,7 @@ export default function SubmitTicketPage() {
       console.log("[v0] User not authenticated, redirecting to home")
       router.push("/")
     }
-  }, [status, router, isMonitoring])
+  }, [status, router])
 
   return (
     <div className="flex items-center justify-center min-h-screen">

@@ -13,8 +13,6 @@ import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, Chevron
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
 import { GoogleSignInModal } from "@/components/google-signin-modal"
 import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog"
-import { EmailSuccessDialog } from "@/components/email-success-dialog"
-import { EmailNotSentToast } from "@/components/email-not-sent-toast"
 import { useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import type { JiraTicket } from "@/lib/jira-api"
@@ -77,11 +75,9 @@ export default function IntegrumPortal() {
   const [showGmailFlow, setShowGmailFlow] = useState(false)
   const [showAcknowledgement, setShowAcknowledgement] = useState(false)
   const [showSecurityDialog, setShowSecurityDialog] = useState(false)
-  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false)
-
-  const [showEmailSuccess, setShowEmailSuccess] = useState(false)
-  const [showEmailNotSent, setShowEmailNotSent] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false)
+  const [showEmailNotSent, setShowEmailNotSent] = useState(false)
 
   const [tickets, setTickets] = useState<JiraTicket[]>([])
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
@@ -229,7 +225,7 @@ export default function IntegrumPortal() {
     }
 
     if (view === "yourTickets") {
-      if (processing === "true" && ticket) {
+      if (processing === "true" && ticket && timestamp) {
         console.log("[v0] Immediate redirect from Gmail submission, showing processing state")
         setCurrentView("yourTickets")
         setTimeout(() => {
@@ -256,26 +252,22 @@ export default function IntegrumPortal() {
   }, [])
 
   useEffect(() => {
+    const emailNotSent = searchParams.get("emailNotSent")
     const ticketSent = searchParams.get("ticketSent")
-    if (ticketSent === "true") {
+
+    if (emailNotSent === "true") {
+      setShowEmailNotSent(true)
+      window.history.replaceState({}, "", "/")
+    } else if (ticketSent === "true") {
       setShowSuccessMessage(true)
       window.history.replaceState({}, "", "/")
     }
   }, [searchParams])
 
   useEffect(() => {
-    const emailSent = searchParams.get("emailSent")
-    const emailNotSent = searchParams.get("emailNotSent")
-
-    if (emailSent === "true") {
-      console.log("[v0] Email sent successfully, showing success dialog")
-      setShowEmailSuccess(true)
-      window.history.replaceState({}, "", "/")
-    }
-
-    if (emailNotSent === "true") {
-      console.log("[v0] Email not sent, showing warning toast")
-      setShowEmailNotSent(true)
+    const ticketSent = searchParams.get("ticketSent")
+    if (ticketSent === "true") {
+      setShowSuccessMessage(true)
       window.history.replaceState({}, "", "/")
     }
   }, [searchParams])
@@ -416,6 +408,39 @@ export default function IntegrumPortal() {
     </Dialog>
   )
 
+  const renderEmailNotSentBanner = () => {
+    if (!showEmailNotSent) return null
+
+    return (
+      <div className="fixed top-0 left-0 right-0 z-50 bg-red-600 text-white p-4 shadow-lg">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Email Not Sent</h3>
+            <p className="text-sm">
+              We have detected that you did not send the email. To have better assistance, please resend the email.
+              Thank you!
+            </p>
+          </div>
+          <button
+            onClick={() => setShowEmailNotSent(false)}
+            className="text-white hover:text-gray-200 transition-colors"
+            aria-label="Close"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   const renderNavigation = () => (
     <nav className="flex items-center justify-between p-6 border-b border-border relative z-10">
       <div className="flex items-center space-x-8">
@@ -473,10 +498,10 @@ export default function IntegrumPortal() {
   const renderHome = () => (
     <div className="min-h-screen bg-black relative">
       <SnowAnimation />
+      {renderEmailNotSentBanner()}
       {renderNavigation()}
       {renderSecurityDialog()}
-      <EmailSuccessDialog isOpen={showEmailSuccess} onClose={() => setShowEmailSuccess(false)} />
-      <EmailNotSentToast isOpen={showEmailNotSent} onClose={() => setShowEmailNotSent(false)} />
+      {renderSuccessMessageDialog()}
       <LogoutConfirmationDialog
         isOpen={showLogoutConfirmation}
         onConfirm={handleLogoutConfirm}
@@ -605,6 +630,7 @@ export default function IntegrumPortal() {
     return (
       <div className="min-h-screen bg-black relative">
         <SnowAnimation />
+        {renderEmailNotSentBanner()}
         {renderNavigation()}
         {renderSecurityDialog()}
         <LogoutConfirmationDialog
@@ -766,10 +792,10 @@ export default function IntegrumPortal() {
     return (
       <div className="min-h-screen bg-black relative">
         <SnowAnimation />
+        {renderEmailNotSentBanner()}
         {renderNavigation()}
         {renderSecurityDialog()}
-        <EmailSuccessDialog isOpen={showEmailSuccess} onClose={() => setShowEmailSuccess(false)} />
-        <EmailNotSentToast isOpen={showEmailNotSent} onClose={() => setShowEmailNotSent(false)} />
+        {renderSuccessMessageDialog()}
         <LogoutConfirmationDialog
           isOpen={showLogoutConfirmation}
           onConfirm={handleLogoutConfirm}
@@ -907,10 +933,9 @@ export default function IntegrumPortal() {
   const renderContact = () => (
     <div className="min-h-screen bg-black relative">
       <SnowAnimation />
+      {renderEmailNotSentBanner()}
       {renderNavigation()}
       {renderSecurityDialog()}
-      <EmailSuccessDialog isOpen={showEmailSuccess} onClose={() => setShowEmailSuccess(false)} />
-      <EmailNotSentToast isOpen={showEmailNotSent} onClose={() => setShowEmailNotSent(false)} />
       <LogoutConfirmationDialog
         isOpen={showLogoutConfirmation}
         onConfirm={handleLogoutConfirm}
@@ -1005,11 +1030,6 @@ export default function IntegrumPortal() {
     case "contact":
       return renderContact()
     default:
-      return (
-        <>
-          {renderHome()}
-          {renderSuccessMessageDialog()}
-        </>
-      )
+      return renderHome()
   }
 }
