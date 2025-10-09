@@ -224,7 +224,7 @@ export default function IntegrumPortal() {
     }
 
     if (view === "yourTickets") {
-      if (processing === "true" && ticket) {
+      if (processing === "true" && ticket && timestamp) {
         console.log("[v0] Immediate redirect from Gmail submission, showing processing state")
         setCurrentView("yourTickets")
         setTimeout(() => {
@@ -254,6 +254,18 @@ export default function IntegrumPortal() {
     const ticketSent = searchParams.get("ticketSent")
     if (ticketSent === "true") {
       setShowSuccessMessage(true)
+      window.history.replaceState({}, "", "/")
+    }
+
+    const emailNotSent = searchParams.get("emailNotSent")
+    if (emailNotSent === "true") {
+      toast({
+        title: "Email Not Sent",
+        description:
+          "We have detected that you did not send the email. To have better assistance, please resend the email. Thank you!",
+        variant: "destructive",
+        duration: 5000,
+      })
       window.history.replaceState({}, "", "/")
     }
   }, [searchParams, toast])
