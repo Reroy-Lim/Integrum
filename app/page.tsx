@@ -13,6 +13,7 @@ import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, Chevron
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
 import { GoogleSignInModal } from "@/components/google-signin-modal"
 import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog"
+import { EmailConfirmationDialog } from "@/components/email-confirmation-dialog"
 import { useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import type { JiraTicket } from "@/lib/jira-api"
@@ -78,6 +79,7 @@ export default function IntegrumPortal() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false)
   const [showEmailNotSent, setShowEmailNotSent] = useState(false)
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false)
 
   const [tickets, setTickets] = useState<JiraTicket[]>([])
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
@@ -255,6 +257,7 @@ export default function IntegrumPortal() {
     const emailSent = searchParams.get("emailSent")
     const emailNotSent = searchParams.get("emailNotSent")
     const emailError = searchParams.get("emailError")
+    const confirmEmail = searchParams.get("confirmEmail")
 
     if (emailSent === "true") {
       setShowSuccessMessage(true)
@@ -269,6 +272,9 @@ export default function IntegrumPortal() {
         variant: "destructive",
         duration: 5000,
       })
+      window.history.replaceState({}, "", "/")
+    } else if (confirmEmail === "true") {
+      setShowEmailConfirmation(true)
       window.history.replaceState({}, "", "/")
     }
   }, [searchParams, toast])
@@ -500,6 +506,16 @@ export default function IntegrumPortal() {
     }, 100)
   }
 
+  const handleEmailConfirmation = (sent: boolean) => {
+    setShowEmailConfirmation(false)
+
+    if (sent) {
+      setShowSuccessMessage(true)
+    } else {
+      setShowEmailNotSent(true)
+    }
+  }
+
   const renderHome = () => (
     <div className="min-h-screen bg-black relative">
       <SnowAnimation />
@@ -507,6 +523,7 @@ export default function IntegrumPortal() {
       {renderSecurityDialog()}
       {renderEmailNotSentDialog()}
       {renderSuccessMessageDialog()}
+      <EmailConfirmationDialog open={showEmailConfirmation} onConfirm={handleEmailConfirmation} />
       <LogoutConfirmationDialog
         isOpen={showLogoutConfirmation}
         onConfirm={() => {
