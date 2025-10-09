@@ -18,20 +18,9 @@ export async function GET(request: NextRequest) {
     }
 
     const jiraClient = new JiraApiClient(jiraConfig)
+    const tickets = await jiraClient.getTicketsByUser(userEmail)
 
-    const allTickets = await jiraClient.getAllProjectTickets()
-
-    const userTickets = allTickets.filter((ticket) => {
-      if (!ticket.description) return false
-
-      // Extract email from description (From: email@example.com)
-      const fromMatch = ticket.description.match(/From:\s*([^\s\n]+@[^\s\n]+)/i)
-      const customerEmail = fromMatch ? fromMatch[1].trim().toLowerCase() : null
-
-      return customerEmail === userEmail.toLowerCase()
-    })
-
-    return NextResponse.json({ tickets: userTickets })
+    return NextResponse.json({ tickets })
   } catch (error) {
     console.error("Error fetching JIRA tickets:", error)
     return NextResponse.json({ error: "Failed to fetch tickets" }, { status: 500 })
