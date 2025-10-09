@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     const jiraClient = new JiraApiClient(jiraConfig)
-    const tickets = await jiraClient.getTicketsByUser(userEmail)
+    const tickets = await jiraClient.getTicketsByUserEmail(userEmail)
 
     return NextResponse.json({ tickets })
   } catch (error) {

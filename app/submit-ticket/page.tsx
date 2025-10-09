@@ -19,12 +19,25 @@ export default function SubmitTicketPage() {
 
       if (gmailWindow) {
         console.log("[v0] Gmail window opened, starting monitoring")
+        const openTime = Date.now()
 
         const checkInterval = setInterval(() => {
           if (gmailWindow.closed) {
             clearInterval(checkInterval)
-            console.log("[v0] Gmail window closed, showing warning message")
-            router.push("/?emailNotSent=true")
+            const timeOpen = Date.now() - openTime
+            const secondsOpen = Math.floor(timeOpen / 1000)
+
+            console.log("[v0] Gmail window closed after", secondsOpen, "seconds")
+
+            if (secondsOpen < 10) {
+              // Closed very quickly - likely didn't send
+              console.log("[v0] Window closed quickly, assuming email not sent")
+              router.push("/?emailNotSent=true")
+            } else {
+              // Window was open long enough - likely sent email
+              console.log("[v0] Window was open for a while, assuming email sent")
+              router.push("/?emailSent=true")
+            }
           }
         }, 500) // Check every 500ms
       } else {
