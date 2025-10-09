@@ -77,6 +77,7 @@ export default function IntegrumPortal() {
   const [showSecurityDialog, setShowSecurityDialog] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false)
+  const [showEmailNotSent, setShowEmailNotSent] = useState(false)
 
   const [tickets, setTickets] = useState<JiraTicket[]>([])
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
@@ -251,6 +252,28 @@ export default function IntegrumPortal() {
   }, [])
 
   useEffect(() => {
+    const emailSent = searchParams.get("emailSent")
+    const emailNotSent = searchParams.get("emailNotSent")
+    const emailError = searchParams.get("emailError")
+
+    if (emailSent === "true") {
+      setShowSuccessMessage(true)
+      window.history.replaceState({}, "", "/")
+    } else if (emailNotSent === "true") {
+      setShowEmailNotSent(true)
+      window.history.replaceState({}, "", "/")
+    } else if (emailError === "true") {
+      toast({
+        title: "Error Opening Gmail",
+        description: "Failed to open Gmail. Please try again or check your popup blocker settings.",
+        variant: "destructive",
+        duration: 5000,
+      })
+      window.history.replaceState({}, "", "/")
+    }
+  }, [searchParams, toast])
+
+  useEffect(() => {
     const ticketSent = searchParams.get("ticketSent")
     if (ticketSent === "true") {
       setShowSuccessMessage(true)
@@ -363,6 +386,35 @@ export default function IntegrumPortal() {
     </Dialog>
   )
 
+  const renderEmailNotSentDialog = () => (
+    <Dialog open={showEmailNotSent} onOpenChange={setShowEmailNotSent}>
+      <DialogContent className="max-w-md w-full bg-red-900 border-red-700">
+        <DialogHeader className="space-y-4">
+          <DialogTitle className="text-xl font-semibold text-white">Email Not Sent</DialogTitle>
+        </DialogHeader>
+
+        <DialogDescription className="text-white space-y-4">
+          <p>
+            We have detected that you did not send the email. To have better assistance, please resend the email. Thank
+            you!
+          </p>
+        </DialogDescription>
+
+        <div className="flex justify-center mt-4">
+          <Button
+            onClick={() => {
+              setShowEmailNotSent(false)
+              handleSubmitTicket()
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Resend Email
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+
   const renderSuccessMessageDialog = () => (
     <Dialog open={showSuccessMessage} onOpenChange={setShowSuccessMessage}>
       <DialogContent className="max-w-md w-full bg-white">
@@ -386,7 +438,7 @@ export default function IntegrumPortal() {
         </DialogDescription>
 
         <div className="flex justify-center mt-4">
-          <Button onClick={() => setShowSuccessMessage(false)} className="bg-green-600 hover:bg-green-700 text-white">
+          <Button onClick={() => setShowSuccessMessage(false)} className="bg-blue-600 hover:bg-blue-700 text-white">
             Got it
           </Button>
         </div>
@@ -418,7 +470,7 @@ export default function IntegrumPortal() {
           <div className="flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span className="text-sm">{session.user.email}</span>
-            <Button variant="outline" size="sm" onClick={handleLogoutClick}>
+            <Button variant="outline" size="sm" onClick={() => setShowLogoutConfirmation(true)}>
               Logout
             </Button>
           </div>
@@ -453,11 +505,22 @@ export default function IntegrumPortal() {
       <SnowAnimation />
       {renderNavigation()}
       {renderSecurityDialog()}
+      {renderEmailNotSentDialog()}
       {renderSuccessMessageDialog()}
       <LogoutConfirmationDialog
         isOpen={showLogoutConfirmation}
-        onConfirm={handleLogoutConfirm}
-        onCancel={handleLogoutCancel}
+        onConfirm={() => {
+          setShowLogoutConfirmation(false)
+          toast({
+            title: "Logged Out Successfully",
+            description: "You have been logging out of Integrum Apps, and we hope to see you again!",
+            duration: 3000,
+          })
+          setTimeout(() => {
+            signOut()
+          }, 500)
+        }}
+        onCancel={() => setShowLogoutConfirmation(false)}
       />
       <GoogleSignInModal
         isOpen={showGoogleSignIn}
@@ -584,10 +647,22 @@ export default function IntegrumPortal() {
         <SnowAnimation />
         {renderNavigation()}
         {renderSecurityDialog()}
+        {renderEmailNotSentDialog()}
+        {renderSuccessMessageDialog()}
         <LogoutConfirmationDialog
           isOpen={showLogoutConfirmation}
-          onConfirm={handleLogoutConfirm}
-          onCancel={handleLogoutCancel}
+          onConfirm={() => {
+            setShowLogoutConfirmation(false)
+            toast({
+              title: "Logged Out Successfully",
+              description: "You have been logging out of Integrum Apps, and we hope to see you again!",
+              duration: 3000,
+            })
+            setTimeout(() => {
+              signOut()
+            }, 500)
+          }}
+          onCancel={() => setShowLogoutConfirmation(false)}
         />
 
         <section className="py-12 px-6 relative z-10">
@@ -745,11 +820,22 @@ export default function IntegrumPortal() {
         <SnowAnimation />
         {renderNavigation()}
         {renderSecurityDialog()}
+        {renderEmailNotSentDialog()}
         {renderSuccessMessageDialog()}
         <LogoutConfirmationDialog
           isOpen={showLogoutConfirmation}
-          onConfirm={handleLogoutConfirm}
-          onCancel={handleLogoutCancel}
+          onConfirm={() => {
+            setShowLogoutConfirmation(false)
+            toast({
+              title: "Logged Out Successfully",
+              description: "You have been logging out of Integrum Apps, and we hope to see you again!",
+              duration: 3000,
+            })
+            setTimeout(() => {
+              signOut()
+            }, 500)
+          }}
+          onCancel={() => setShowLogoutConfirmation(false)}
         />
 
         <section className="py-12 px-6 relative z-10">
@@ -887,8 +973,18 @@ export default function IntegrumPortal() {
       {renderSecurityDialog()}
       <LogoutConfirmationDialog
         isOpen={showLogoutConfirmation}
-        onConfirm={handleLogoutConfirm}
-        onCancel={handleLogoutCancel}
+        onConfirm={() => {
+          setShowLogoutConfirmation(false)
+          toast({
+            title: "Logged Out Successfully",
+            description: "You have been logging out of Integrum Apps, and we hope to see you again!",
+            duration: 3000,
+          })
+          setTimeout(() => {
+            signOut()
+          }, 500)
+        }}
+        onCancel={() => setShowLogoutConfirmation(false)}
       />
 
       <section className="py-12 px-6 relative z-10">
@@ -950,26 +1046,6 @@ export default function IntegrumPortal() {
       </section>
     </div>
   )
-
-  const handleLogoutClick = () => {
-    setShowLogoutConfirmation(true)
-  }
-
-  const handleLogoutConfirm = () => {
-    setShowLogoutConfirmation(false)
-    toast({
-      title: "Logged Out Successfully",
-      description: "You have been logging out of Integrum Apps, and we hope to see you again!",
-      duration: 3000,
-    })
-    setTimeout(() => {
-      signOut()
-    }, 500)
-  }
-
-  const handleLogoutCancel = () => {
-    setShowLogoutConfirmation(false)
-  }
 
   switch (currentView) {
     case "yourTickets":
