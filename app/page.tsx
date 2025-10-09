@@ -256,19 +256,7 @@ export default function IntegrumPortal() {
       setShowSuccessMessage(true)
       window.history.replaceState({}, "", "/")
     }
-
-    const emailNotSent = searchParams.get("emailNotSent")
-    if (emailNotSent === "true") {
-      toast({
-        title: "Email Not Sent",
-        description:
-          "We have detected that you did not send the email. To have better assistance, please resend the email. Thank you!",
-        variant: "destructive",
-        duration: 5000,
-      })
-      window.history.replaceState({}, "", "/")
-    }
-  }, [searchParams, toast])
+  }, [searchParams])
 
   const handleSubmitTicket = () => {
     console.log("[v0] Submit ticket clicked, authenticated:", isAuthenticated)
