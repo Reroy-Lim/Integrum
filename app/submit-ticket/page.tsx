@@ -15,10 +15,23 @@ export default function SubmitTicketPage() {
       console.log("[v0] User authenticated, opening Gmail")
 
       const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=heyroy23415@gmail.com`
-      window.open(gmailUrl, "_blank")
+      const gmailWindow = window.open(gmailUrl, "_blank")
 
-      console.log("[v0] Gmail opened, redirecting to home")
-      router.push("/")
+      if (gmailWindow) {
+        console.log("[v0] Gmail window opened, starting monitoring")
+
+        const checkInterval = setInterval(() => {
+          if (gmailWindow.closed) {
+            clearInterval(checkInterval)
+            console.log("[v0] Gmail window closed, showing warning message")
+            router.push("/?emailNotSent=true")
+          }
+        }, 500) // Check every 500ms
+      } else {
+        // If popup was blocked, show error
+        console.log("[v0] Failed to open Gmail window (popup blocked?)")
+        router.push("/?emailNotSent=true")
+      }
     } else if (status === "unauthenticated") {
       console.log("[v0] User not authenticated, redirecting to home")
       router.push("/")
