@@ -13,7 +13,6 @@ import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, Chevron
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
 import { GoogleSignInModal } from "@/components/google-signin-modal"
 import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog"
-import { EmailStatusDialog } from "@/components/email-status-dialog"
 import { useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import type { JiraTicket } from "@/lib/jira-api"
@@ -76,10 +75,8 @@ export default function IntegrumPortal() {
   const [showGmailFlow, setShowGmailFlow] = useState(false)
   const [showAcknowledgement, setShowAcknowledgement] = useState(false)
   const [showSecurityDialog, setShowSecurityDialog] = useState(false)
-  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false)
-  const [showEmailStatus, setShowEmailStatus] = useState(false)
-  const [emailStatus, setEmailStatus] = useState<"success" | "failure">("success")
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false)
 
   const [tickets, setTickets] = useState<JiraTicket[]>([])
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
@@ -227,7 +224,7 @@ export default function IntegrumPortal() {
     }
 
     if (view === "yourTickets") {
-      if (processing === "true" && ticket) {
+      if (processing === "true" && ticket && timestamp) {
         console.log("[v0] Immediate redirect from Gmail submission, showing processing state")
         setCurrentView("yourTickets")
         setTimeout(() => {
@@ -257,15 +254,6 @@ export default function IntegrumPortal() {
     const ticketSent = searchParams.get("ticketSent")
     if (ticketSent === "true") {
       setShowSuccessMessage(true)
-      window.history.replaceState({}, "", "/")
-    }
-  }, [searchParams])
-
-  useEffect(() => {
-    const emailStatusParam = searchParams.get("emailStatus")
-    if (emailStatusParam === "success" || emailStatusParam === "failure") {
-      setEmailStatus(emailStatusParam)
-      setShowEmailStatus(true)
       window.history.replaceState({}, "", "/")
     }
   }, [searchParams])
@@ -430,7 +418,7 @@ export default function IntegrumPortal() {
           <div className="flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span className="text-sm">{session.user.email}</span>
-            <Button variant="outline" size="sm" onClick={() => setShowLogoutConfirmation(true)}>
+            <Button variant="outline" size="sm" onClick={handleLogoutClick}>
               Logout
             </Button>
           </div>
@@ -460,141 +448,107 @@ export default function IntegrumPortal() {
     }, 100)
   }
 
-  const renderHome = () => {
-    const emailSubject = `Support Request - ${currentTicketId}`
-    const emailBody = `Hello Integrum Support Team,
+  const renderHome = () => (
+    <div className="min-h-screen bg-black relative">
+      <SnowAnimation />
+      {renderNavigation()}
+      {renderSecurityDialog()}
+      {renderSuccessMessageDialog()}
+      <LogoutConfirmationDialog
+        isOpen={showLogoutConfirmation}
+        onConfirm={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
+      />
+      <GoogleSignInModal
+        isOpen={showGoogleSignIn}
+        onClose={() => setShowGoogleSignIn(false)}
+        onContinue={handleGoogleSignInContinue}
+        type={googleSignInType}
+        onNavigateToFAQ={handleNavigateToFAQ}
+      />
+      <GmailFlowDialog
+        isOpen={showGmailFlow}
+        onClose={() => setShowGmailFlow(false)}
+        ticketId={currentTicketId}
+        customerEmail={session?.user?.email || ""}
+        gmailComposeUrl={`https://mail.google.com/mail/?view=cm&to=heyroy23415@gmail.com&su=${encodeURIComponent(`Support Request - ${currentTicketId}`)}&body=${encodeURIComponent(`Hello Integrum Support Team,\n\nI need assistance with the following issue:\n\n[Please describe your issue here]\n\nBest regards,\n${session?.user?.name || "Customer"}\n\n---\nTicket ID: ${currentTicketId}\nSubmitted: ${new Date().toLocaleString()}\nFrom: ${session?.user?.email}`)}`}
+      />
 
-I need assistance with the following issue:
-
-[Please describe your issue here]
-
-Best regards,
-${session?.user?.name || "Customer"}
-
----
-Ticket ID: ${currentTicketId}
-Submitted: ${new Date().toLocaleString()}
-From: ${session?.user?.email}`
-
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=heyroy23415@gmail.com&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-
-    return (
-      <div className="min-h-screen bg-black relative">
-        <SnowAnimation />
-        {renderNavigation()}
-        {renderSecurityDialog()}
-        <LogoutConfirmationDialog
-          isOpen={showLogoutConfirmation}
-          onConfirm={() => {
-            setShowLogoutConfirmation(false)
-            toast({
-              title: "Logged Out Successfully",
-              description: "You have been logging out of Integrum Apps, and we hope to see you again!",
-              duration: 3000,
-            })
-            setTimeout(() => {
-              signOut()
-            }, 500)
-          }}
-          onCancel={() => setShowLogoutConfirmation(false)}
-        />
-        <EmailStatusDialog isOpen={showEmailStatus} onClose={() => setShowEmailStatus(false)} status={emailStatus} />
-        <GoogleSignInModal
-          isOpen={showGoogleSignIn}
-          onClose={() => setShowGoogleSignIn(false)}
-          onContinue={handleGoogleSignInContinue}
-          type={googleSignInType}
-          onNavigateToFAQ={handleNavigateToFAQ}
-        />
-        <GmailFlowDialog
-          isOpen={showGmailFlow}
-          onClose={() => setShowGmailFlow(false)}
-          ticketId={currentTicketId}
-          customerEmail={session?.user?.email || ""}
-          gmailComposeUrl={gmailUrl}
-        />
-
-        <section className="py-20 px-6 text-center relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex justify-center mb-6">
-              <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Je1f9KLkJAwxxFIK6cG70qgyG818nw.png"
-                alt="Integrum Logo"
-                className="w-32 h-32"
-              />
-            </div>
-            <p className="text-primary text-sm font-medium mb-4">AI-Powered Ticket Management System</p>
-            <h1 className="text-5xl font-bold mb-6 text-balance">
-              <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-pulse">
-                Transform Your
-              </span>{" "}
-              <span className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-pulse">
-                Support Workflow
-              </span>
-            </h1>
-            <p className="text-xl mb-12 text-pretty bg-gradient-to-r from-cyan-400 via-yellow-400 to-pink-400 bg-clip-text text-transparent font-medium animate-pulse">
-              Submit tickets seamlessly, get AI-powered insights, and track progress with our intelligent ticket
-              management platform.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-              <Button
-                size="lg"
-                onClick={handleSubmitTicket}
-                disabled={isLoading}
-                className="flex items-center space-x-2"
-              >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                <span>Submit a Ticket</span>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={handleReviewTickets}
-                disabled={isLoading}
-                className="flex items-center space-x-2 bg-green-600 text-white border-green-600 hover:bg-green-700"
-              >
-                <FileText className="w-4 h-4" />
-                <span>Review Tickets</span>
-              </Button>
-            </div>
-
-            <p className="text-sm text-gray-400 mb-16">
-              Not sure who to send the emails to?{" "}
-              <button onClick={() => setCurrentView("faq")} className="text-blue-400 hover:text-blue-300 underline">
-                Check out our FAQ
-              </button>
-            </p>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-orange-400 border-red-500 border-4">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-bold text-black mb-2 animate-pulse">99.9%</div>
-                  <div className="text-xl text-black font-medium animate-pulse">Uptime Reliability</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-yellow-300 border-blue-500 border-4">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-bold text-black mb-2 animate-pulse">&lt; 5min</div>
-                  <div className="text-lg text-black font-medium animate-pulse">
-                    Average Solution time Replied by AI Solution
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-purple-600 border-pink-400 border-4">
-                <CardContent className="p-6 text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <Zap className="w-12 h-12 text-white animate-pulse" />
-                  </div>
-                  <div className="text-lg text-white font-medium animate-pulse">AI-Powered Smart Insights</div>
-                </CardContent>
-              </Card>
-            </div>
+      <section className="py-20 px-6 text-center relative z-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-center mb-6">
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Je1f9KLkJAwxxFIK6cG70qgyG818nw.png"
+              alt="Integrum Logo"
+              className="w-32 h-32"
+            />
           </div>
-        </section>
-      </div>
-    )
-  }
+          <p className="text-primary text-sm font-medium mb-4">AI-Powered Ticket Management System</p>
+          <h1 className="text-5xl font-bold mb-6 text-balance">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-pulse">
+              Transform Your
+            </span>{" "}
+            <span className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-pulse">
+              Support Workflow
+            </span>
+          </h1>
+          <p className="text-xl mb-12 text-pretty bg-gradient-to-r from-cyan-400 via-yellow-400 to-pink-400 bg-clip-text text-transparent font-medium animate-pulse">
+            Submit tickets seamlessly, get AI-powered insights, and track progress with our intelligent ticket
+            management platform.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
+            <Button size="lg" onClick={handleSubmitTicket} disabled={isLoading} className="flex items-center space-x-2">
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+              <span>Submit a Ticket</span>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleReviewTickets}
+              disabled={isLoading}
+              className="flex items-center space-x-2 bg-green-600 text-white border-green-600 hover:bg-green-700"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Review Tickets</span>
+            </Button>
+          </div>
+
+          <p className="text-sm text-gray-400 mb-16">
+            Not sure who to send the emails to?{" "}
+            <button onClick={() => setCurrentView("faq")} className="text-blue-400 hover:text-blue-300 underline">
+              Check out our FAQ
+            </button>
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="bg-orange-400 border-red-500 border-4">
+              <CardContent className="p-6 text-center">
+                <div className="text-4xl font-bold text-black mb-2 animate-pulse">99.9%</div>
+                <div className="text-xl text-black font-medium animate-pulse">Uptime Reliability</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-yellow-300 border-blue-500 border-4">
+              <CardContent className="p-6 text-center">
+                <div className="text-4xl font-bold text-black mb-2 animate-pulse">&lt; 5min</div>
+                <div className="text-lg text-black font-medium animate-pulse">
+                  Average Solution time Replied by AI Solution
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-purple-600 border-pink-400 border-4">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Zap className="w-12 h-12 text-white animate-pulse" />
+                </div>
+                <div className="text-lg text-white font-medium animate-pulse">AI-Powered Smart Insights</div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
 
   const renderYourTickets = () => {
     const userTickets: JiraTicket[] = tickets
@@ -632,18 +586,8 @@ From: ${session?.user?.email}`
         {renderSecurityDialog()}
         <LogoutConfirmationDialog
           isOpen={showLogoutConfirmation}
-          onConfirm={() => {
-            setShowLogoutConfirmation(false)
-            toast({
-              title: "Logged Out Successfully",
-              description: "You have been logging out of Integrum Apps, and we hope to see you again!",
-              duration: 3000,
-            })
-            setTimeout(() => {
-              signOut()
-            }, 500)
-          }}
-          onCancel={() => setShowLogoutConfirmation(false)}
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
         />
 
         <section className="py-12 px-6 relative z-10">
@@ -801,20 +745,11 @@ From: ${session?.user?.email}`
         <SnowAnimation />
         {renderNavigation()}
         {renderSecurityDialog()}
+        {renderSuccessMessageDialog()}
         <LogoutConfirmationDialog
           isOpen={showLogoutConfirmation}
-          onConfirm={() => {
-            setShowLogoutConfirmation(false)
-            toast({
-              title: "Logged Out Successfully",
-              description: "You have been logging out of Integrum Apps, and we hope to see you again!",
-              duration: 3000,
-            })
-            setTimeout(() => {
-              signOut()
-            }, 500)
-          }}
-          onCancel={() => setShowLogoutConfirmation(false)}
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
         />
 
         <section className="py-12 px-6 relative z-10">
@@ -952,18 +887,8 @@ From: ${session?.user?.email}`
       {renderSecurityDialog()}
       <LogoutConfirmationDialog
         isOpen={showLogoutConfirmation}
-        onConfirm={() => {
-          setShowLogoutConfirmation(false)
-          toast({
-            title: "Logged Out Successfully",
-            description: "You have been logging out of Integrum Apps, and we hope to see you again!",
-            duration: 3000,
-          })
-          setTimeout(() => {
-            signOut()
-          }, 500)
-        }}
-        onCancel={() => setShowLogoutConfirmation(false)}
+        onConfirm={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
       />
 
       <section className="py-12 px-6 relative z-10">
@@ -1025,6 +950,26 @@ From: ${session?.user?.email}`
       </section>
     </div>
   )
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirmation(true)
+  }
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirmation(false)
+    toast({
+      title: "Logged Out Successfully",
+      description: "You have been logging out of Integrum Apps, and we hope to see you again!",
+      duration: 3000,
+    })
+    setTimeout(() => {
+      signOut()
+    }, 500)
+  }
+
+  const handleLogoutCancel = () => {
+    setShowLogoutConfirmation(false)
+  }
 
   switch (currentView) {
     case "yourTickets":
