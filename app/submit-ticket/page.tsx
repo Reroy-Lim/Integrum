@@ -1,36 +1,31 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
 
 export default function SubmitTicketPage() {
   const router = useRouter()
   const { status } = useSession()
-  const monitoringRef = useRef(false)
 
   useEffect(() => {
     console.log("[v0] Submit ticket page loaded, status:", status)
 
-    if (status === "authenticated" && !monitoringRef.current) {
+    if (status === "authenticated") {
       console.log("[v0] User authenticated, opening Gmail")
-      monitoringRef.current = true
 
-      // Open Gmail with pre-filled recipient
       const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=heyroy23415@gmail.com`
       const gmailWindow = window.open(gmailUrl, "_blank")
-
-      console.log("[v0] Gmail opened, starting window monitoring")
 
       const checkInterval = setInterval(() => {
         if (gmailWindow && gmailWindow.closed) {
           clearInterval(checkInterval)
-          console.log("[v0] Gmail window closed, redirecting with emailNotSent flag")
+          console.log("[v0] Gmail window closed, showing email not sent message")
           router.push("/?emailNotSent=true")
         }
-      }, 500)
+      }, 500) // Check every 500ms
 
-      // Cleanup interval if component unmounts
+      // Cleanup on unmount
       return () => {
         clearInterval(checkInterval)
       }
