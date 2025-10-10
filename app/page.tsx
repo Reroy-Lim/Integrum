@@ -264,7 +264,6 @@ export default function IntegrumPortal() {
         description:
           "We have detected that you did not send the email. To have better assistance, please resend the email. Thank you!",
         duration: 5000,
-        position: "bottom-right", // Updated toast to show at bottom-right position
       })
       window.history.replaceState({}, "", "/")
     }
