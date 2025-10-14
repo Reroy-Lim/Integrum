@@ -22,8 +22,41 @@ export function useSession() {
   useEffect(() => {
     console.log("[v0] useSession: Starting session check")
 
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search)
+      const sessionParam = urlParams.get("session")
+
+      if (sessionParam) {
+        console.log("[v0] useSession: Found session in URL query parameter")
+        try {
+          const sessionData = JSON.parse(atob(decodeURIComponent(sessionParam)))
+          console.log("[v0] useSession: Parsed session from query:", {
+            email: sessionData.user?.email,
+            expiresAt: sessionData.expiresAt,
+            hasUser: !!sessionData.user,
+          })
+
+          // Store in localStorage for persistence
+          localStorage.setItem("integrum_session", JSON.stringify(sessionData))
+          console.log("[v0] useSession: Stored session in localStorage")
+
+          // Clear query parameter from URL
+          const newUrl = new URL(window.location.href)
+          newUrl.searchParams.delete("session")
+          window.history.replaceState(null, "", newUrl.pathname + newUrl.search)
+
+          setSession({ user: sessionData.user })
+          setStatus("authenticated")
+          console.log("[v0] useSession: Session loaded from URL query:", sessionData.user.email)
+          return
+        } catch (error) {
+          console.error("[v0] useSession: Failed to parse session from query:", error)
+        }
+      }
+    }
+
     if (typeof window !== "undefined" && window.location.hash.includes("session=")) {
-      console.log("[v0] useSession: Found session in URL hash")
+      console.log("[v0] useSession: Found session in URL hash (fallback)")
       try {
         const hashParams = new URLSearchParams(window.location.hash.substring(1))
         const sessionParam = hashParams.get("session")

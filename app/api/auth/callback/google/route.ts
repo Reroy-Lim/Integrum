@@ -74,7 +74,10 @@ export async function GET(request: NextRequest) {
     }
 
     const sessionParam = encodeURIComponent(btoa(JSON.stringify(sessionData)))
-    const response = NextResponse.redirect(`${baseUrl}${state}#session=${sessionParam}`)
+    const redirectUrl = new URL(`${baseUrl}${state}`)
+    redirectUrl.searchParams.set("session", sessionParam)
+
+    const response = NextResponse.redirect(redirectUrl.toString())
 
     // Still set cookie as fallback
     response.cookies.set("session", JSON.stringify(sessionData), {
@@ -85,7 +88,7 @@ export async function GET(request: NextRequest) {
       path: "/",
     })
 
-    console.log("[v0] Session data prepared, redirecting with hash")
+    console.log("[v0] Session data prepared, redirecting with query parameter")
     return response
   } catch (error) {
     console.error("[v0] OAuth callback error:", error)
