@@ -77,59 +77,78 @@ export class JiraApiClient {
 
       console.log("[v0] Jira API: Fetching tickets for user:", userEmail)
       console.log("[v0] Jira API: Is master account:", isMasterAccount)
+      console.log("[v0] Jira API: Base URL:", this.config.baseUrl)
+      console.log("[v0] Jira API: Project Key:", this.config.projectKey)
 
-      // Fetch all tickets from the project
       const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
-      const response = await fetch(`${this.config.baseUrl}/rest/api/3/search`, {
-        method: "POST",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify({
-          jql,
-          maxResults: 100,
-          fields: [
-            "summary",
-            "status",
-            "created",
-            "updated",
-            "assignee",
-            "reporter",
-            "description",
-            "priority",
-            "issuetype",
-          ],
-        }),
+      const params = new URLSearchParams({
+        jql,
+        maxResults: "100",
+        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype",
       })
 
+      // Ensure baseUrl doesn't have trailing slash
+      const baseUrl = this.config.baseUrl.replace(/\/$/, "")
+      const requestUrl = `${baseUrl}/rest/api/3/search?${params.toString()}`
+      console.log("[v0] Jira API: Request URL:", requestUrl)
+
+      const response = await fetch(requestUrl, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      })
+
+      console.log("[v0] Jira API: Response status:", response.status, response.statusText)
+
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error("[v0] Jira API: Error response body:", errorText)
         throw new Error(`Failed to fetch tickets: ${response.statusText}`)
       }
 
       const data = await response.json()
-      console.log("[v0] Jira API: Total tickets fetched:", data.issues.length)
+      console.log("[v0] Jira API: Total tickets fetched:", data.issues?.length || 0)
+
+      if (data.issues && data.issues.length > 0) {
+        console.log("[v0] Jira API: First ticket sample:", {
+          key: data.issues[0].key,
+          summary: data.issues[0].fields.summary,
+          descriptionType: typeof data.issues[0].fields.description,
+        })
+      }
 
       const allTickets = data.issues.map((issue: any) => this.transformJiraIssue(issue))
 
       // If master account, return all tickets
       if (isMasterAccount) {
-        console.log("[v0] Jira API: Master account - returning all tickets")
+        console.log("[v0] Jira API: Master account - returning all", allTickets.length, "tickets")
         return allTickets
       }
 
       // For other users, filter by "From: [email]" in description
+      console.log("[v0] Jira API: Filtering tickets for non-master account:", userEmail)
       const filteredTickets = allTickets.filter((ticket) => {
         const description = ticket.description || ""
+        console.log("[v0] Jira API: Ticket", ticket.key, "description length:", description.length)
+        console.log("[v0] Jira API: Ticket", ticket.key, "description preview:", description.substring(0, 200))
+
         const fromMatch = description.match(/From:\s*([^\s\n]+@[^\s\n]+)/i)
         const ticketOwnerEmail = fromMatch ? fromMatch[1].toLowerCase() : null
 
         console.log("[v0] Jira API: Ticket", ticket.key, "owner email:", ticketOwnerEmail)
+        console.log("[v0] Jira API: Ticket", ticket.key, "matches user:", ticketOwnerEmail === userEmail.toLowerCase())
 
         return ticketOwnerEmail === userEmail.toLowerCase()
       })
 
       console.log("[v0] Jira API: Filtered tickets for", userEmail, ":", filteredTickets.length)
+      console.log("[v0] Jira API: Filtered ticket keys:", filteredTickets.map((t) => t.key).join(", "))
       return filteredTickets
     } catch (error) {
-      console.error("Error fetching JIRA tickets:", error)
+      console.error("[v0] Jira API: Error fetching tickets:", error)
+      if (error instanceof Error) {
+        console.error("[v0] Jira API: Error message:", error.message)
+        console.error("[v0] Jira API: Error stack:", error.stack)
+      }
       return []
     }
   }
@@ -137,24 +156,16 @@ export class JiraApiClient {
   async getLatestTicketByUser(userEmail: string): Promise<JiraTicket | null> {
     try {
       const jql = `reporter = "${userEmail}" OR assignee = "${userEmail}" ORDER BY updated DESC`
-      const response = await fetch(`${this.config.baseUrl}/rest/api/3/search`, {
-        method: "POST",
+      const params = new URLSearchParams({
+        jql,
+        maxResults: "1",
+        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype",
+      })
+
+      const baseUrl = this.config.baseUrl.replace(/\/$/, "")
+      const response = await fetch(`${baseUrl}/rest/api/3/search?${params.toString()}`, {
+        method: "GET",
         headers: this.getAuthHeaders(),
-        body: JSON.stringify({
-          jql,
-          maxResults: 1, // Only get the latest ticket
-          fields: [
-            "summary",
-            "status",
-            "created",
-            "updated",
-            "assignee",
-            "reporter",
-            "description",
-            "priority",
-            "issuetype",
-          ],
-        }),
       })
 
       if (!response.ok) {
@@ -178,6 +189,7 @@ export class JiraApiClient {
       } else if (issue.fields.description.content) {
         // Handle Atlassian Document Format (ADF)
         description = this.extractTextFromADF(issue.fields.description)
+        console.log("[v0] Jira API: Extracted description from ADF for", issue.key, "length:", description.length)
       }
     }
 
