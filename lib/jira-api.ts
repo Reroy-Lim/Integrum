@@ -142,8 +142,16 @@ export class JiraApiClient {
 
   async getAllTickets(): Promise<JiraTicket[]> {
     try {
-      const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
-      const response = await fetch(`${this.config.baseUrl}/rest/api/3/search`, {
+      console.log("[v0] JiraApiClient: Fetching all tickets from project:", this.config.projectKey)
+      console.log("[v0] JiraApiClient: Base URL:", this.config.baseUrl)
+
+      const jql = `project = "${this.config.projectKey}" ORDER BY created DESC`
+      console.log("[v0] JiraApiClient: JQL query:", jql)
+
+      const url = `${this.config.baseUrl}/rest/api/3/search`
+      console.log("[v0] JiraApiClient: Request URL:", url)
+
+      const response = await fetch(url, {
         method: "POST",
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
@@ -163,15 +171,30 @@ export class JiraApiClient {
         }),
       })
 
+      console.log("[v0] JiraApiClient: Response status:", response.status)
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch all tickets: ${response.statusText}`)
+        const errorText = await response.text()
+        console.error("[v0] JiraApiClient: Error response:", errorText)
+        throw new Error(`Failed to fetch all tickets: ${response.status} ${response.statusText} - ${errorText}`)
       }
 
       const data = await response.json()
+      console.log("[v0] JiraApiClient: Found", data.total, "total tickets")
+      console.log("[v0] JiraApiClient: Returned", data.issues?.length || 0, "tickets")
+
+      if (data.issues && data.issues.length > 0) {
+        console.log("[v0] JiraApiClient: Sample ticket:", {
+          key: data.issues[0].key,
+          summary: data.issues[0].fields.summary,
+          status: data.issues[0].fields.status.name,
+        })
+      }
+
       return data.issues.map((issue: any) => this.transformJiraIssue(issue))
     } catch (error) {
-      console.error("Error fetching all JIRA tickets:", error)
-      return []
+      console.error("[v0] JiraApiClient: Error fetching all tickets:", error)
+      throw error
     }
   }
 
