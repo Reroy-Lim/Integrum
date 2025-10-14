@@ -87,6 +87,7 @@ export default function IntegrumPortal() {
   useEffect(() => {
     const fetchTickets = async () => {
       if (!userEmail) {
+        console.log("[v0] No user email, skipping ticket fetch")
         setTickets([])
         return
       }
@@ -98,12 +99,25 @@ export default function IntegrumPortal() {
         console.log("[v0] Fetching tickets for user:", userEmail)
         const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}`)
 
+        console.log("[v0] Jira API response status:", response.status)
+
         if (!response.ok) {
-          throw new Error(`Failed to fetch tickets: ${response.statusText}`)
+          const errorData = await response.json()
+          console.error("[v0] Jira API error response:", errorData)
+          throw new Error(errorData.details || `Failed to fetch tickets: ${response.statusText}`)
         }
 
         const data = await response.json()
         console.log("[v0] Fetched tickets:", data.tickets?.length || 0)
+
+        if (data.tickets && data.tickets.length > 0) {
+          console.log("[v0] First ticket sample:", {
+            key: data.tickets[0].key,
+            summary: data.tickets[0].summary,
+            status: data.tickets[0].status.name,
+          })
+        }
+
         setTickets(data.tickets || [])
       } catch (error) {
         console.error("[v0] Error fetching tickets:", error)
@@ -224,7 +238,7 @@ export default function IntegrumPortal() {
     }
 
     if (view === "yourTickets") {
-      if (processing === "true" && ticket) {
+      if (processing === "true" && ticket && timestamp) {
         console.log("[v0] Immediate redirect from Gmail submission, showing processing state")
         setCurrentView("yourTickets")
         setTimeout(() => {
@@ -253,29 +267,6 @@ export default function IntegrumPortal() {
   useEffect(() => {
     const ticketSent = searchParams.get("ticketSent")
     if (ticketSent === "true") {
-      // Don't show success message automatically
-      // Success will be shown only when email is actually received by the system
-      window.history.replaceState({}, "", "/")
-    }
-  }, [searchParams])
-
-  useEffect(() => {
-    const emailNotSent = searchParams.get("emailNotSent")
-    if (emailNotSent === "true") {
-      toast({
-        variant: "destructive",
-        title: "Email Not Sent",
-        description:
-          "We have detected that you did not send the email. To have better assistance, please resend the email. Thank you!",
-        duration: 5000,
-      })
-      window.history.replaceState({}, "", "/")
-    }
-  }, [searchParams, toast])
-
-  useEffect(() => {
-    const emailSent = searchParams.get("emailSent")
-    if (emailSent === "true") {
       setShowSuccessMessage(true)
       window.history.replaceState({}, "", "/")
     }
