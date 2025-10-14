@@ -12,7 +12,6 @@ export interface User {
 
 export interface Session {
   user: User
-  accessToken?: string
 }
 
 export function useSession() {
