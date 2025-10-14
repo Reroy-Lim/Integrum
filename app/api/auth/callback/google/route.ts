@@ -10,7 +10,12 @@ export async function GET(request: NextRequest) {
 
   const baseUrl = process.env.NEXTAUTH_URL?.trim() || ""
 
-  console.log("[v0] OAuth callback received:", { code: !!code, error, state })
+  console.log("[v0] OAuth callback received:", {
+    hasCode: !!code,
+    error,
+    state,
+    baseUrl,
+  })
 
   if (error) {
     console.error("[v0] OAuth error:", error)
@@ -23,7 +28,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Exchange code for tokens
+    console.log("[v0] Exchanging code for tokens...")
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: {
@@ -45,9 +50,9 @@ export async function GET(request: NextRequest) {
     }
 
     const tokens = await tokenResponse.json()
-    console.log("[v0] Tokens received:", { access_token: !!tokens.access_token, id_token: !!tokens.id_token })
+    console.log("[v0] ✓ Tokens received, expires_in:", tokens.expires_in, "seconds")
 
-    // Get user info
+    console.log("[v0] Fetching user info...")
     const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
       headers: {
         Authorization: `Bearer ${tokens.access_token}`,
@@ -59,9 +64,13 @@ export async function GET(request: NextRequest) {
     }
 
     const userInfo = await userInfoResponse.json()
-    console.log("[v0] User info received:", { email: userInfo.email, name: userInfo.name })
+    console.log("[v0] ✓ User info received:", {
+      email: userInfo.email,
+      name: userInfo.name,
+      id: userInfo.id,
+    })
 
-    // This works around cookie issues in the v0 preview environment
+    const expiresAt = Date.now() + (tokens.expires_in || 3600) * 1000
     const sessionData = {
       user: {
         id: userInfo.id,
@@ -70,28 +79,33 @@ export async function GET(request: NextRequest) {
         image: userInfo.picture,
       },
       accessToken: tokens.access_token,
-      expiresAt: Date.now() + tokens.expires_in * 1000,
+      expiresAt,
     }
 
+    console.log("[v0] Session data created:", {
+      email: sessionData.user.email,
+      expiresAt: new Date(expiresAt).toISOString(),
+      expiresInMinutes: Math.floor((expiresAt - Date.now()) / 1000 / 60),
+    })
+
     const sessionParam = encodeURIComponent(btoa(JSON.stringify(sessionData)))
-    const redirectUrl = new URL(`${baseUrl}${state}`)
-    redirectUrl.searchParams.set("session", sessionParam)
+    const redirectUrl = `${baseUrl}${state}#session=${sessionParam}`
 
-    const response = NextResponse.redirect(redirectUrl.toString())
+    console.log("[v0] Redirecting to:", state, "with session in hash")
+    const response = NextResponse.redirect(redirectUrl)
 
-    // Still set cookie as fallback
     response.cookies.set("session", JSON.stringify(sessionData), {
       httpOnly: true,
-      secure: false, // Set to false for development/preview environments
+      secure: false,
       sameSite: "lax",
       maxAge: tokens.expires_in || 3600,
       path: "/",
     })
 
-    console.log("[v0] Session data prepared, redirecting with query parameter")
+    console.log("[v0] ✓ OAuth callback complete, session ready")
     return response
   } catch (error) {
-    console.error("[v0] OAuth callback error:", error)
+    console.error("[v0] ✗ OAuth callback error:", error)
     return NextResponse.redirect(`${baseUrl}/?error=callback_failed`)
   }
 }
