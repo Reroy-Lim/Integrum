@@ -109,7 +109,6 @@ export default function IntegrumPortal() {
       const email = session?.user?.email
 
       console.log("[v0] Fetch tickets check:", {
-        email,
         hasEmail: !!email,
         isAuthenticated,
         status,
@@ -139,11 +138,30 @@ export default function IntegrumPortal() {
         }
 
         const data = await response.json()
-        console.log("[v0] Fetched tickets:", {
+        console.log("[v0] Fetched tickets from API:", {
           count: data.tickets?.length || 0,
         })
 
-        setTickets(data.tickets || [])
+        const allTickets = data.tickets || []
+        const ADMIN_EMAIL = "heyroy23415@gmail.com"
+        const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+
+        // Admin sees all tickets, regular users see only their assigned tickets
+        const filteredTickets = isAdmin
+          ? allTickets
+          : allTickets.filter(
+              (ticket: JiraTicket) =>
+                ticket.assignee?.emailAddress?.toLowerCase() === email.toLowerCase() ||
+                ticket.reporter?.emailAddress?.toLowerCase() === email.toLowerCase(),
+            )
+
+        console.log("[v0] Filtered tickets:", {
+          total: allTickets.length,
+          filtered: filteredTickets.length,
+          isAdmin,
+        })
+
+        setTickets(filteredTickets)
       } catch (error) {
         console.error("[v0] Error fetching tickets:", error)
         setTicketsError(error instanceof Error ? error.message : "Failed to fetch tickets")
