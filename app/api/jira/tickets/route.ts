@@ -20,16 +20,27 @@ export async function GET(request: NextRequest) {
       projectKey: process.env.JIRA_PROJECT_KEY || "HELP",
     }
 
-    console.log("[v0] Jira API: Configuration check")
-    console.log("[v0] Jira API: Base URL exists:", !!jiraConfig.baseUrl)
-    console.log("[v0] Jira API: Email exists:", !!jiraConfig.email)
+    console.log("[v0] Jira API: ===== ENVIRONMENT VARIABLE CHECK =====")
+    console.log("[v0] Jira API: Base URL:", jiraConfig.baseUrl || "MISSING")
+    console.log("[v0] Jira API: Base URL length:", jiraConfig.baseUrl.length)
+    console.log("[v0] Jira API: Email:", jiraConfig.email || "MISSING")
+    console.log("[v0] Jira API: Email length:", jiraConfig.email.length)
     console.log("[v0] Jira API: API Token exists:", !!jiraConfig.apiToken)
+    console.log("[v0] Jira API: API Token length:", jiraConfig.apiToken.length)
     console.log("[v0] Jira API: Project Key:", jiraConfig.projectKey)
+    console.log("[v0] Jira API: =====================================")
 
     if (!jiraConfig.baseUrl || !jiraConfig.email || !jiraConfig.apiToken) {
       console.error("[v0] Jira API: Missing required environment variables")
       return NextResponse.json(
-        { error: "Jira configuration is incomplete. Please check environment variables." },
+        {
+          error: "Jira configuration is incomplete. Please check environment variables.",
+          missing: {
+            baseUrl: !jiraConfig.baseUrl,
+            email: !jiraConfig.email,
+            apiToken: !jiraConfig.apiToken,
+          },
+        },
         { status: 500 },
       )
     }
@@ -40,6 +51,15 @@ export async function GET(request: NextRequest) {
     const tickets = await jiraClient.getTicketsByUser(userEmail)
 
     console.log("[v0] Jira API: Successfully fetched", tickets.length, "tickets")
+    if (tickets.length > 0) {
+      console.log(
+        "[v0] Jira API: Sample ticket keys:",
+        tickets
+          .slice(0, 5)
+          .map((t) => t.key)
+          .join(", "),
+      )
+    }
     return NextResponse.json({ tickets })
   } catch (error) {
     console.error("[v0] Jira API: Error fetching tickets:", error)
