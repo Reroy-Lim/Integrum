@@ -43,13 +43,22 @@ export default function SubmitTicketPage() {
         const response = await fetch(`/api/acknowledgement/status?email=${encodeURIComponent(session.user.email)}`)
         const data = await response.json()
 
+        console.log("[v0] Acknowledgement API response:", JSON.stringify(data, null, 2))
+
         if (data.success && data.acknowledged && data.verified) {
           console.log("[v0] Acknowledgement received! Email was sent successfully")
           clearInterval(pollInterval)
           setIsPolling(false)
           // Redirect with success parameter
+          console.log("[v0] Redirecting to home with emailSent=true")
           router.push("/?emailSent=true")
           return
+        } else {
+          console.log("[v0] Acknowledgement not yet received:", {
+            success: data.success,
+            acknowledged: data.acknowledged,
+            verified: data.verified,
+          })
         }
       } catch (error) {
         console.error("[v0] Error polling acknowledgement status:", error)

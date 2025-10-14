@@ -251,15 +251,6 @@ export default function IntegrumPortal() {
   }, [])
 
   useEffect(() => {
-    const ticketSent = searchParams.get("ticketSent")
-    if (ticketSent === "true") {
-      // Don't show success message automatically
-      // Success will be shown only when email is actually received by the system
-      window.history.replaceState({}, "", "/")
-    }
-  }, [searchParams])
-
-  useEffect(() => {
     const emailNotSent = searchParams.get("emailNotSent")
     if (emailNotSent === "true") {
       toast({
@@ -275,7 +266,9 @@ export default function IntegrumPortal() {
 
   useEffect(() => {
     const emailSent = searchParams.get("emailSent")
+    console.log("[v0] Checking emailSent parameter:", emailSent)
     if (emailSent === "true") {
+      console.log("[v0] Email sent detected, showing success message")
       setShowSuccessMessage(true)
       window.history.replaceState({}, "", "/")
     }
