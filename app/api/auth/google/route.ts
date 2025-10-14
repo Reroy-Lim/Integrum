@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     googleAuthUrl.searchParams.append("client_id", process.env.GOOGLE_CLIENT_ID!)
     googleAuthUrl.searchParams.append("redirect_uri", `${baseUrl}/api/auth/callback/google`)
     googleAuthUrl.searchParams.append("response_type", "code")
-    googleAuthUrl.searchParams.append("scope", "openid email profile")
+    googleAuthUrl.searchParams.append("scope", "openid email profile https://www.googleapis.com/auth/gmail.readonly")
     googleAuthUrl.searchParams.append("access_type", "offline")
     googleAuthUrl.searchParams.append("prompt", "consent")
     googleAuthUrl.searchParams.append("state", callbackUrl) // Store callback URL in state

@@ -14,6 +14,7 @@ export async function GET() {
     return NextResponse.json({
       session: {
         user: session.user,
+        accessToken: session.accessToken,
       },
     })
   } catch (error) {
