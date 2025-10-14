@@ -92,7 +92,16 @@ export default function IntegrumPortal() {
       sessionKeys: session ? Object.keys(session) : [],
       userEmail,
       fullSession: session,
+      userObject: session?.user,
     })
+
+    // Check if cookies are accessible
+    if (typeof document !== "undefined") {
+      console.log("[v0] Client cookies:", {
+        hasCookies: document.cookie.length > 0,
+        cookieCount: document.cookie.split(";").length,
+      })
+    }
   }, [session, status, isAuthenticated, userEmail])
 
   useEffect(() => {
@@ -102,6 +111,7 @@ export default function IntegrumPortal() {
         hasEmail: !!userEmail,
         isAuthenticated,
         status,
+        sessionStatus: session ? "present" : "null",
       })
 
       if (!userEmail) {
@@ -126,7 +136,11 @@ export default function IntegrumPortal() {
         }
 
         const data = await response.json()
-        console.log("[v0] Fetched tickets:", data.tickets?.length || 0)
+        console.log("[v0] Fetched tickets:", {
+          count: data.tickets?.length || 0,
+          isAdmin: data.isAdmin,
+          userEmail: data.userEmail,
+        })
 
         if (data.tickets && data.tickets.length > 0) {
           console.log("[v0] First ticket sample:", {
@@ -149,7 +163,7 @@ export default function IntegrumPortal() {
 
     const intervalId = setInterval(fetchTickets, 30000)
     return () => clearInterval(intervalId)
-  }, [userEmail])
+  }, [userEmail, isAuthenticated, session])
 
   const refreshTickets = async () => {
     if (!userEmail) return

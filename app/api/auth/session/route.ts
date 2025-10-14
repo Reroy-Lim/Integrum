@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth-utils"
+import { cookies } from "next/headers"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
     console.log("[v0] Session API: Fetching session")
+
+    const cookieStore = await cookies()
+    const allCookies = cookieStore.getAll()
+    console.log("[v0] Session API: All cookies", {
+      count: allCookies.length,
+      names: allCookies.map((c) => c.name),
+      hasSessionCookie: allCookies.some((c) => c.name === "session"),
+    })
+
     const session = await getSession()
 
     if (!session) {
