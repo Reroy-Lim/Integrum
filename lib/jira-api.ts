@@ -89,7 +89,7 @@ export class JiraApiClient {
 
       // Ensure baseUrl doesn't have trailing slash
       const baseUrl = this.config.baseUrl.replace(/\/$/, "")
-      const requestUrl = `${baseUrl}/rest/api/3/search?${params.toString()}`
+      const requestUrl = `${baseUrl}/rest/api/3/search/jql?${params.toString()}`
       console.log("[v0] Jira API: Request URL:", requestUrl)
 
       const response = await fetch(requestUrl, {
@@ -163,10 +163,12 @@ export class JiraApiClient {
       })
 
       const baseUrl = this.config.baseUrl.replace(/\/$/, "")
-      const response = await fetch(`${baseUrl}/rest/api/3/search?${params.toString()}`, {
+      const response = await fetch(`${baseUrl}/rest/api/3/search/jql?${params.toString()}`, {
         method: "GET",
         headers: this.getAuthHeaders(),
       })
+
+      console.log("[v0] Jira API: Response status:", response.status, response.statusText)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch latest ticket: ${response.statusText}`)
