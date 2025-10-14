@@ -118,6 +118,10 @@ export class JiraApiClient {
 
       const allTickets = data.issues.map((issue: any) => this.transformJiraIssue(issue))
 
+      console.log("[v0] Jira API: EMAIL FILTERING DISABLED - returning all", allTickets.length, "tickets")
+      return allTickets
+
+      /* COMMENTED OUT - Email filtering logic to be re-enabled later
       // If master account, return all tickets
       if (isMasterAccount) {
         console.log("[v0] Jira API: Master account - returning all", allTickets.length, "tickets")
@@ -143,6 +147,7 @@ export class JiraApiClient {
       console.log("[v0] Jira API: Filtered tickets for", userEmail, ":", filteredTickets.length)
       console.log("[v0] Jira API: Filtered ticket keys:", filteredTickets.map((t) => t.key).join(", "))
       return filteredTickets
+      */
     } catch (error) {
       console.error("[v0] Jira API: Error fetching tickets:", error)
       if (error instanceof Error) {
