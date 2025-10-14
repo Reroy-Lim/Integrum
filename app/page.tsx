@@ -158,13 +158,13 @@ export default function IntegrumPortal() {
 
   const mapStatusToCategory = (status: string): string => {
     if (!status || typeof status !== "string") {
-      return "In Progression"
+      return "In Progress"
     }
 
     const statusLower = status.toLowerCase()
 
     if (statusLower.includes("progress") || statusLower.includes("development") || statusLower.includes("review")) {
-      return "In Progression"
+      return "In Progress"
     }
 
     if (statusLower.includes("done") || statusLower.includes("resolved") || statusLower.includes("closed")) {
@@ -175,7 +175,7 @@ export default function IntegrumPortal() {
       return "Pending Reply"
     }
 
-    return "In Progression"
+    return "In Progress"
   }
 
   const handleGoogleAuth = () => {
