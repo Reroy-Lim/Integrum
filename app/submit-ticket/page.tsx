@@ -6,10 +6,9 @@ import { useSession } from "@/lib/use-session"
 
 export default function SubmitTicketPage() {
   const router = useRouter()
-  const { status } = useSession()
+  const { status, session } = useSession()
   const [gmailWindow, setGmailWindow] = useState<Window | null>(null)
-  const [wasBlurred, setWasBlurred] = useState(false)
-  const [justRegainedFocus, setJustRegainedFocus] = useState(false)
+  const [isMonitoring, setIsMonitoring] = useState(false)
 
   useEffect(() => {
     console.log("[v0] Submit ticket page loaded, status:", status)
@@ -20,8 +19,9 @@ export default function SubmitTicketPage() {
       const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=heyroy23415@gmail.com`
       const newWindow = window.open(gmailUrl, "_blank")
       setGmailWindow(newWindow)
+      setIsMonitoring(true)
 
-      console.log("[v0] Gmail opened, monitoring window focus")
+      console.log("[v0] Gmail opened, starting Agent Chain monitoring")
     } else if (status === "unauthenticated") {
       console.log("[v0] User not authenticated, redirecting to home")
       router.push("/")
@@ -29,77 +29,66 @@ export default function SubmitTicketPage() {
   }, [status, router])
 
   useEffect(() => {
-    const handleBlur = () => {
-      console.log("[v0] Main window lost focus - user went to Gmail")
-      setWasBlurred(true)
-      setJustRegainedFocus(false)
-    }
+    if (!isMonitoring || !session?.user?.email) return
 
-    const handleFocus = () => {
-      if (wasBlurred) {
-        console.log("[v0] Main window regained focus - auto-return from Gmail detected")
-        setJustRegainedFocus(true)
+    const userEmail = session.user.email
+    let pollCount = 0
+    const maxPolls = 60 // Poll for 3 minutes (60 * 3 seconds = 180 seconds)
 
-        // Reset after 2 seconds to handle edge cases
-        setTimeout(() => {
-          setJustRegainedFocus(false)
-        }, 2000)
+    console.log("[v0] Starting Agent Chain detection for email:", userEmail)
+
+    const pollInterval = setInterval(async () => {
+      pollCount++
+      console.log(`[v0] Polling Agent Chain status (${pollCount}/${maxPolls})`)
+
+      try {
+        const response = await fetch(`/api/acknowledgement/status?email=${encodeURIComponent(userEmail)}`)
+        const data = await response.json()
+
+        if (data.acknowledged && data.verified) {
+          console.log("[v0] Agent Chain execution detected - email was sent successfully!")
+          clearInterval(pollInterval)
+          setIsMonitoring(false)
+          router.push("/?emailSent=true")
+          return
+        }
+      } catch (error) {
+        console.error("[v0] Error checking Agent Chain status:", error)
       }
-    }
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        console.log("[v0] Main window became hidden - user went to Gmail")
-        setWasBlurred(true)
-        setJustRegainedFocus(false)
-      } else if (document.visibilityState === "visible" && wasBlurred) {
-        console.log("[v0] Main window became visible - auto-return from Gmail detected")
-        setJustRegainedFocus(true)
-
-        setTimeout(() => {
-          setJustRegainedFocus(false)
-        }, 2000)
+      // If we've polled for 3 minutes without detecting Agent Chain, assume email wasn't sent
+      if (pollCount >= maxPolls) {
+        console.log("[v0] Agent Chain not detected after 3 minutes - email was not sent")
+        clearInterval(pollInterval)
+        setIsMonitoring(false)
+        router.push("/?emailNotSent=true")
       }
-    }
-
-    window.addEventListener("blur", handleBlur)
-    window.addEventListener("focus", handleFocus)
-    document.addEventListener("visibilitychange", handleVisibilityChange)
+    }, 3000) // Poll every 3 seconds
 
     return () => {
-      window.removeEventListener("blur", handleBlur)
-      window.removeEventListener("focus", handleFocus)
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      clearInterval(pollInterval)
     }
-  }, [wasBlurred])
+  }, [isMonitoring, session?.user?.email, router])
 
   useEffect(() => {
     if (!gmailWindow) return
 
     const checkInterval = setInterval(() => {
       if (gmailWindow.closed) {
-        console.log("[v0] Gmail window closed")
+        console.log("[v0] Gmail window closed by user")
         clearInterval(checkInterval)
-
-        // If main window just regained focus (within last 2 seconds), it's auto-return from Gmail after sending
-        if (justRegainedFocus) {
-          console.log("[v0] Auto-return detected - user sent email and Gmail closed automatically")
-          router.push("/?emailSent=true")
-        } else {
-          console.log("[v0] Manual close detected - user closed Gmail without sending")
-          router.push("/?emailNotSent=true")
-        }
+        // Don't redirect immediately - let the Agent Chain polling handle the redirect
       }
     }, 500)
 
     return () => clearInterval(checkInterval)
-  }, [gmailWindow, justRegainedFocus, router])
+  }, [gmailWindow])
 
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
         <h2 className="text-xl font-semibold mb-2">Opening Gmail...</h2>
-        <p className="text-muted-foreground">Please wait while we redirect you.</p>
+        <p className="text-muted-foreground">Monitoring for email submission...</p>
       </div>
     </div>
   )
