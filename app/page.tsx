@@ -617,6 +617,37 @@ export default function IntegrumPortal() {
 
     return (
       <div className="min-h-screen bg-black relative">
+        <style jsx>{`
+          .custom-scrollbar {
+            scrollbar-width: auto;
+            scrollbar-color: #4b5563 #1f2937;
+          }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 12px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1f2937;
+            border-radius: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+          }
+          .custom-scrollbar::-webkit-scrollbar-button {
+            display: block;
+            height: 16px;
+            background: #374151;
+          }
+          .custom-scrollbar::-webkit-scrollbar-button:vertical:decrement {
+            background: #374151 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 4l4 4H2z'/%3E%3C/svg%3E") center no-repeat;
+          }
+          .custom-scrollbar::-webkit-scrollbar-button:vertical:increment {
+            background: #374151 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 8L2 4h8z'/%3E%3C/svg%3E") center no-repeat;
+          }
+        `}</style>
         <SnowAnimation />
         {renderNavigation()}
         {renderSecurityDialog()}
@@ -704,7 +735,7 @@ export default function IntegrumPortal() {
                           {category.name}
                         </h3>
 
-                        <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
+                        <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
                           {categoryTickets.length > 0 ? (
                             categoryTickets.map((ticket) => (
                               <Card
