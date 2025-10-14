@@ -82,10 +82,28 @@ export default function IntegrumPortal() {
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
   const [ticketsError, setTicketsError] = useState<string | null>(null)
 
-  const userEmail = session?.user?.email || ""
+  const userEmail = session?.user?.email || session?.email || ""
+
+  useEffect(() => {
+    console.log("[v0] Session debug:", {
+      status,
+      isAuthenticated,
+      hasSession: !!session,
+      sessionKeys: session ? Object.keys(session) : [],
+      userEmail,
+      fullSession: session,
+    })
+  }, [session, status, isAuthenticated, userEmail])
 
   useEffect(() => {
     const fetchTickets = async () => {
+      console.log("[v0] Fetch tickets check:", {
+        userEmail,
+        hasEmail: !!userEmail,
+        isAuthenticated,
+        status,
+      })
+
       if (!userEmail) {
         console.log("[v0] No user email, skipping ticket fetch")
         setTickets([])
