@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     const userInfo = await userInfoResponse.json()
     console.log("[v0] User info received:", { email: userInfo.email, name: userInfo.name })
 
-    // This ensures the cookie is included in the redirect response
+    // This works around cookie issues in the v0 preview environment
     const sessionData = {
       user: {
         id: userInfo.id,
@@ -73,21 +73,19 @@ export async function GET(request: NextRequest) {
       expiresAt: Date.now() + tokens.expires_in * 1000,
     }
 
-    const response = NextResponse.redirect(`${baseUrl}${state}`)
+    const sessionParam = encodeURIComponent(btoa(JSON.stringify(sessionData)))
+    const response = NextResponse.redirect(`${baseUrl}${state}#session=${sessionParam}`)
+
+    // Still set cookie as fallback
     response.cookies.set("session", JSON.stringify(sessionData), {
       httpOnly: true,
       secure: false, // Set to false for development/preview environments
       sameSite: "lax",
-      maxAge: tokens.expires_in || 3600, // Default to 1 hour if not provided
+      maxAge: tokens.expires_in || 3600,
       path: "/",
     })
 
-    console.log("[v0] Session cookie set on response, redirecting to:", state)
-    console.log("[v0] Cookie settings:", {
-      maxAge: tokens.expires_in || 3600,
-      expiresAt: new Date(sessionData.expiresAt).toISOString(),
-    })
-
+    console.log("[v0] Session data prepared, redirecting with hash")
     return response
   } catch (error) {
     console.error("[v0] OAuth callback error:", error)
