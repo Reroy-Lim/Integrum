@@ -80,7 +80,7 @@ export class JiraApiClient {
       const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
       const params = new URLSearchParams({
         jql,
-        maxResults: "100",
+        maxResults: "1000",
         fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype",
       })
 
@@ -111,12 +111,36 @@ export class JiraApiClient {
         return allTickets
       }
 
-      // For other users, filter by "From: [email]" in description
       const filteredTickets = allTickets.filter((ticket) => {
         const description = ticket.description || ""
-        const fromMatch = description.match(/From:\s*([^\s\n]+@[^\s\n]+)/i)
-        const ticketOwnerEmail = fromMatch ? fromMatch[1].toLowerCase() : null
-        return ticketOwnerEmail === userEmail.toLowerCase()
+
+        // Try multiple patterns to extract email
+        const patterns = [
+          /From:\s*([^\s\n<>]+@[^\s\n<>]+)/i, // From: email
+          /from:\s*([^\s\n<>]+@[^\s\n<>]+)/i, // from: email (lowercase)
+          /FROM:\s*([^\s\n<>]+@[^\s\n<>]+)/i, // FROM: email (uppercase)
+        ]
+
+        let ticketOwnerEmail: string | null = null
+
+        for (const pattern of patterns) {
+          const match = description.match(pattern)
+          if (match && match[1]) {
+            ticketOwnerEmail = match[1].trim().toLowerCase()
+            break
+          }
+        }
+
+        const matches = ticketOwnerEmail === userEmail.toLowerCase()
+
+        // Debug logging for first few tickets
+        if (allTickets.indexOf(ticket) < 3) {
+          console.log(
+            `[v0] Jira API: Ticket ${ticket.key} - Owner: ${ticketOwnerEmail || "none"} | User: ${userEmail} | Match: ${matches}`,
+          )
+        }
+
+        return matches
       })
 
       console.log("[v0] Jira API: Filtered", filteredTickets.length, "tickets for", userEmail)
@@ -126,7 +150,7 @@ export class JiraApiClient {
         console.log("[v0] Jira API: Sample filtered ticket:", filteredTickets[0].key)
       } else if (allTickets.length > 0) {
         // If no matches, show sample of what we're looking for
-        const sampleDesc = allTickets[0].description?.substring(0, 200) || "No description"
+        const sampleDesc = allTickets[0].description?.substring(0, 300) || "No description"
         console.log("[v0] Jira API: No matches found. Sample description:", sampleDesc)
       }
 
