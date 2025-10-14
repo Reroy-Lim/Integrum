@@ -238,7 +238,7 @@ export default function IntegrumPortal() {
     }
 
     if (view === "yourTickets") {
-      if (processing === "true" && ticket && timestamp) {
+      if (processing === "true" && ticket) {
         console.log("[v0] Immediate redirect from Gmail submission, showing processing state")
         setCurrentView("yourTickets")
         setTimeout(() => {
@@ -971,6 +971,7 @@ export default function IntegrumPortal() {
 
   const handleLogoutConfirm = () => {
     setShowLogoutConfirmation(false)
+    setCurrentView("home")
     toast({
       title: "Logged Out Successfully",
       description: "You have been logging out of Integrum Apps, and we hope to see you again!",
