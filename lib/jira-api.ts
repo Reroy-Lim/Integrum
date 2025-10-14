@@ -140,6 +140,41 @@ export class JiraApiClient {
     }
   }
 
+  async getAllTickets(): Promise<JiraTicket[]> {
+    try {
+      const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
+      const response = await fetch(`${this.config.baseUrl}/rest/api/3/search`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          jql,
+          maxResults: 100,
+          fields: [
+            "summary",
+            "status",
+            "created",
+            "updated",
+            "assignee",
+            "reporter",
+            "description",
+            "priority",
+            "issuetype",
+          ],
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch all tickets: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return data.issues.map((issue: any) => this.transformJiraIssue(issue))
+    } catch (error) {
+      console.error("Error fetching all JIRA tickets:", error)
+      return []
+    }
+  }
+
   private transformJiraIssue(issue: any): JiraTicket {
     return {
       id: issue.id,

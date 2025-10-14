@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { JiraApiClient } from "@/lib/jira-api"
 
+const ADMIN_EMAIL = "heyroy23415@gmail.com"
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const userEmail = searchParams.get("email")
@@ -17,7 +19,7 @@ export async function GET(request: NextRequest) {
       baseUrl: process.env.JIRA_BASE_URL || "",
       email: process.env.JIRA_EMAIL || "",
       apiToken: process.env.JIRA_API_TOKEN || "",
-      projectKey: process.env.JIRA_PROJECT_KEY || "HELP",
+      projectKey: process.env.JIRA_PROJECT_KEY || "KST",
     }
 
     console.log("[v0] Jira API: Configuration check")
@@ -35,11 +37,28 @@ export async function GET(request: NextRequest) {
     }
 
     const jiraClient = new JiraApiClient(jiraConfig)
-    console.log("[v0] Jira API: Fetching tickets for user:", userEmail)
 
-    const tickets = await jiraClient.getTicketsByUser(userEmail)
+    const isAdmin = userEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+    console.log("[v0] Jira API: User is admin:", isAdmin)
+
+    let tickets
+    if (isAdmin) {
+      console.log("[v0] Jira API: Fetching ALL tickets for admin user")
+      tickets = await jiraClient.getAllTickets()
+    } else {
+      console.log("[v0] Jira API: Fetching tickets for user:", userEmail)
+      tickets = await jiraClient.getTicketsByUser(userEmail)
+    }
 
     console.log("[v0] Jira API: Successfully fetched", tickets.length, "tickets")
+    if (tickets.length > 0) {
+      console.log("[v0] Jira API: Sample ticket:", {
+        key: tickets[0].key,
+        summary: tickets[0].summary,
+        reporter: tickets[0].reporter.emailAddress,
+      })
+    }
+
     return NextResponse.json({ tickets })
   } catch (error) {
     console.error("[v0] Jira API: Error fetching tickets:", error)
