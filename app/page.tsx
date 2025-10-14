@@ -570,11 +570,36 @@ export default function IntegrumPortal() {
     const isProcessing = urlParams.get("processing") === "true"
     const processingTicketId = urlParams.get("ticket")
 
+    console.log("[v0] Total tickets in state:", userTickets.length)
+
+    if (userTickets.length > 0) {
+      // Log status distribution
+      const statusCounts: Record<string, number> = {}
+      userTickets.forEach((ticket) => {
+        const status = ticket.status.name
+        statusCounts[status] = (statusCounts[status] || 0) + 1
+      })
+      console.log("[v0] Status distribution:", statusCounts)
+
+      // Log first 5 tickets as samples
+      console.log(
+        "[v0] Sample tickets (first 5):",
+        userTickets.slice(0, 5).map((t) => ({
+          key: t.key,
+          summary: t.summary.substring(0, 50),
+          status: t.status.name,
+          mapped: mapStatusToCategory(t.status.name),
+        })),
+      )
+    }
+
     const categorizeTickets = (category: string) => {
-      return userTickets.filter((ticket) => {
+      const filtered = userTickets.filter((ticket) => {
         const mappedCategory = mapStatusToCategory(ticket.status.name)
         return mappedCategory === category
       })
+      console.log(`[v0] Category "${category}" has ${filtered.length} tickets`)
+      return filtered
     }
 
     const categories = [
@@ -583,13 +608,10 @@ export default function IntegrumPortal() {
       { name: "Resolved", color: "bg-green-500" },
     ]
 
-    const getTicketCellColor = (category: string) => {
-      return "bg-white"
-    }
-
-    const handleViewTicket = (ticketKey: string) => {
-      window.location.href = `/jira-ticket/${ticketKey}`
-    }
+    categories.forEach((cat) => {
+      const count = categorizeTickets(cat.name).length
+      console.log(`[v0] "${cat.name}" category: ${count} tickets`)
+    })
 
     const hasTickets = userTickets.length > 0
 
@@ -673,7 +695,6 @@ export default function IntegrumPortal() {
                 <div className="grid md:grid-cols-3 gap-6">
                   {categories.map((category) => {
                     const categoryTickets = categorizeTickets(category.name)
-                    const displayTickets = categoryTickets.slice(0, 3)
 
                     return (
                       <div key={category.name} className="space-y-4">
@@ -683,35 +704,33 @@ export default function IntegrumPortal() {
                           {category.name}
                         </h3>
 
-                        <div
-                          className={`space-y-4 ${categoryTickets.length > 3 ? "max-h-96 overflow-y-auto pr-2" : ""}`}
-                        >
-                          {displayTickets.map((ticket) => (
-                            <Card
-                              key={ticket.key}
-                              className={`${getTicketCellColor(ticket.status.name)} border-gray-700`}
-                            >
-                              <CardHeader className="pb-3">
-                                <CardTitle className="text-sm text-black line-clamp-2">{ticket.summary}</CardTitle>
-                                <CardDescription className="text-xs text-gray-600">
-                                  {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
-                                </CardDescription>
-                              </CardHeader>
-                              <CardContent className="pt-0">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleViewTicket(ticket.key)}
-                                  className="w-full text-white bg-green-600 border-green-600 hover:bg-green-700 hover:text-white text-xs"
-                                >
-                                  View Ticket Info
-                                </Button>
-                              </CardContent>
-                            </Card>
-                          ))}
-
-                          {categoryTickets.length === 0 && (
-                            <Card className={`${getTicketCellColor(category.name)} border-gray-700`}>
+                        <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
+                          {categoryTickets.length > 0 ? (
+                            categoryTickets.map((ticket) => (
+                              <Card
+                                key={ticket.key}
+                                className={`${getStatusColor(ticket.status.name)} border-gray-700`}
+                              >
+                                <CardHeader className="pb-3">
+                                  <CardTitle className="text-sm text-black line-clamp-2">{ticket.summary}</CardTitle>
+                                  <CardDescription className="text-xs text-gray-600">
+                                    {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent className="pt-0">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
+                                    className="w-full text-white bg-green-600 border-green-600 hover:bg-green-700 hover:text-white text-xs"
+                                  >
+                                    View Ticket Info
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))
+                          ) : (
+                            <Card className={`${getStatusColor(category.name)} border-gray-700`}>
                               <CardContent className="p-4 text-center">
                                 <p className="text-black text-sm">No tickets in this category</p>
                               </CardContent>
