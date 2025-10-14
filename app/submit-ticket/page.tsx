@@ -45,6 +45,8 @@ export default function SubmitTicketPage() {
         const response = await fetch(`/api/acknowledgement/status?email=${encodeURIComponent(userEmail)}`)
         const data = await response.json()
 
+        console.log("[v0] Acknowledgement status response:", data)
+
         if (data.acknowledged && data.verified) {
           console.log("[v0] Agent Chain execution detected - email was sent successfully!")
           clearInterval(pollInterval)
@@ -87,7 +89,6 @@ export default function SubmitTicketPage() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">Opening Gmail...</h2>
         <p className="text-muted-foreground">Monitoring for email submission...</p>
       </div>
     </div>
