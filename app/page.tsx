@@ -106,15 +106,16 @@ export default function IntegrumPortal() {
 
   useEffect(() => {
     const fetchTickets = async () => {
+      const email = session?.user?.email
+
       console.log("[v0] Fetch tickets check:", {
-        userEmail,
-        hasEmail: !!userEmail,
+        email,
+        hasEmail: !!email,
         isAuthenticated,
         status,
-        sessionStatus: session ? "present" : "null",
       })
 
-      if (!userEmail) {
+      if (!email) {
         console.log("[v0] No user email, skipping ticket fetch")
         setTickets([])
         return
@@ -124,31 +125,23 @@ export default function IntegrumPortal() {
       setTicketsError(null)
 
       try {
-        console.log("[v0] Fetching tickets for user:", userEmail)
-        const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}`)
+        console.log("[v0] Fetching tickets for user:", email)
+        const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(email)}`, {
+          cache: "no-store",
+        })
 
         console.log("[v0] Jira API response status:", response.status)
 
         if (!response.ok) {
           const errorData = await response.json()
           console.error("[v0] Jira API error response:", errorData)
-          throw new Error(errorData.details || `Failed to fetch tickets: ${response.statusText}`)
+          throw new Error(errorData.details || "Failed to fetch tickets")
         }
 
         const data = await response.json()
         console.log("[v0] Fetched tickets:", {
           count: data.tickets?.length || 0,
-          isAdmin: data.isAdmin,
-          userEmail: data.userEmail,
         })
-
-        if (data.tickets && data.tickets.length > 0) {
-          console.log("[v0] First ticket sample:", {
-            key: data.tickets[0].key,
-            summary: data.tickets[0].summary,
-            status: data.tickets[0].status.name,
-          })
-        }
 
         setTickets(data.tickets || [])
       } catch (error) {
@@ -160,10 +153,9 @@ export default function IntegrumPortal() {
     }
 
     fetchTickets()
-
     const intervalId = setInterval(fetchTickets, 30000)
     return () => clearInterval(intervalId)
-  }, [userEmail, isAuthenticated, session])
+  }, [session?.user?.email, isAuthenticated, status])
 
   const refreshTickets = async () => {
     if (!userEmail) return
