@@ -17,7 +17,6 @@ export default function SubmitTicketPage() {
   const router = useRouter()
   const { status, data: session } = useSession()
   const [showConfirmation, setShowConfirmation] = useState(false)
-  const [emailSentAutomatically, setEmailSentAutomatically] = useState(false)
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
@@ -28,6 +27,9 @@ export default function SubmitTicketPage() {
 
       const userEmail = session.user.email
       let acknowledgementReceived = false
+      let windowClosed = false
+      const monitoringStartTime = Date.now()
+      const MONITORING_TIMEOUT = 5 * 60 * 1000 // 5 minutes in milliseconds
 
       const pollAcknowledgement = setInterval(async () => {
         try {
@@ -40,7 +42,7 @@ export default function SubmitTicketPage() {
             acknowledgementReceived = true
             clearInterval(pollAcknowledgement)
             clearInterval(checkWindowClosed)
-            setEmailSentAutomatically(true)
+            clearTimeout(monitoringTimeout)
             // Show success message immediately
             router.push("/?emailSent=true")
           }
@@ -49,28 +51,35 @@ export default function SubmitTicketPage() {
         }
       }, 3000) // Poll every 3 seconds
 
-      // Monitor when Gmail window closes
       const checkWindowClosed = setInterval(() => {
-        if (gmailWindow && gmailWindow.closed) {
-          console.log("[v0] Gmail window closed")
+        if (gmailWindow && gmailWindow.closed && !windowClosed) {
+          console.log("[v0] Gmail window closed, continuing to monitor for acknowledgement")
+          windowClosed = true
           clearInterval(checkWindowClosed)
-          clearInterval(pollAcknowledgement)
-
-          // If acknowledgement was already received, don't show confirmation
-          if (acknowledgementReceived) {
-            console.log("[v0] Email already confirmed via acknowledgement")
-            return
-          }
-
-          // Show confirmation dialog to ask user
-          console.log("[v0] No acknowledgement received, asking user")
-          setShowConfirmation(true)
+          // Don't stop polling - continue monitoring for acknowledgement
         }
       }, 500)
+
+      const monitoringTimeout = setTimeout(() => {
+        console.log("[v0] Monitoring timeout reached (5 minutes)")
+        clearInterval(pollAcknowledgement)
+        clearInterval(checkWindowClosed)
+
+        // If acknowledgement was received, don't show confirmation
+        if (acknowledgementReceived) {
+          console.log("[v0] Email already confirmed via acknowledgement")
+          return
+        }
+
+        // Show confirmation dialog to ask user
+        console.log("[v0] No acknowledgement received after 5 minutes, asking user")
+        setShowConfirmation(true)
+      }, MONITORING_TIMEOUT)
 
       return () => {
         clearInterval(checkWindowClosed)
         clearInterval(pollAcknowledgement)
+        clearTimeout(monitoringTimeout)
       }
     } else if (status === "unauthenticated") {
       router.push("/")
