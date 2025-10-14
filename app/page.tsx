@@ -135,18 +135,12 @@ export default function IntegrumPortal() {
         if (!response.ok) {
           const errorData = await response.json()
           console.error("[v0] Jira API error response:", errorData)
-          throw new Error(errorData.details || errorData.error || "Failed to fetch tickets")
+          throw new Error(errorData.details || "Failed to fetch tickets")
         }
 
         const data = await response.json()
         console.log("[v0] Fetched tickets:", {
           count: data.tickets?.length || 0,
-          sample: data.tickets?.[0]
-            ? {
-                key: data.tickets[0].key,
-                summary: data.tickets[0].summary,
-              }
-            : null,
         })
 
         setTickets(data.tickets || [])
