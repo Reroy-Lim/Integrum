@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
     const userInfo = await userInfoResponse.json()
     console.log("[v0] User info received:", { email: userInfo.email, name: userInfo.name })
 
+    // This ensures the cookie is included in the redirect response
     const sessionData = {
       user: {
         id: userInfo.id,
@@ -72,25 +73,20 @@ export async function GET(request: NextRequest) {
       expiresAt: Date.now() + tokens.expires_in * 1000,
     }
 
-    console.log("[v0] Setting session cookie with data:", {
-      email: sessionData.user.email,
-      expiresAt: new Date(sessionData.expiresAt).toISOString(),
-      maxAge: tokens.expires_in,
-    })
-
-    // Create response with redirect
     const response = NextResponse.redirect(`${baseUrl}${state}`)
-
-    // Set cookie in the response
     response.cookies.set("session", JSON.stringify(sessionData), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to false for development/preview environments
       sameSite: "lax",
-      maxAge: tokens.expires_in,
+      maxAge: tokens.expires_in || 3600, // Default to 1 hour if not provided
       path: "/",
     })
 
-    console.log("[v0] Session cookie set in response, redirecting to:", state)
+    console.log("[v0] Session cookie set on response, redirecting to:", state)
+    console.log("[v0] Cookie settings:", {
+      maxAge: tokens.expires_in || 3600,
+      expiresAt: new Date(sessionData.expiresAt).toISOString(),
+    })
 
     return response
   } catch (error) {
