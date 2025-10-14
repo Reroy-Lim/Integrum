@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { cookies } from "next/headers"
 
 export const dynamic = "force-dynamic"
 
@@ -61,6 +62,8 @@ export async function GET(request: NextRequest) {
     const userInfo = await userInfoResponse.json()
     console.log("[v0] User info received:", { email: userInfo.email, name: userInfo.name })
 
+    // Create session cookie
+    const cookieStore = await cookies()
     const sessionData = {
       user: {
         id: userInfo.id,
@@ -72,13 +75,18 @@ export async function GET(request: NextRequest) {
       expiresAt: Date.now() + tokens.expires_in * 1000,
     }
 
-    const sessionParam = btoa(JSON.stringify(sessionData))
-    const callbackUrl = new URL(`${baseUrl}/auth/callback`)
-    callbackUrl.searchParams.set("session", sessionParam)
-    callbackUrl.searchParams.set("state", state)
+    cookieStore.set("session", JSON.stringify(sessionData), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: tokens.expires_in,
+      path: "/",
+    })
 
-    console.log("[v0] Redirecting to callback page with session data")
-    return NextResponse.redirect(callbackUrl.toString())
+    console.log("[v0] Session created, redirecting to:", state)
+
+    // Redirect to the original callback URL
+    return NextResponse.redirect(`${baseUrl}${state}`)
   } catch (error) {
     console.error("[v0] OAuth callback error:", error)
     return NextResponse.redirect(`${baseUrl}/?error=callback_failed`)

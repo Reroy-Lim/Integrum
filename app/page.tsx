@@ -82,39 +82,11 @@ export default function IntegrumPortal() {
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
   const [ticketsError, setTicketsError] = useState<string | null>(null)
 
-  const userEmail = session?.user?.email || session?.email || ""
-
-  useEffect(() => {
-    console.log("[v0] Session debug:", {
-      status,
-      isAuthenticated,
-      hasSession: !!session,
-      sessionKeys: session ? Object.keys(session) : [],
-      userEmail,
-      fullSession: session,
-      userObject: session?.user,
-    })
-
-    // Check if cookies are accessible
-    if (typeof document !== "undefined") {
-      console.log("[v0] Client cookies:", {
-        hasCookies: document.cookie.length > 0,
-        cookieCount: document.cookie.split(";").length,
-      })
-    }
-  }, [session, status, isAuthenticated, userEmail])
+  const userEmail = session?.user?.email || ""
 
   useEffect(() => {
     const fetchTickets = async () => {
-      const email = session?.user?.email
-
-      console.log("[v0] Fetch tickets check:", {
-        hasEmail: !!email,
-        isAuthenticated,
-        status,
-      })
-
-      if (!email) {
+      if (!userEmail) {
         console.log("[v0] No user email, skipping ticket fetch")
         setTickets([])
         return
@@ -124,44 +96,29 @@ export default function IntegrumPortal() {
       setTicketsError(null)
 
       try {
-        console.log("[v0] Fetching tickets for user:", email)
-        const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(email)}`, {
-          cache: "no-store",
-        })
+        console.log("[v0] Fetching tickets for user:", userEmail)
+        const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}`)
 
         console.log("[v0] Jira API response status:", response.status)
 
         if (!response.ok) {
           const errorData = await response.json()
           console.error("[v0] Jira API error response:", errorData)
-          throw new Error(errorData.details || "Failed to fetch tickets")
+          throw new Error(errorData.details || `Failed to fetch tickets: ${response.statusText}`)
         }
 
         const data = await response.json()
-        console.log("[v0] Fetched tickets from API:", {
-          count: data.tickets?.length || 0,
-        })
+        console.log("[v0] Fetched tickets:", data.tickets?.length || 0)
 
-        const allTickets = data.tickets || []
-        const ADMIN_EMAIL = "heyroy23415@gmail.com"
-        const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+        if (data.tickets && data.tickets.length > 0) {
+          console.log("[v0] First ticket sample:", {
+            key: data.tickets[0].key,
+            summary: data.tickets[0].summary,
+            status: data.tickets[0].status.name,
+          })
+        }
 
-        // Admin sees all tickets, regular users see only their assigned tickets
-        const filteredTickets = isAdmin
-          ? allTickets
-          : allTickets.filter(
-              (ticket: JiraTicket) =>
-                ticket.assignee?.emailAddress?.toLowerCase() === email.toLowerCase() ||
-                ticket.reporter?.emailAddress?.toLowerCase() === email.toLowerCase(),
-            )
-
-        console.log("[v0] Filtered tickets:", {
-          total: allTickets.length,
-          filtered: filteredTickets.length,
-          isAdmin,
-        })
-
-        setTickets(filteredTickets)
+        setTickets(data.tickets || [])
       } catch (error) {
         console.error("[v0] Error fetching tickets:", error)
         setTicketsError(error instanceof Error ? error.message : "Failed to fetch tickets")
@@ -171,9 +128,10 @@ export default function IntegrumPortal() {
     }
 
     fetchTickets()
+
     const intervalId = setInterval(fetchTickets, 30000)
     return () => clearInterval(intervalId)
-  }, [session?.user?.email, isAuthenticated, status])
+  }, [userEmail])
 
   const refreshTickets = async () => {
     if (!userEmail) return

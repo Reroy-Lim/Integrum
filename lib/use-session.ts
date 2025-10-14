@@ -20,52 +20,26 @@ export function useSession() {
   const router = useRouter()
 
   useEffect(() => {
-    console.log("[v0] useSession: Checking localStorage")
-
-    if (typeof window === "undefined") {
-      setStatus("unauthenticated")
-      return
-    }
-
-    try {
-      const stored = localStorage.getItem("integrum_session")
-
-      if (stored) {
-        const sessionData = JSON.parse(stored)
-        console.log("[v0] useSession: Found session:", {
-          email: sessionData.user?.email,
-          expiresAt: sessionData.expiresAt,
-          isExpired: sessionData.expiresAt ? sessionData.expiresAt < Date.now() : false,
-        })
-
-        // Check if expired
-        if (!sessionData.expiresAt || sessionData.expiresAt > Date.now()) {
-          setSession({ user: sessionData.user })
+    // Check session from cookie by making a request to a session endpoint
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.session) {
+          setSession(data.session)
           setStatus("authenticated")
-          console.log("[v0] useSession: Session loaded successfully")
         } else {
-          localStorage.removeItem("integrum_session")
           setSession(null)
           setStatus("unauthenticated")
-          console.log("[v0] useSession: Session expired")
         }
-      } else {
+      })
+      .catch(() => {
         setSession(null)
         setStatus("unauthenticated")
-        console.log("[v0] useSession: No session found")
-      }
-    } catch (error) {
-      console.error("[v0] useSession: Error loading session:", error)
-      setSession(null)
-      setStatus("unauthenticated")
-    }
+      })
   }, [])
 
   const signOut = async () => {
-    console.log("[v0] useSession: Signing out")
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("integrum_session")
-    }
+    await fetch("/api/auth/signout", { method: "POST" })
     setSession(null)
     setStatus("unauthenticated")
     router.push("/")
