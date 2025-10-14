@@ -228,22 +228,33 @@ export class JiraApiClient {
   }
 
   private extractTextFromADF(adf: any): string {
-    let text = ""
+    const extractText = (node: any): string => {
+      let text = ""
 
-    if (adf.content && Array.isArray(adf.content)) {
-      for (const node of adf.content) {
-        if (node.type === "paragraph" && node.content) {
-          for (const contentNode of node.content) {
-            if (contentNode.type === "text" && contentNode.text) {
-              text += contentNode.text + " "
-            }
+      // If node has text property, add it
+      if (node.text) {
+        text += node.text
+      }
+
+      // If node has content array, recursively process each child
+      if (node.content && Array.isArray(node.content)) {
+        for (const child of node.content) {
+          text += extractText(child)
+
+          // Add newline after paragraphs and headings
+          if (child.type === "paragraph" || child.type === "heading") {
+            text += "\n"
           }
-          text += "\n"
         }
       }
+
+      return text
     }
 
-    return text.trim()
+    const result = extractText(adf).trim()
+    console.log("[v0] Jira API: Extracted full text from ADF, length:", result.length)
+    console.log("[v0] Jira API: First 300 chars:", result.substring(0, 300))
+    return result
   }
 
   // Map JIRA status to our categories
