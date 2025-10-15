@@ -617,37 +617,6 @@ export default function IntegrumPortal() {
 
     return (
       <div className="min-h-screen bg-black relative">
-        <style jsx>{`
-          .custom-scrollbar {
-            scrollbar-width: auto;
-            scrollbar-color: #4b5563 #1f2937;
-          }
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 12px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1f2937;
-            border-radius: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
-          }
-          .custom-scrollbar::-webkit-scrollbar-button {
-            display: block;
-            height: 16px;
-            background: #374151;
-          }
-          .custom-scrollbar::-webkit-scrollbar-button:vertical:decrement {
-            background: #374151 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 4l4 4H2z'/%3E%3C/svg%3E") center no-repeat;
-          }
-          .custom-scrollbar::-webkit-scrollbar-button:vertical:increment {
-            background: #374151 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 8L2 4h8z'/%3E%3C/svg%3E") center no-repeat;
-          }
-        `}</style>
         <SnowAnimation />
         {renderNavigation()}
         {renderSecurityDialog()}
@@ -729,19 +698,17 @@ export default function IntegrumPortal() {
 
                     return (
                       <div key={category.name} className="space-y-4">
-                        <h3
-                          className={`text-xl font-semibold text-black border-b border-gray-600 pb-2 px-4 py-2 rounded-t-lg ${category.color}`}
+                        <div
+                          className={`flex items-center justify-between text-xl font-semibold text-black border-b border-gray-600 pb-2 px-4 py-2 rounded-t-lg ${category.color}`}
                         >
-                          {category.name}
-                        </h3>
+                          <h3>{category.name}</h3>
+                          <ChevronDown className="w-5 h-5 text-black" />
+                        </div>
 
-                        <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+                        <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
                           {categoryTickets.length > 0 ? (
                             categoryTickets.map((ticket) => (
-                              <Card
-                                key={ticket.key}
-                                className={`${getStatusColor(ticket.status.name)} border-gray-700`}
-                              >
+                              <Card key={ticket.key} className="bg-white border-gray-300">
                                 <CardHeader className="pb-3">
                                   <CardTitle className="text-sm text-black line-clamp-2">{ticket.summary}</CardTitle>
                                   <CardDescription className="text-xs text-gray-600">
@@ -761,7 +728,7 @@ export default function IntegrumPortal() {
                               </Card>
                             ))
                           ) : (
-                            <Card className={`${getStatusColor(category.name)} border-gray-700`}>
+                            <Card className="bg-white border-gray-300">
                               <CardContent className="p-4 text-center">
                                 <p className="text-black text-sm">No tickets in this category</p>
                               </CardContent>
