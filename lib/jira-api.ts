@@ -267,26 +267,34 @@ export class JiraApiClient {
 
   private extractTextFromADF(adf: any): string {
     const extractText = (node: any): string => {
-      let text = ""
+      if (!node) return ""
 
-      // If node has text property, add it
-      if (node.text) {
-        text += node.text
+      // If it's a text node, return the text directly
+      if (node.type === "text" && node.text) {
+        return node.text
       }
 
-      // If node has content array, recursively process each child
-      if (node.content && Array.isArray(node.content)) {
-        for (const child of node.content) {
-          text += extractText(child)
-
-          // Add newline after paragraphs and headings
-          if (child.type === "paragraph" || child.type === "heading") {
-            text += "\n"
+      // If it's a block-level node (paragraph, heading, etc.), process children and add newline
+      if (node.type === "paragraph" || node.type === "heading") {
+        let text = ""
+        if (node.content && Array.isArray(node.content)) {
+          for (const child of node.content) {
+            text += extractText(child)
           }
         }
+        return text + "\n" // Add newline after each paragraph/heading
       }
 
-      return text
+      // For other container nodes (doc, listItem, etc.), just process children
+      if (node.content && Array.isArray(node.content)) {
+        let text = ""
+        for (const child of node.content) {
+          text += extractText(child)
+        }
+        return text
+      }
+
+      return ""
     }
 
     return extractText(adf).trim()
