@@ -78,32 +78,51 @@ export class JiraApiClient {
       console.log("[v0] Jira API: Fetching tickets for user:", userEmail, "| Is master:", isMasterAccount)
 
       const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
-      const params = new URLSearchParams({
-        jql,
-        maxResults: "1000",
-        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype",
-      })
-
       const baseUrl = this.config.baseUrl.replace(/\/$/, "")
-      const requestUrl = `${baseUrl}/rest/api/3/search/jql?${params.toString()}`
 
-      const response = await fetch(requestUrl, {
-        method: "GET",
-        headers: this.getAuthHeaders(),
-      })
+      let allTickets: JiraTicket[] = []
+      let startAt = 0
+      const maxResults = 100 // Jira's maximum per request
+      let total = 0
 
-      console.log("[v0] Jira API: Response status:", response.status)
+      // Fetch tickets in batches until we have all of them
+      do {
+        const params = new URLSearchParams({
+          jql,
+          startAt: startAt.toString(),
+          maxResults: maxResults.toString(),
+          fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype",
+        })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("[v0] Jira API: Error response:", errorText)
-        throw new Error(`Failed to fetch tickets: ${response.statusText}`)
-      }
+        const requestUrl = `${baseUrl}/rest/api/3/search/jql?${params.toString()}`
+        console.log(`[v0] Jira API: Fetching batch starting at ${startAt}`)
 
-      const data = await response.json()
-      const allTickets = data.issues.map((issue: any) => this.transformJiraIssue(issue))
+        const response = await fetch(requestUrl, {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        })
 
-      console.log("[v0] Jira API: Total tickets fetched:", allTickets.length)
+        console.log("[v0] Jira API: Response status:", response.status)
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error("[v0] Jira API: Error response:", errorText)
+          throw new Error(`Failed to fetch tickets: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        total = data.total
+        const batchTickets = data.issues.map((issue: any) => this.transformJiraIssue(issue))
+
+        allTickets = allTickets.concat(batchTickets)
+        startAt += maxResults
+
+        console.log(`[v0] Jira API: Fetched ${batchTickets.length} tickets (${allTickets.length}/${total} total)`)
+
+        // Continue if there are more tickets to fetch
+      } while (startAt < total)
+
+      console.log("[v0] Jira API: Total tickets fetched:", allTickets.length, "out of", total)
 
       // If master account, return all tickets
       if (isMasterAccount) {
