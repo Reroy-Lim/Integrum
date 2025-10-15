@@ -82,11 +82,13 @@ export class JiraApiClient {
 
       let allTickets: JiraTicket[] = []
       let startAt = 0
-      const maxResults = 100 // Jira's maximum per request
+      const maxResults = 1000 // Try high limit first
       let total = 0
+      let requestCount = 0
 
       // Fetch tickets in batches until we have all of them
       do {
+        requestCount++
         const params = new URLSearchParams({
           jql,
           startAt: startAt.toString(),
@@ -95,7 +97,9 @@ export class JiraApiClient {
         })
 
         const requestUrl = `${baseUrl}/rest/api/3/search/jql?${params.toString()}`
-        console.log(`[v0] Jira API: Fetching batch starting at ${startAt}`)
+        console.log(
+          `[v0] Jira API: Request #${requestCount} - Fetching from position ${startAt} with maxResults=${maxResults}`,
+        )
 
         const response = await fetch(requestUrl, {
           method: "GET",
@@ -115,14 +119,16 @@ export class JiraApiClient {
         const batchTickets = data.issues.map((issue: any) => this.transformJiraIssue(issue))
 
         allTickets = allTickets.concat(batchTickets)
-        startAt += maxResults
+        startAt += batchTickets.length // Use actual returned count
 
-        console.log(`[v0] Jira API: Fetched ${batchTickets.length} tickets (${allTickets.length}/${total} total)`)
+        console.log(
+          `[v0] Jira API: Batch ${requestCount} returned ${batchTickets.length} tickets | Total so far: ${allTickets.length}/${total}`,
+        )
 
         // Continue if there are more tickets to fetch
-      } while (startAt < total)
+      } while (allTickets.length < total)
 
-      console.log("[v0] Jira API: Total tickets fetched:", allTickets.length, "out of", total)
+      console.log(`[v0] Jira API: ✓ Completed fetching ALL ${allTickets.length} tickets in ${requestCount} request(s)`)
 
       // If master account, return all tickets
       if (isMasterAccount) {
