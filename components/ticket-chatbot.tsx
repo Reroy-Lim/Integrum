@@ -49,8 +49,10 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
     if (!solutions) return null
 
     const lines = solutions.split("\n")
-    const sections: { header?: string; content: string[] }[] = []
-    let currentSection: { header?: string; content: string[] } = { content: [] }
+    const sections: { header?: string; content: { type: "numbered" | "text"; number?: number; text: string }[] }[] = []
+    let currentSection: { header?: string; content: { type: "numbered" | "text"; number?: number; text: string }[] } = {
+      content: [],
+    }
 
     for (const line of lines) {
       const trimmedLine = line.trim()
@@ -68,11 +70,16 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
         // Start new section
         currentSection = { header: trimmedLine, content: [] }
       } else {
+        // Check for numbered items (1), 2), 3), etc.)
         const numberedMatch = trimmedLine.match(/^(\d+)\)\s*(.+)/)
         if (numberedMatch) {
-          currentSection.content.push(numberedMatch[2]) // Just the text without the number
+          currentSection.content.push({
+            type: "numbered",
+            number: Number.parseInt(numberedMatch[1]),
+            text: numberedMatch[2],
+          })
         } else {
-          currentSection.content.push(trimmedLine)
+          currentSection.content.push({ type: "text", text: trimmedLine })
         }
       }
     }
@@ -100,20 +107,28 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
               <Bot className="w-5 h-5 text-white" />
             </div>
-            <div className="max-w-[85%] bg-gray-800 rounded-lg p-4 border border-blue-500/30">
+            <div className="max-w-[85%] bg-gray-800 rounded-lg p-4 border border-gray-700">
               <div className="space-y-4">
                 {solutionSections.map((section, idx) => (
                   <div key={idx} className="space-y-3">
-                    {section.header && <h4 className="font-bold text-blue-400 text-sm mb-3">{section.header}</h4>}
+                    {section.header && <h4 className="font-bold text-white text-sm mb-3">{section.header}</h4>}
                     {section.content.length > 0 && (
-                      <div className="space-y-3">
-                        {section.content.map((line, lineIdx) => {
-                          return (
-                            <div key={lineIdx} className="flex items-start gap-2">
-                              <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0">•</span>
-                              <p className="text-blue-300 text-sm leading-relaxed flex-1">{line}</p>
-                            </div>
-                          )
+                      <div className="space-y-2">
+                        {section.content.map((item, lineIdx) => {
+                          if (item.type === "numbered") {
+                            return (
+                              <div key={lineIdx} className="flex items-start gap-2">
+                                <span className="text-white text-sm font-semibold flex-shrink-0">{item.number}.</span>
+                                <p className="text-white text-sm leading-relaxed flex-1">{item.text}</p>
+                              </div>
+                            )
+                          } else {
+                            return (
+                              <p key={lineIdx} className="text-white text-sm leading-relaxed">
+                                {item.text}
+                              </p>
+                            )
+                          }
                         })}
                       </div>
                     )}
@@ -142,7 +157,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
 
             <div
               className={`max-w-[80%] rounded-lg p-3 ${
-                message.role === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-blue-300"
+                message.role === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-white"
               }`}
             >
               {message.parts.map((part, index) => {
@@ -190,7 +205,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
             disabled={status === "in_progress"}
-            className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
+            className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
           />
           <Button
             type="submit"
