@@ -69,8 +69,11 @@ export default function JiraTicketDetailPage() {
   const cleanDescription = (description: string): string => {
     if (!description) return ""
 
-    // Remove the "From: [email]" line (case-insensitive)
-    const cleaned = description.replace(/^From:\s*[^\n]+\n?/i, "")
+    // Remove only the "From: [email]" part, not the entire line
+    const cleaned = description.replace(
+      /^From:\s*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6}(?=[A-Z]|\s|$|[^a-zA-Z0-9])\s*/i,
+      "",
+    )
     return cleaned.trim()
   }
 
