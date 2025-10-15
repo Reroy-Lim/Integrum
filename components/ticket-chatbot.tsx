@@ -48,30 +48,14 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
   const formatSolutions = (solutions: string) => {
     if (!solutions) return null
 
-    const lines = solutions.split("\n")
+    // Split by looking ahead for number followed by closing parenthesis
+    const preprocessed = solutions.replace(/(\d+\))/g, "\n$1").trim()
 
-    // Process each line to split concatenated numbered items
-    const processedLines: string[] = []
-    for (const line of lines) {
-      const trimmedLine = line.trim()
-      if (!trimmedLine) continue
-
-      // Check if line contains multiple numbered items (e.g., "1) text2) text3) text")
-      const hasMultipleNumbers = (trimmedLine.match(/\d+\)/g) || []).length > 1
-
-      if (hasMultipleNumbers) {
-        // Split by looking ahead for numbered patterns
-        const splitItems = trimmedLine.split(/(?=\d+\))/).filter((item) => item.trim())
-        processedLines.push(...splitItems)
-      } else {
-        processedLines.push(trimmedLine)
-      }
-    }
-
+    const lines = preprocessed.split("\n")
     const sections: { header?: string; content: string[] }[] = []
     let currentSection: { header?: string; content: string[] } = { content: [] }
 
-    for (const line of processedLines) {
+    for (const line of lines) {
       const trimmedLine = line.trim()
       if (!trimmedLine) continue
 
