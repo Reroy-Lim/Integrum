@@ -382,7 +382,6 @@ export default function JiraTicketDetailPage() {
               )}
 
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
                 <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
                   {formatDescription(displayDescription)}
                 </div>
