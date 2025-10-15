@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useSession } from "@/lib/use-session"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, ArrowLeft, Calendar, User, AlertCircle, Mail } from "@/components/icons"
@@ -12,6 +13,9 @@ export default function JiraTicketDetailPage() {
   const params = useParams()
   const router = useRouter()
   const ticketKey = params.key as string
+  const { data: session } = useSession()
+  const userEmail = session?.user?.email || ""
+  const isMasterAccount = userEmail === "heyroy23415@gmail.com"
 
   const [ticket, setTicket] = useState<JiraTicket | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -45,9 +49,29 @@ export default function JiraTicketDetailPage() {
   }, [ticketKey])
 
   const extractEmailFromDescription = (description: string): string | null => {
-    const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi
-    const matches = description.match(emailRegex)
-    return matches ? matches[0] : null
+    // Use the same pattern as in jira-api.ts for consistency
+    const patterns = [
+      /From:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/,
+      /from:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/,
+      /FROM:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/,
+    ]
+
+    for (const pattern of patterns) {
+      const match = description.match(pattern)
+      if (match && match[1]) {
+        return match[1]
+      }
+    }
+
+    return null
+  }
+
+  const cleanDescription = (description: string): string => {
+    if (!description) return ""
+
+    // Remove the "From: [email]" line (case-insensitive)
+    const cleaned = description.replace(/^From:\s*[^\n]+\n?/i, "")
+    return cleaned.trim()
   }
 
   const getStatusColor = (status: string) => {
@@ -114,7 +138,8 @@ export default function JiraTicketDetailPage() {
     )
   }
 
-  const userEmail = extractEmailFromDescription(ticket.description || "")
+  const customerEmail = extractEmailFromDescription(ticket.description || "")
+  const displayDescription = cleanDescription(ticket.description || "")
 
   return (
     <div className="min-h-screen bg-black">
@@ -186,13 +211,13 @@ export default function JiraTicketDetailPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {userEmail && (
+              {!isMasterAccount && customerEmail && (
                 <div className="p-4 bg-blue-900/30 border border-blue-700 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Mail className="w-5 h-5 text-blue-400" />
                     <div>
-                      <p className="text-xs text-blue-300">Customer Email (from description)</p>
-                      <p className="font-medium text-blue-200">{userEmail}</p>
+                      <p className="text-xs text-blue-300">Customer Email</p>
+                      <p className="font-medium text-blue-200">{customerEmail}</p>
                     </div>
                   </div>
                 </div>
@@ -201,7 +226,7 @@ export default function JiraTicketDetailPage() {
               <div>
                 <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
                 <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                  <p className="text-gray-300 whitespace-pre-wrap">{ticket.description || "No description provided"}</p>
+                  <p className="text-gray-300 whitespace-pre-wrap">{displayDescription || "No description provided"}</p>
                 </div>
               </div>
 
