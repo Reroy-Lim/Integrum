@@ -118,8 +118,17 @@ export class JiraApiClient {
         return allTickets
       }
 
-      const filteredTickets = allTickets.filter((ticket) => {
+      console.log("[v0] Jira API: Non-master account - filtering tickets for:", userEmail)
+
+      const filteredTickets = allTickets.filter((ticket, index) => {
         const description = ticket.description || ""
+
+        // Log first 3 tickets in detail
+        if (index < 3) {
+          console.log(`[v0] Jira API: Analyzing ticket ${ticket.key}:`)
+          console.log(`[v0] Jira API: Description length: ${description.length}`)
+          console.log(`[v0] Jira API: Description preview (first 300 chars):`, description.substring(0, 300))
+        }
 
         // Try multiple patterns to extract email from "From:" field
         const patterns = [
@@ -132,12 +141,18 @@ export class JiraApiClient {
         ]
 
         let ticketOwnerEmail: string | null = null
+        let matchedPattern: string | null = null
 
         // Try each pattern
-        for (const pattern of patterns) {
+        for (let i = 0; i < patterns.length; i++) {
+          const pattern = patterns[i]
           const match = description.match(pattern)
           if (match && match[1]) {
             ticketOwnerEmail = match[1].trim().toLowerCase()
+            matchedPattern = `Pattern ${i + 1}`
+            if (index < 3) {
+              console.log(`[v0] Jira API: ${ticket.key} - Found email using ${matchedPattern}:`, ticketOwnerEmail)
+            }
             break
           }
         }
@@ -145,29 +160,33 @@ export class JiraApiClient {
         // Fallback: if no "From:" field found, check if description contains the user's email anywhere
         if (!ticketOwnerEmail && description.toLowerCase().includes(userEmail.toLowerCase())) {
           ticketOwnerEmail = userEmail.toLowerCase()
+          matchedPattern = "Fallback (email found in description)"
+          if (index < 3) {
+            console.log(`[v0] Jira API: ${ticket.key} - Found email using fallback`)
+          }
         }
 
         const matches = ticketOwnerEmail === userEmail.toLowerCase()
+
+        if (index < 3) {
+          console.log(`[v0] Jira API: ${ticket.key} - Extracted email:`, ticketOwnerEmail || "NONE")
+          console.log(`[v0] Jira API: ${ticket.key} - Looking for:`, userEmail.toLowerCase())
+          console.log(`[v0] Jira API: ${ticket.key} - Match:`, matches)
+          console.log("---")
+        }
 
         return matches
       })
 
       console.log("[v0] Jira API: Filtered", filteredTickets.length, "tickets for", userEmail)
 
-      // Enhanced debugging - show sample descriptions for troubleshooting
+      // If no matches, show more details
       if (filteredTickets.length === 0 && allTickets.length > 0) {
-        console.log("[v0] Jira API: No matches found for user:", userEmail)
-        console.log("[v0] Jira API: Showing first 3 ticket descriptions for debugging:")
-
-        for (let i = 0; i < Math.min(3, allTickets.length); i++) {
-          const ticket = allTickets[i]
-          const desc = ticket.description || "No description"
-          console.log(`[v0] Jira API: Ticket ${ticket.key} description (first 500 chars):`)
-          console.log(desc.substring(0, 500))
-          console.log("---")
-        }
-      } else if (filteredTickets.length > 0) {
-        console.log("[v0] Jira API: Successfully filtered tickets. Sample:", filteredTickets[0].key)
+        console.log("[v0] Jira API: ⚠️ NO MATCHES FOUND - Showing full description of first ticket for debugging:")
+        const firstTicket = allTickets[0]
+        console.log(`[v0] Jira API: Ticket ${firstTicket.key} FULL DESCRIPTION:`)
+        console.log(firstTicket.description || "No description")
+        console.log("[v0] Jira API: End of description")
       }
 
       return filteredTickets
