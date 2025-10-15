@@ -97,9 +97,13 @@ export default function JiraTicketDetailPage() {
   const cleanDescription = (description: string, isMasterAccount: boolean): string => {
     if (!description) return ""
 
-    // For master account, keep the "From:" line
     if (isMasterAccount) {
-      return description.trim()
+      // Add line break after email if it's immediately followed by "Description Detail:"
+      const withLineBreak = description.replace(
+        /From:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=Description Detail:)/i,
+        "From: $1\n",
+      )
+      return withLineBreak.trim()
     }
 
     // For non-master accounts, remove the "From:" line
