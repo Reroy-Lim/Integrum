@@ -232,8 +232,15 @@ export class JiraApiClient {
       if (typeof issue.fields.description === "string") {
         description = issue.fields.description
       } else if (issue.fields.description.content) {
+        console.log(
+          "[v0] Jira API: Raw ADF for",
+          issue.key,
+          ":",
+          JSON.stringify(issue.fields.description).substring(0, 500),
+        )
         // Handle Atlassian Document Format (ADF)
         description = this.extractTextFromADF(issue.fields.description)
+        console.log("[v0] Jira API: Extracted text for", issue.key, "length:", description.length)
       }
     }
 
