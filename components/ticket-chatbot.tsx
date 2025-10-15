@@ -111,9 +111,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
               <div className="space-y-4">
                 {solutionSections.map((section, idx) => (
                   <div key={idx} className="space-y-3">
-                    {section.header && (
-                      <h4 className="font-bold text-blue-400 text-sm mb-3 underline">{section.header}</h4>
-                    )}
+                    {section.header && <h4 className="font-bold text-blue-100 text-base mb-3">{section.header}</h4>}
                     {section.content.length > 0 && (
                       <div className="space-y-2">
                         {section.content.map((item, lineIdx) => {
