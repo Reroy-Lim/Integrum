@@ -48,8 +48,13 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
   const formatSolutions = (solutions: string) => {
     if (!solutions) return null
 
+    const normalizedSolutions = solutions
+      .replace(/Confidence:\s*(\d+)/gi, "(Confidence: $1)") // Ensure parentheses
+      .replace(/\(\(Confidence:/gi, "(Confidence:") // Remove double parentheses if any
+      .replace(/\)\)/g, ")") // Remove double closing parentheses
+
     // Preprocess: Add line breaks before numbered items and bullet points
-    const preprocessed = solutions
+    const preprocessed = normalizedSolutions
       .replace(/(\d+\))/g, "\n$1") // Add line break before numbered items
       .replace(/•/g, "\n•\n") // Add line breaks before and after bullets
       .trim()
@@ -94,9 +99,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
               text: bulletText,
             })
           }
-        }
-        // Regular text (like confidence percentages)
-        else if (trimmedLine.match(/\(Confidence:/i)) {
+        } else if (trimmedLine.match(/$$Confidence:\s*\d+$$/i)) {
           // Append to the last item if it exists
           if (currentSection.items.length > 0) {
             const lastItem = currentSection.items[currentSection.items.length - 1]
