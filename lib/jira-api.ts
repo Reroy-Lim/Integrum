@@ -123,16 +123,17 @@ export class JiraApiClient {
       const filteredTickets = allTickets.filter((ticket, index) => {
         const description = ticket.description || ""
 
-        // Use proper email regex with limited TLD length and lookahead to stop at uppercase letters
-        const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/i
+        // This ensures [a-z]{2,6} only matches lowercase letters, stopping at "Description"
+        const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/
 
         const patterns = [
-          new RegExp(`From:\\s*${emailPattern.source}`, "i"), // From: email
-          new RegExp(`From:\\s*<${emailPattern.source}>`, "i"), // From: <email>
-          new RegExp(`From:\\s*\\n\\s*${emailPattern.source}`, "i"), // From:\n email (newline)
-          new RegExp(`From\\s*:\\s*${emailPattern.source}`, "i"), // From : email (space before colon)
-          new RegExp(`from:\\s*${emailPattern.source}`, "i"), // from: email (lowercase)
-          new RegExp(`FROM:\\s*${emailPattern.source}`, "i"), // FROM: email (uppercase)
+          new RegExp(`From:\\s*${emailPattern.source}`), // From: email
+          new RegExp(`from:\\s*${emailPattern.source}`), // from: email
+          new RegExp(`FROM:\\s*${emailPattern.source}`), // FROM: email
+          new RegExp(`From:\\s*<${emailPattern.source}>`), // From: <email>
+          new RegExp(`from:\\s*<${emailPattern.source}>`), // from: <email>
+          new RegExp(`From:\\s*\\n\\s*${emailPattern.source}`), // From:\n email
+          new RegExp(`From\\s*:\\s*${emailPattern.source}`), // From : email
         ]
 
         let ticketOwnerEmail: string | null = null
