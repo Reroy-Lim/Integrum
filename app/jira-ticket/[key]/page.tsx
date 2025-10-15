@@ -314,6 +314,36 @@ export default function JiraTicketDetailPage() {
     return "bg-blue-500"
   }
 
+  const handleDownloadAttachment = async (attachmentId: string, filename: string) => {
+    try {
+      const response = await fetch(`/api/jira/attachment/${attachmentId}`)
+
+      if (!response.ok) {
+        throw new Error("Failed to download attachment")
+      }
+
+      // Create a blob from the response
+      const blob = await response.blob()
+
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob)
+
+      // Create a temporary anchor element and trigger download
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+
+      // Cleanup
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error("Error downloading attachment:", error)
+      alert("Failed to download attachment. Please try again.")
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -449,39 +479,45 @@ export default function JiraTicketDetailPage() {
                 </div>
               </div>
 
+              {ticket.attachments && ticket.attachments.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-3">
+                    Attachments{" "}
+                    <Badge variant="outline" className="ml-2">
+                      {ticket.attachments.length}
+                    </Badge>
+                  </h3>
+                  <div className="space-y-3">
+                    {ticket.attachments.map((attachment) => (
+                      <div
+                        key={attachment.id}
+                        className="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium truncate">{attachment.filename}</p>
+                          <p className="text-sm text-gray-400">
+                            {(attachment.size / 1024).toFixed(2)} KB • {attachment.mimeType}
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => handleDownloadAttachment(attachment.id, attachment.filename)}
+                          size="sm"
+                          className="ml-4 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Download
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex space-x-4">
                 <Button variant="outline" onClick={() => router.push("/?view=yourTickets")} className="flex-1">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Your Tickets
                 </Button>
-                {ticket.attachments && ticket.attachments.length > 0 && (
-                  <div className="flex-1">
-                    {ticket.attachments.length === 1 ? (
-                      <Button
-                        onClick={() => window.open(ticket.attachments![0].content, "_blank")}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download {ticket.attachments[0].filename}
-                      </Button>
-                    ) : (
-                      <div className="space-y-2">
-                        <p className="text-sm text-gray-400 mb-2">{ticket.attachments.length} Attachments:</p>
-                        {ticket.attachments.map((attachment) => (
-                          <Button
-                            key={attachment.id}
-                            onClick={() => window.open(attachment.content, "_blank")}
-                            variant="outline"
-                            className="w-full text-sm"
-                          >
-                            <Download className="w-3 h-3 mr-2" />
-                            {attachment.filename} ({(attachment.size / 1024).toFixed(1)} KB)
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
                 {isMasterAccount && (
                   <Button
                     onClick={() =>
