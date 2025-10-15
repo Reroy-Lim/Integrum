@@ -67,68 +67,31 @@ export default function JiraTicketDetailPage() {
     return null
   }
 
-  const extractSolutionsAndExplanations = (
-    description: string,
-  ): {
-    solutions: string[]
-    explanations: Array<{ text: string; confidence: number }>
-    cleanedDescription: string
-  } => {
-    const solutions: string[] = []
-    const explanations: Array<{ text: string; confidence: number }> = []
-    let cleanedDescription = description
+  const extractSolutionsSections = (description: string): string => {
+    if (!description) return ""
 
-    const solutionsMatch = description.match(
-      /Possible Solutions?:([\s\S]*?)(?=Explanation for Solution|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i,
-    )
+    const lines = description.split("\n")
+    let inSolutionsSection = false
+    const solutionsLines: string[] = []
 
-    if (solutionsMatch) {
-      const solutionsContent = solutionsMatch[1]
+    for (const line of lines) {
+      const trimmedLine = line.trim()
 
-      // Extract numbered items
-      const itemMatches = solutionsContent.matchAll(/(\d+)\)\s*([^0-9]+?)(?=\d+\)|$)/gs)
-
-      for (const match of itemMatches) {
-        const text = match[2].trim()
-        if (text) {
-          solutions.push(text)
-        }
+      // Check if we're entering a solutions section
+      if (
+        trimmedLine.toLowerCase().startsWith("possible solutions:") ||
+        trimmedLine.toLowerCase().startsWith("explanation for solution")
+      ) {
+        inSolutionsSection = true
       }
 
-      // Remove the solutions section from the description
-      cleanedDescription = cleanedDescription.replace(
-        /Possible Solutions?:([\s\S]*?)(?=Explanation for Solution|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i,
-        "",
-      )
-    }
-
-    const explanationMatch = cleanedDescription.match(
-      /Explanation for Solution.*?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i,
-    )
-
-    if (explanationMatch) {
-      const explanationContent = explanationMatch[1]
-
-      // Extract numbered items with confidence percentages
-      const itemMatches = explanationContent.matchAll(/(\d+)\)\s*(.*?)(?:Confidence:\s*(\d+)|(?=\d+\)|$))/gs)
-
-      for (const match of itemMatches) {
-        const text = match[2].trim()
-        const confidenceMatch = explanationContent.match(new RegExp(`${match[1]}\\).*?Confidence:\\s*(\\d+)`, "s"))
-        const confidence = confidenceMatch ? Number.parseInt(confidenceMatch[1]) : 0
-
-        if (text) {
-          explanations.push({ text, confidence })
-        }
+      // If we're in solutions section, collect the lines
+      if (inSolutionsSection) {
+        solutionsLines.push(line)
       }
-
-      // Remove the explanation section from the description
-      cleanedDescription = cleanedDescription
-        .replace(/Explanation for Solution.*?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i, "")
-        .trim()
     }
 
-    return { solutions, explanations, cleanedDescription: cleanedDescription.trim() }
+    return solutionsLines.join("\n").trim()
   }
 
   const cleanDescription = (description: string): string => {
@@ -146,6 +109,34 @@ export default function JiraTicketDetailPage() {
     return cleaned.trim()
   }
 
+  const removeSolutionsSections = (description: string): string => {
+    if (!description) return ""
+
+    const lines = description.split("\n")
+    const filteredLines: string[] = []
+    let inSolutionsSection = false
+
+    for (const line of lines) {
+      const trimmedLine = line.trim()
+
+      // Check if we're entering a solutions section
+      if (
+        trimmedLine.toLowerCase().startsWith("possible solutions:") ||
+        trimmedLine.toLowerCase().startsWith("explanation for solution")
+      ) {
+        inSolutionsSection = true
+        continue
+      }
+
+      // If not in solutions section, keep the line
+      if (!inSolutionsSection) {
+        filteredLines.push(line)
+      }
+    }
+
+    return filteredLines.join("\n").trim()
+  }
+
   const formatDescription = (description: string) => {
     if (!description) return <p className="text-gray-300">No description provided</p>
 
@@ -161,9 +152,6 @@ export default function JiraTicketDetailPage() {
       "Critical Issues:",
       "Logs & Errors:",
       "Additional Details:",
-      "Possible Solutions:",
-      "Explanation for Solution + Confidence Percentage:",
-      "Explanation for Solution",
       "Environment:",
       "Resolution:",
       "Timestamp:",
@@ -363,12 +351,9 @@ export default function JiraTicketDetailPage() {
   }
 
   const customerEmail = extractEmailFromDescription(ticket.description || "")
-  const {
-    solutions,
-    explanations,
-    cleanedDescription: descWithoutSolutionsAndExplanations,
-  } = extractSolutionsAndExplanations(ticket.description || "")
-  const displayDescription = cleanDescription(descWithoutSolutionsAndExplanations)
+  const cleanedDescription = cleanDescription(ticket.description || "")
+  const solutionsSections = extractSolutionsSections(cleanedDescription)
+  const displayDescription = removeSolutionsSections(cleanedDescription)
 
   return (
     <div className="min-h-screen bg-black">
@@ -489,8 +474,7 @@ export default function JiraTicketDetailPage() {
               ticketKey={ticket.key}
               ticketTitle={ticket.summary}
               ticketDescription={displayDescription}
-              solutions={solutions}
-              explanations={explanations}
+              solutionsSections={solutionsSections}
             />
           </div>
         </div>

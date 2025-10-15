@@ -6,24 +6,17 @@ import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Lightbulb, CheckCircle2 } from "lucide-react"
+import { Send, Bot, User } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface TicketChatbotProps {
   ticketKey: string
   ticketTitle: string
   ticketDescription: string
-  solutions?: string[]
-  explanations?: Array<{ text: string; confidence: number }>
+  solutionsSections?: string
 }
 
-export function TicketChatbot({
-  ticketKey,
-  ticketTitle,
-  ticketDescription,
-  solutions = [],
-  explanations = [],
-}: TicketChatbotProps) {
+export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solutionsSections }: TicketChatbotProps) {
   const [input, setInput] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -32,7 +25,7 @@ export function TicketChatbot({
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      body: { ticketContext },
+      body: { ticketContext, solutionsSections },
     }),
   })
 
@@ -52,6 +45,49 @@ export function TicketChatbot({
     setInput("")
   }
 
+  const formatSolutions = (solutions: string) => {
+    if (!solutions) return null
+
+    const lines = solutions.split("\n")
+    const sections: { header?: string; content: string[] }[] = []
+    let currentSection: { header?: string; content: string[] } = { content: [] }
+
+    for (const line of lines) {
+      const trimmedLine = line.trim()
+      if (!trimmedLine) continue
+
+      // Check if line is a section header
+      if (
+        trimmedLine.toLowerCase().startsWith("possible solutions:") ||
+        trimmedLine.toLowerCase().startsWith("explanation for solution")
+      ) {
+        // Save previous section if it has content
+        if (currentSection.header || currentSection.content.length > 0) {
+          sections.push(currentSection)
+        }
+        // Start new section
+        currentSection = { header: trimmedLine, content: [] }
+      } else {
+        // Check for numbered items
+        const numberedMatch = trimmedLine.match(/^(\d+)\)\s*(.+)/)
+        if (numberedMatch) {
+          currentSection.content.push(`${numberedMatch[1]}) ${numberedMatch[2]}`)
+        } else {
+          currentSection.content.push(trimmedLine)
+        }
+      }
+    }
+
+    // Add the last section
+    if (currentSection.header || currentSection.content.length > 0) {
+      sections.push(currentSection)
+    }
+
+    return sections
+  }
+
+  const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
+
   return (
     <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
       <div className="flex items-center gap-2 p-4 border-b border-gray-700">
@@ -60,59 +96,44 @@ export function TicketChatbot({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {solutions.length > 0 && (
-          <div className="bg-gradient-to-br from-green-900/40 to-blue-900/40 border border-green-700/50 rounded-lg p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
-              <h4 className="font-semibold text-white text-sm">Possible Solutions</h4>
+        {solutionSections && solutionSections.length > 0 && (
+          <div className="flex gap-3 justify-start">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+              <Bot className="w-5 h-5 text-white" />
             </div>
-
-            {solutions.map((solution, idx) => (
-              <div key={idx} className="flex items-start gap-3">
-                <span className="text-green-400 font-semibold text-sm mt-0.5">{idx + 1})</span>
-                <p className="text-gray-200 text-sm leading-relaxed flex-1">{solution}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {explanations.length > 0 && (
-          <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-blue-700/50 rounded-lg p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-3">
-              <Lightbulb className="w-5 h-5 text-yellow-400" />
-              <h4 className="font-semibold text-white text-sm">Explanation for Solution + Confidence Percentage</h4>
-            </div>
-
-            {explanations.map((explanation, idx) => (
-              <div key={idx} className="space-y-2">
-                <div className="flex items-start gap-3">
-                  <span className="text-blue-400 font-semibold text-sm mt-0.5">{idx + 1})</span>
-                  <p className="text-gray-200 text-sm leading-relaxed flex-1">{explanation.text}</p>
-                </div>
-                {explanation.confidence > 0 && (
-                  <div className="ml-6 flex items-center gap-2">
-                    <span className="text-xs text-gray-400">Confidence:</span>
-                    <div className="flex-1 max-w-[200px] h-2 bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          explanation.confidence >= 80
-                            ? "bg-green-500"
-                            : explanation.confidence >= 60
-                              ? "bg-yellow-500"
-                              : "bg-orange-500"
-                        }`}
-                        style={{ width: `${explanation.confidence}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-300">{explanation.confidence}%</span>
+            <div className="max-w-[85%] bg-gray-800 rounded-lg p-4 border border-blue-500/30">
+              <div className="space-y-4">
+                {solutionSections.map((section, idx) => (
+                  <div key={idx}>
+                    {section.header && <h4 className="font-bold text-blue-400 text-sm mb-2">{section.header}</h4>}
+                    {section.content.length > 0 && (
+                      <div className="space-y-2">
+                        {section.content.map((line, lineIdx) => {
+                          const numberedMatch = line.match(/^(\d+)\)\s*(.+)/)
+                          if (numberedMatch) {
+                            return (
+                              <div key={lineIdx} className="flex items-start gap-2">
+                                <span className="text-blue-400 font-medium text-sm mt-0.5">{numberedMatch[1]})</span>
+                                <p className="text-gray-300 text-sm leading-relaxed flex-1">{numberedMatch[2]}</p>
+                              </div>
+                            )
+                          }
+                          return (
+                            <p key={lineIdx} className="text-gray-300 text-sm leading-relaxed">
+                              {line}
+                            </p>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         )}
 
-        {messages.length === 0 && (
+        {messages.length === 0 && !solutionSections && (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-400">
             <Bot className="w-12 h-12 mb-4 text-gray-600" />
             <p className="text-sm">Ask me anything about this ticket.</p>

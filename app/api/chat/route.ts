@@ -3,15 +3,26 @@ import { consumeStream, convertToModelMessages, streamText, type UIMessage } fro
 export const maxDuration = 30
 
 export async function POST(req: Request) {
-  const { messages, ticketContext }: { messages: UIMessage[]; ticketContext?: string } = await req.json()
+  const {
+    messages,
+    ticketContext,
+    solutionsSections,
+  }: { messages: UIMessage[]; ticketContext?: string; solutionsSections?: string } = await req.json()
 
   const prompt = convertToModelMessages(messages)
 
-  // Add ticket context as system message if provided
   if (ticketContext) {
+    let systemContent = `You are a helpful IT support assistant. You are helping to resolve the following ticket:\n\n${ticketContext}\n\n`
+
+    if (solutionsSections) {
+      systemContent += `Here are the suggested solutions for this ticket:\n\n${solutionsSections}\n\n`
+    }
+
+    systemContent += `Provide helpful, professional responses to assist in resolving this issue. Reference the suggested solutions when relevant, ask clarifying questions when needed, and provide practical troubleshooting steps.`
+
     prompt.unshift({
       role: "system",
-      content: `You are a helpful IT support assistant. You are helping to resolve the following ticket:\n\n${ticketContext}\n\nProvide helpful, professional responses to assist in resolving this issue. Ask clarifying questions when needed and suggest practical solutions.`,
+      content: systemContent,
     })
   }
 
