@@ -320,7 +320,9 @@ export default function JiraTicketDetailPage() {
                     <Badge variant="outline" className="text-blue-400 border-blue-400">
                       {ticket.key}
                     </Badge>
-                    <Badge className={`${getStatusColor(ticket.status.name)} text-white`}>{ticket.status.name}</Badge>
+                    {isMasterAccount && (
+                      <Badge className={`${getStatusColor(ticket.status.name)} text-white`}>{ticket.status.name}</Badge>
+                    )}
                     {isMasterAccount && (
                       <Badge className={`${getPriorityColor(ticket.priority.name)} text-white`}>
                         {ticket.priority.name}
