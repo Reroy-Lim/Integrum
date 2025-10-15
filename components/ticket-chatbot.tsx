@@ -70,8 +70,8 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
         // Start new section
         currentSection = { header: trimmedLine, content: [] }
       } else {
-        // Check for numbered items (1), 2), 3), etc.)
-        const numberedMatch = trimmedLine.match(/^(\d+)\)\s*(.+)/)
+        // Check for numbered items (1), 2), 3), etc. or 1., 2., 3., etc.)
+        const numberedMatch = trimmedLine.match(/^(\d+)[.)]\s*(.+)/)
         if (numberedMatch) {
           currentSection.content.push({
             type: "numbered",
@@ -108,19 +108,19 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div className="max-w-[85%] bg-gray-800 rounded-lg p-4 border border-blue-500/30">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {solutionSections.map((section, idx) => (
-                  <div key={idx} className="space-y-3">
+                  <div key={idx}>
                     {section.header && (
-                      <h4 className="font-bold text-blue-400 text-sm mb-2 underline">{section.header}</h4>
+                      <h4 className="font-bold text-blue-400 text-sm underline mb-3">{section.header}</h4>
                     )}
                     {section.content.length > 0 && (
-                      <div className="space-y-2 mt-2">
+                      <div className="space-y-3">
                         {section.content.map((item, lineIdx) => {
                           if (item.type === "numbered") {
                             return (
-                              <div key={lineIdx} className="flex items-start gap-2">
-                                <span className="text-blue-400 text-sm font-semibold flex-shrink-0">
+                              <div key={lineIdx} className="flex items-start gap-3">
+                                <span className="text-blue-400 text-sm font-semibold flex-shrink-0 mt-0.5">
                                   {item.number}.
                                 </span>
                                 <p className="text-blue-300 text-sm leading-relaxed flex-1">{item.text}</p>
