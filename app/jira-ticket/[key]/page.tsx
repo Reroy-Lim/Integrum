@@ -137,11 +137,35 @@ export default function JiraTicketDetailPage() {
             currentSection.content.push(contentAfterHeader)
           }
         } else if (contentAfterHeader) {
-          // For other sections, add content as-is
-          currentSection.content.push(contentAfterHeader)
+          const numberedItemsMatch = contentAfterHeader.match(/\d+\)/g)
+          if (numberedItemsMatch && numberedItemsMatch.length > 1) {
+            // Multiple numbered items on the same line - split them
+            const splitItems = contentAfterHeader.split(/(?=\d+\))/)
+            splitItems.forEach((item) => {
+              const trimmedItem = item.trim()
+              if (trimmedItem) {
+                currentSection.content.push(trimmedItem)
+              }
+            })
+          } else {
+            // Single item or no numbered items - add as-is
+            currentSection.content.push(contentAfterHeader)
+          }
         }
       } else {
-        currentSection.content.push(trimmedLine)
+        const numberedItemsMatch = trimmedLine.match(/\d+\)/g)
+        if (numberedItemsMatch && numberedItemsMatch.length > 1) {
+          // Multiple numbered items on the same line - split them
+          const splitItems = trimmedLine.split(/(?=\d+\))/)
+          splitItems.forEach((item) => {
+            const trimmedItem = item.trim()
+            if (trimmedItem) {
+              currentSection.content.push(trimmedItem)
+            }
+          })
+        } else {
+          currentSection.content.push(trimmedLine)
+        }
       }
     }
 
