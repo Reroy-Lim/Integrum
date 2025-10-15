@@ -48,7 +48,9 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
   const formatSolutions = (solutions: string) => {
     if (!solutions) return null
 
-    const lines = solutions.split("\n")
+    const formattedSolutions = solutions.replace(/\(Confidence:\s*/gi, "(Confidence - ")
+
+    const lines = formattedSolutions.split("\n")
     const sections: { header?: string; content: { type: "numbered" | "text"; number?: number; text: string }[] }[] = []
     let currentSection: { header?: string; content: { type: "numbered" | "text"; number?: number; text: string }[] } = {
       content: [],
@@ -115,7 +117,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
                       <h4 className="font-bold text-blue-400 text-sm underline mb-3">{section.header}</h4>
                     )}
                     {section.content.length > 0 && (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {section.content.map((item, lineIdx) => {
                           if (item.type === "numbered") {
                             return (
