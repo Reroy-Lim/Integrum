@@ -131,18 +131,16 @@ export default function JiraTicketDetailPage() {
         currentSection = { header, content: [] }
 
         if (header.toLowerCase().includes("additional details") && contentAfterHeader) {
-          // Split by common key patterns (Environment URL, Resolution, Timestamp, etc.)
-          const keyValuePairs = contentAfterHeader.match(
-            /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+$$[^)]+$$)?:\s*[^A-Z]+(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$))/g,
-          )
+          // Split by looking ahead for patterns like "Key:" where Key starts with uppercase
+          // This handles cases where all details are on one line
+          const keyValuePairs = contentAfterHeader.split(/(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+$$[^)]+$$)?:)/)
 
-          if (keyValuePairs) {
-            keyValuePairs.forEach((pair) => {
-              currentSection.content.push(pair.trim())
-            })
-          } else {
-            currentSection.content.push(contentAfterHeader)
-          }
+          keyValuePairs.forEach((pair) => {
+            const trimmedPair = pair.trim()
+            if (trimmedPair && trimmedPair.includes(":")) {
+              currentSection.content.push(trimmedPair)
+            }
+          })
         } else if (contentAfterHeader) {
           const numberedItemsMatch = contentAfterHeader.match(/\d+\)/g)
           if (numberedItemsMatch && numberedItemsMatch.length > 1) {
@@ -206,7 +204,7 @@ export default function JiraTicketDetailPage() {
                   if (numberedMatch) {
                     return (
                       <div key={lineIdx} className="flex items-start space-x-3 ml-4">
-                        <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]}) </span>
+                        <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]})</span>
                         <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
                       </div>
                     )
