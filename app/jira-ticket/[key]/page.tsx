@@ -127,20 +127,20 @@ export default function JiraTicketDetailPage() {
     }
 
     return (
-      <div className="space-y-4 text-gray-100">
+      <div className="space-y-6 text-gray-100">
         {sections.map((section, idx) => (
-          <div key={idx} className="space-y-2">
-            {section.header && <h4 className="font-bold text-white text-base">{section.header}</h4>}
+          <div key={idx} className="space-y-3">
+            {section.header && <h4 className="font-bold text-white text-base leading-relaxed">{section.header}</h4>}
             {section.content.length > 0 && (
-              <div className="space-y-1.5">
+              <div className="space-y-3">
                 {section.content.map((line, lineIdx) => {
                   const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
                   const numberedMatch = line.match(/^(\d+)[).]\s+(.+)/)
 
                   if (bulletMatch) {
                     return (
-                      <div key={lineIdx} className="flex items-start space-x-2 ml-2">
-                        <span className="text-gray-400 mt-0.5 select-none">•</span>
+                      <div key={lineIdx} className="flex items-start space-x-3 ml-4">
+                        <span className="text-gray-400 mt-1 select-none">•</span>
                         <p className="text-gray-300 flex-1 leading-relaxed">{bulletMatch[1]}</p>
                       </div>
                     )
@@ -148,8 +148,8 @@ export default function JiraTicketDetailPage() {
 
                   if (numberedMatch) {
                     return (
-                      <div key={lineIdx} className="flex items-start space-x-2 ml-2">
-                        <span className="text-gray-400 mt-0.5 select-none font-medium">{numberedMatch[1]})</span>
+                      <div key={lineIdx} className="flex items-start space-x-3 ml-4">
+                        <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]})</span>
                         <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
                       </div>
                     )
@@ -158,7 +158,7 @@ export default function JiraTicketDetailPage() {
                   const keyValueMatch = line.match(/^([^:]+):\s*(.+)/)
                   if (keyValueMatch && section.header?.toLowerCase().includes("additional details")) {
                     return (
-                      <p key={lineIdx} className="text-gray-300 leading-relaxed ml-2">
+                      <p key={lineIdx} className="text-gray-300 leading-relaxed ml-4">
                         <span className="font-medium text-gray-200">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
                       </p>
                     )
