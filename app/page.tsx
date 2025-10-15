@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Loader2, Mail, User, AlertCircle } from "@/components/icons"
-import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, ChevronDown } from "lucide-react"
+import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, ChevronDown, ChevronUp } from "lucide-react"
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
 import { GoogleSignInModal } from "@/components/google-signin-modal"
 import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog"
@@ -81,6 +81,13 @@ export default function IntegrumPortal() {
   const [tickets, setTickets] = useState<JiraTicket[]>([])
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
   const [ticketsError, setTicketsError] = useState<string | null>(null)
+
+  const [categoryPages, setCategoryPages] = useState<Record<string, number>>({
+    "In Progress": 1,
+    "Pending Reply": 1,
+    Resolved: 1,
+  })
+  const TICKETS_PER_PAGE = 100
 
   const userEmail = session?.user?.email || ""
 
@@ -602,6 +609,37 @@ export default function IntegrumPortal() {
       return filtered
     }
 
+    const getPaginatedTickets = (category: string) => {
+      const allCategoryTickets = categorizeTickets(category)
+      const currentPage = categoryPages[category] || 1
+      const startIndex = (currentPage - 1) * TICKETS_PER_PAGE
+      const endIndex = startIndex + TICKETS_PER_PAGE
+      return allCategoryTickets.slice(startIndex, endIndex)
+    }
+
+    const getTotalPages = (category: string) => {
+      const allCategoryTickets = categorizeTickets(category)
+      return Math.ceil(allCategoryTickets.length / TICKETS_PER_PAGE)
+    }
+
+    const handlePageChange = (category: string, direction: "up" | "down") => {
+      setCategoryPages((prev) => {
+        const currentPage = prev[category] || 1
+        const totalPages = getTotalPages(category)
+        const newPage = direction === "up" ? Math.max(1, currentPage - 1) : Math.min(totalPages, currentPage + 1)
+        return { ...prev, [category]: newPage }
+      })
+    }
+
+    const getTicketRange = (category: string) => {
+      const allCategoryTickets = categorizeTickets(category)
+      const totalTickets = allCategoryTickets.length
+      const currentPage = categoryPages[category] || 1
+      const startIndex = (currentPage - 1) * TICKETS_PER_PAGE + 1
+      const endIndex = Math.min(currentPage * TICKETS_PER_PAGE, totalTickets)
+      return { startIndex, endIndex, totalTickets }
+    }
+
     const categories = [
       { name: "In Progress", color: "bg-yellow-500" },
       { name: "Pending Reply", color: "bg-blue-500" },
@@ -694,7 +732,11 @@ export default function IntegrumPortal() {
               ) : hasTickets ? (
                 <div className="grid md:grid-cols-3 gap-6">
                   {categories.map((category) => {
-                    const categoryTickets = categorizeTickets(category.name)
+                    const categoryTickets = getPaginatedTickets(category.name)
+                    const allCategoryTickets = categorizeTickets(category.name)
+                    const { startIndex, endIndex, totalTickets } = getTicketRange(category.name)
+                    const currentPage = categoryPages[category.name] || 1
+                    const totalPages = getTotalPages(category.name)
 
                     return (
                       <div key={category.name} className="space-y-4">
@@ -702,7 +744,29 @@ export default function IntegrumPortal() {
                           className={`flex items-center justify-between text-xl font-semibold text-black border-b border-gray-600 pb-2 px-4 py-2 rounded-t-lg ${category.color}`}
                         >
                           <h3>{category.name}</h3>
-                          <ChevronDown className="w-5 h-5 text-black" />
+                          <div className="flex items-center space-x-2">
+                            {totalTickets > 0 && (
+                              <span className="text-sm font-normal">
+                                {startIndex}-{endIndex} of {totalTickets}
+                              </span>
+                            )}
+                            <div className="flex flex-col">
+                              <button
+                                onClick={() => handlePageChange(category.name, "up")}
+                                disabled={currentPage === 1 || totalTickets === 0}
+                                className="disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black/10 rounded p-0.5"
+                              >
+                                <ChevronUp className="w-4 h-4 text-black" />
+                              </button>
+                              <button
+                                onClick={() => handlePageChange(category.name, "down")}
+                                disabled={currentPage >= totalPages || totalTickets === 0}
+                                className="disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black/10 rounded p-0.5"
+                              >
+                                <ChevronDown className="w-4 h-4 text-black" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
 
                         <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
