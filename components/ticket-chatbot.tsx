@@ -6,23 +6,23 @@ import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Lightbulb, Wrench } from "lucide-react"
+import { Send, Bot, User, Lightbulb, CheckCircle2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface TicketChatbotProps {
   ticketKey: string
   ticketTitle: string
   ticketDescription: string
-  explanations?: Array<{ text: string; confidence: number }>
   solutions?: string[]
+  explanations?: Array<{ text: string; confidence: number }>
 }
 
 export function TicketChatbot({
   ticketKey,
   ticketTitle,
   ticketDescription,
-  explanations = [],
   solutions = [],
+  explanations = [],
 }: TicketChatbotProps) {
   const [input, setInput] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -60,11 +60,27 @@ export function TicketChatbot({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {solutions.length > 0 && (
+          <div className="bg-gradient-to-br from-green-900/40 to-blue-900/40 border border-green-700/50 rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <h4 className="font-semibold text-white text-sm">Possible Solutions</h4>
+            </div>
+
+            {solutions.map((solution, idx) => (
+              <div key={idx} className="flex items-start gap-3">
+                <span className="text-green-400 font-semibold text-sm mt-0.5">{idx + 1})</span>
+                <p className="text-gray-200 text-sm leading-relaxed flex-1">{solution}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
         {explanations.length > 0 && (
           <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-blue-700/50 rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="w-5 h-5 text-yellow-400" />
-              <h4 className="font-semibold text-white text-sm">AI Analysis & Recommendations</h4>
+              <h4 className="font-semibold text-white text-sm">Explanation for Solution + Confidence Percentage</h4>
             </div>
 
             {explanations.map((explanation, idx) => (
@@ -91,22 +107,6 @@ export function TicketChatbot({
                     <span className="text-xs font-semibold text-gray-300">{explanation.confidence}%</span>
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {solutions.length > 0 && (
-          <div className="bg-gradient-to-br from-green-900/40 to-teal-900/40 border border-green-700/50 rounded-lg p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-3">
-              <Wrench className="w-5 h-5 text-green-400" />
-              <h4 className="font-semibold text-white text-sm">Possible Solutions</h4>
-            </div>
-
-            {solutions.map((solution, idx) => (
-              <div key={idx} className="flex items-start gap-3">
-                <span className="text-green-400 font-semibold text-sm mt-0.5">{idx + 1})</span>
-                <p className="text-gray-200 text-sm leading-relaxed flex-1">{solution}</p>
               </div>
             ))}
           </div>

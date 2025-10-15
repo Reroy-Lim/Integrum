@@ -67,14 +67,42 @@ export default function JiraTicketDetailPage() {
     return null
   }
 
-  const extractExplanationSection = (
+  const extractSolutionsAndExplanations = (
     description: string,
-  ): { explanations: Array<{ text: string; confidence: number }>; cleanedDescription: string } => {
+  ): {
+    solutions: string[]
+    explanations: Array<{ text: string; confidence: number }>
+    cleanedDescription: string
+  } => {
+    const solutions: string[] = []
     const explanations: Array<{ text: string; confidence: number }> = []
     let cleanedDescription = description
 
-    // Find the "Explanation for Solution" section
-    const explanationMatch = description.match(
+    const solutionsMatch = description.match(
+      /Possible Solutions?:([\s\S]*?)(?=Explanation for Solution|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i,
+    )
+
+    if (solutionsMatch) {
+      const solutionsContent = solutionsMatch[1]
+
+      // Extract numbered items
+      const itemMatches = solutionsContent.matchAll(/(\d+)\)\s*([^0-9]+?)(?=\d+\)|$)/gs)
+
+      for (const match of itemMatches) {
+        const text = match[2].trim()
+        if (text) {
+          solutions.push(text)
+        }
+      }
+
+      // Remove the solutions section from the description
+      cleanedDescription = cleanedDescription.replace(
+        /Possible Solutions?:([\s\S]*?)(?=Explanation for Solution|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i,
+        "",
+      )
+    }
+
+    const explanationMatch = cleanedDescription.match(
       /Explanation for Solution.*?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i,
     )
 
@@ -95,41 +123,12 @@ export default function JiraTicketDetailPage() {
       }
 
       // Remove the explanation section from the description
-      cleanedDescription = description
+      cleanedDescription = cleanedDescription
         .replace(/Explanation for Solution.*?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i, "")
         .trim()
     }
 
-    return { explanations, cleanedDescription }
-  }
-
-  const extractSolutionsSection = (description: string): { solutions: string[]; cleanedDescription: string } => {
-    const solutions: string[] = []
-    let cleanedDescription = description
-
-    // Find the "Possible Solutions" section
-    const solutionsMatch = description.match(/Possible Solutions?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i)
-
-    if (solutionsMatch) {
-      const solutionsContent = solutionsMatch[1]
-
-      // Extract numbered items
-      const itemMatches = solutionsContent.matchAll(/(\d+)\)\s*([^0-9]+?)(?=\d+\)|$)/gs)
-
-      for (const match of itemMatches) {
-        const text = match[2].trim()
-        if (text) {
-          solutions.push(text)
-        }
-      }
-
-      // Remove the solutions section from the description
-      cleanedDescription = description
-        .replace(/Possible Solutions?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i, "")
-        .trim()
-    }
-
-    return { solutions, cleanedDescription }
+    return { solutions, explanations, cleanedDescription: cleanedDescription.trim() }
   }
 
   const cleanDescription = (description: string): string => {
@@ -364,11 +363,12 @@ export default function JiraTicketDetailPage() {
   }
 
   const customerEmail = extractEmailFromDescription(ticket.description || "")
-  const { explanations, cleanedDescription: descWithoutExplanation } = extractExplanationSection(
-    ticket.description || "",
-  )
-  const { solutions, cleanedDescription: descWithoutSolutions } = extractSolutionsSection(descWithoutExplanation)
-  const displayDescription = cleanDescription(descWithoutSolutions)
+  const {
+    solutions,
+    explanations,
+    cleanedDescription: descWithoutSolutionsAndExplanations,
+  } = extractSolutionsAndExplanations(ticket.description || "")
+  const displayDescription = cleanDescription(descWithoutSolutionsAndExplanations)
 
   return (
     <div className="min-h-screen bg-black">
@@ -489,8 +489,8 @@ export default function JiraTicketDetailPage() {
               ticketKey={ticket.key}
               ticketTitle={ticket.summary}
               ticketDescription={displayDescription}
-              explanations={explanations}
               solutions={solutions}
+              explanations={explanations}
             />
           </div>
         </div>
