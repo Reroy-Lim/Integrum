@@ -381,10 +381,8 @@ export default function JiraTicketDetailPage() {
                 </div>
               )}
 
-              <div>
-                <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                  {formatDescription(displayDescription)}
-                </div>
+              <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
+                {formatDescription(displayDescription)}
               </div>
 
               <div className="flex space-x-4">
