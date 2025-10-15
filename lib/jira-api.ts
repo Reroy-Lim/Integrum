@@ -123,14 +123,16 @@ export class JiraApiClient {
       const filteredTickets = allTickets.filter((ticket, index) => {
         const description = ticket.description || ""
 
-        // Try multiple patterns to extract email from "From:" field
+        // Use proper email regex that only captures valid email characters
+        const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/
+
         const patterns = [
-          /From:\s*([^\s\n<>]+@[^\s\n<>]+)/i, // From: email
-          /From:\s*<([^>]+@[^>]+)>/i, // From: <email>
-          /From:\s*\n\s*([^\s\n<>]+@[^\s\n<>]+)/i, // From:\n email (newline)
-          /From\s*:\s*([^\s\n<>]+@[^\s\n<>]+)/i, // From : email (space before colon)
-          /from:\s*([^\s\n<>]+@[^\s\n<>]+)/i, // from: email (lowercase)
-          /FROM:\s*([^\s\n<>]+@[^\s\n<>]+)/i, // FROM: email (uppercase)
+          new RegExp(`From:\\s*${emailPattern.source}`, "i"), // From: email
+          new RegExp(`From:\\s*<${emailPattern.source}>`, "i"), // From: <email>
+          new RegExp(`From:\\s*\\n\\s*${emailPattern.source}`, "i"), // From:\n email (newline)
+          new RegExp(`From\\s*:\\s*${emailPattern.source}`, "i"), // From : email (space before colon)
+          new RegExp(`from:\\s*${emailPattern.source}`, "i"), // from: email (lowercase)
+          new RegExp(`FROM:\\s*${emailPattern.source}`, "i"), // FROM: email (uppercase)
         ]
 
         let ticketOwnerEmail: string | null = null
