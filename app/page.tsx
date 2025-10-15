@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Loader2, Mail, User, AlertCircle } from "@/components/icons"
 import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, ChevronDown } from "lucide-react"
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
@@ -82,16 +81,6 @@ export default function IntegrumPortal() {
   const [tickets, setTickets] = useState<JiraTicket[]>([])
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
   const [ticketsError, setTicketsError] = useState<string | null>(null)
-
-  const [ticketLimits, setTicketLimits] = useState<Record<string, number>>({
-    "In Progress": 100,
-    "Pending Reply": 100,
-    Resolved: 100,
-  })
-
-  useEffect(() => {
-    console.log("[v0] Ticket limits updated:", ticketLimits)
-  }, [ticketLimits])
 
   const userEmail = session?.user?.email || ""
 
@@ -279,7 +268,7 @@ export default function IntegrumPortal() {
     const ticketSent = searchParams.get("ticketSent")
     if (ticketSent === "true") {
       setShowSuccessMessage(true)
-      window.history.replaceState({}, "/", window.location.pathname)
+      window.history.replaceState({}, "", "/")
     }
   }, [searchParams])
 
@@ -389,7 +378,7 @@ export default function IntegrumPortal() {
   )
 
   const renderSuccessMessageDialog = () => (
-    <Dialog open={showSuccessMessage} onOpenChange={() => setShowSuccessMessage(false)}>
+    <Dialog open={showSuccessMessage} onOpenChange={setShowSuccessMessage}>
       <DialogContent className="max-w-md w-full bg-white">
         <DialogHeader className="space-y-4">
           <div className="flex items-center justify-center">
@@ -613,20 +602,6 @@ export default function IntegrumPortal() {
       return filtered
     }
 
-    const handleLimitChange = (category: string, limit: number) => {
-      console.log(`[v0] handleLimitChange called - Category: "${category}", Limit: ${limit}`)
-      console.log(`[v0] Current ticketLimits before update:`, ticketLimits)
-
-      setTicketLimits((prev) => {
-        const updated = {
-          ...prev,
-          [category]: limit,
-        }
-        console.log(`[v0] New ticketLimits after update:`, updated)
-        return updated
-      })
-    }
-
     const categories = [
       { name: "In Progress", color: "bg-yellow-500" },
       { name: "Pending Reply", color: "bg-blue-500" },
@@ -720,15 +695,6 @@ export default function IntegrumPortal() {
                 <div className="grid md:grid-cols-3 gap-6">
                   {categories.map((category) => {
                     const categoryTickets = categorizeTickets(category.name)
-                    const limit = ticketLimits[category.name]
-                    const effectiveLimit =
-                      limit === -1 ? categoryTickets.length : Math.min(limit, categoryTickets.length)
-                    const displayedTickets = categoryTickets.slice(0, effectiveLimit)
-                    const totalTickets = categoryTickets.length
-
-                    console.log(
-                      `[v0] Rendering "${category.name}" - Limit: ${limit}, Effective: ${effectiveLimit}, Total: ${totalTickets}`,
-                    )
 
                     return (
                       <div key={category.name} className="space-y-4">
@@ -736,66 +702,12 @@ export default function IntegrumPortal() {
                           className={`flex items-center justify-between text-xl font-semibold text-black border-b border-gray-600 pb-2 px-4 py-2 rounded-t-lg ${category.color}`}
                         >
                           <h3>{category.name}</h3>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                className="hover:bg-black/10 rounded p-1 transition-colors focus:outline-none focus:ring-2 focus:ring-black/20"
-                                onClick={() => console.log(`[v0] Dropdown button clicked for "${category.name}"`)}
-                              >
-                                <ChevronDown className="w-5 h-5 text-black" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  console.log(`[v0] Dropdown item clicked: 100 for "${category.name}"`)
-                                  handleLimitChange(category.name, 100)
-                                }}
-                                className={limit === 100 ? "bg-blue-100 font-semibold" : ""}
-                              >
-                                Show first 100 tickets {limit === 100 && "✓"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  console.log(`[v0] Dropdown item clicked: 200 for "${category.name}"`)
-                                  handleLimitChange(category.name, 200)
-                                }}
-                                className={limit === 200 ? "bg-blue-100 font-semibold" : ""}
-                              >
-                                Show first 200 tickets {limit === 200 && "✓"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  console.log(`[v0] Dropdown item clicked: 500 for "${category.name}"`)
-                                  handleLimitChange(category.name, 500)
-                                }}
-                                className={limit === 500 ? "bg-blue-100 font-semibold" : ""}
-                              >
-                                Show first 500 tickets {limit === 500 && "✓"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  console.log(`[v0] Dropdown item clicked: all for "${category.name}"`)
-                                  handleLimitChange(category.name, -1)
-                                }}
-                                className={limit === -1 ? "bg-blue-100 font-semibold" : ""}
-                              >
-                                Show all tickets {limit === -1 && "✓"}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-
-                        <div className="px-2">
-                          <p className="text-sm text-gray-700 font-medium">
-                            Showing {displayedTickets.length} of {totalTickets} tickets
-                            {limit !== -1 && ` (limit: ${limit})`}
-                          </p>
+                          <ChevronDown className="w-5 h-5 text-black" />
                         </div>
 
                         <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
-                          {displayedTickets.length > 0 ? (
-                            displayedTickets.map((ticket) => (
+                          {categoryTickets.length > 0 ? (
+                            categoryTickets.map((ticket) => (
                               <Card key={ticket.key} className="bg-white border-gray-300">
                                 <CardHeader className="pb-3">
                                   <CardTitle className="text-sm text-black line-clamp-2">{ticket.summary}</CardTitle>
