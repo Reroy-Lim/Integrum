@@ -89,6 +89,10 @@ export default function IntegrumPortal() {
     Resolved: 100,
   })
 
+  useEffect(() => {
+    console.log("[v0] Ticket limits updated:", ticketLimits)
+  }, [ticketLimits])
+
   const userEmail = session?.user?.email || ""
 
   useEffect(() => {
@@ -610,11 +614,17 @@ export default function IntegrumPortal() {
     }
 
     const handleLimitChange = (category: string, limit: number) => {
-      console.log(`[v0] Changing limit for "${category}" to ${limit}`)
-      setTicketLimits((prev) => ({
-        ...prev,
-        [category]: limit,
-      }))
+      console.log(`[v0] handleLimitChange called - Category: "${category}", Limit: ${limit}`)
+      console.log(`[v0] Current ticketLimits before update:`, ticketLimits)
+
+      setTicketLimits((prev) => {
+        const updated = {
+          ...prev,
+          [category]: limit,
+        }
+        console.log(`[v0] New ticketLimits after update:`, updated)
+        return updated
+      })
     }
 
     const categories = [
@@ -716,6 +726,10 @@ export default function IntegrumPortal() {
                     const displayedTickets = categoryTickets.slice(0, effectiveLimit)
                     const totalTickets = categoryTickets.length
 
+                    console.log(
+                      `[v0] Rendering "${category.name}" - Limit: ${limit}, Effective: ${effectiveLimit}, Total: ${totalTickets}`,
+                    )
+
                     return (
                       <div key={category.name} className="space-y-4">
                         <div
@@ -724,22 +738,49 @@ export default function IntegrumPortal() {
                           <h3>{category.name}</h3>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="hover:bg-black/10 rounded p-1 transition-colors focus:outline-none focus:ring-2 focus:ring-black/20">
+                              <button
+                                className="hover:bg-black/10 rounded p-1 transition-colors focus:outline-none focus:ring-2 focus:ring-black/20"
+                                onClick={() => console.log(`[v0] Dropdown button clicked for "${category.name}"`)}
+                              >
                                 <ChevronDown className="w-5 h-5 text-black" />
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem onClick={() => handleLimitChange(category.name, 100)}>
-                                Show first 100 tickets
+                            <DropdownMenuContent align="end" className="w-56">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  console.log(`[v0] Dropdown item clicked: 100 for "${category.name}"`)
+                                  handleLimitChange(category.name, 100)
+                                }}
+                                className={limit === 100 ? "bg-blue-100 font-semibold" : ""}
+                              >
+                                Show first 100 tickets {limit === 100 && "✓"}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleLimitChange(category.name, 200)}>
-                                Show first 200 tickets
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  console.log(`[v0] Dropdown item clicked: 200 for "${category.name}"`)
+                                  handleLimitChange(category.name, 200)
+                                }}
+                                className={limit === 200 ? "bg-blue-100 font-semibold" : ""}
+                              >
+                                Show first 200 tickets {limit === 200 && "✓"}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleLimitChange(category.name, 500)}>
-                                Show first 500 tickets
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  console.log(`[v0] Dropdown item clicked: 500 for "${category.name}"`)
+                                  handleLimitChange(category.name, 500)
+                                }}
+                                className={limit === 500 ? "bg-blue-100 font-semibold" : ""}
+                              >
+                                Show first 500 tickets {limit === 500 && "✓"}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleLimitChange(category.name, -1)}>
-                                Show all tickets
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  console.log(`[v0] Dropdown item clicked: all for "${category.name}"`)
+                                  handleLimitChange(category.name, -1)
+                                }}
+                                className={limit === -1 ? "bg-blue-100 font-semibold" : ""}
+                              >
+                                Show all tickets {limit === -1 && "✓"}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -748,6 +789,7 @@ export default function IntegrumPortal() {
                         <div className="px-2">
                           <p className="text-sm text-gray-700 font-medium">
                             Showing {displayedTickets.length} of {totalTickets} tickets
+                            {limit !== -1 && ` (limit: ${limit})`}
                           </p>
                         </div>
 
