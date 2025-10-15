@@ -123,8 +123,8 @@ export class JiraApiClient {
       const filteredTickets = allTickets.filter((ticket, index) => {
         const description = ticket.description || ""
 
-        // Use proper email regex that only captures valid email characters
-        const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/
+        // Use proper email regex with limited TLD length and lookahead to stop at uppercase letters
+        const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/i
 
         const patterns = [
           new RegExp(`From:\\s*${emailPattern.source}`, "i"), // From: email
