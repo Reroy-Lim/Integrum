@@ -14,9 +14,16 @@ interface TicketChatbotProps {
   ticketTitle: string
   ticketDescription: string
   explanations?: Array<{ text: string; confidence: number }>
+  solutions?: string[] // Added solutions prop
 }
 
-export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, explanations = [] }: TicketChatbotProps) {
+export function TicketChatbot({
+  ticketKey,
+  ticketTitle,
+  ticketDescription,
+  explanations = [],
+  solutions = [], // Added solutions with default empty array
+}: TicketChatbotProps) {
   const [input, setInput] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -53,39 +60,56 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, expla
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {explanations.length > 0 && (
-          <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-blue-700/50 rounded-lg p-4 space-y-3">
+        {(explanations.length > 0 || solutions.length > 0) && (
+          <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-blue-700/50 rounded-lg p-4 space-y-4">
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="w-5 h-5 text-yellow-400" />
               <h4 className="font-semibold text-white text-sm">AI Analysis & Recommendations</h4>
             </div>
 
-            {explanations.map((explanation, idx) => (
-              <div key={idx} className="space-y-2">
-                <div className="flex items-start gap-3">
-                  <span className="text-blue-400 font-semibold text-sm mt-0.5">{idx + 1})</span>
-                  <p className="text-gray-200 text-sm leading-relaxed flex-1">{explanation.text}</p>
-                </div>
-                {explanation.confidence > 0 && (
-                  <div className="ml-6 flex items-center gap-2">
-                    <span className="text-xs text-gray-400">Confidence:</span>
-                    <div className="flex-1 max-w-[200px] h-2 bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          explanation.confidence >= 80
-                            ? "bg-green-500"
-                            : explanation.confidence >= 60
-                              ? "bg-yellow-500"
-                              : "bg-orange-500"
-                        }`}
-                        style={{ width: `${explanation.confidence}%` }}
-                      />
+            {explanations.length > 0 && (
+              <div className="space-y-3">
+                <h5 className="text-xs font-semibold text-blue-300 uppercase tracking-wide">Root Cause Analysis</h5>
+                {explanations.map((explanation, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <div className="flex items-start gap-3">
+                      <span className="text-blue-400 font-semibold text-sm mt-0.5">{idx + 1})</span>
+                      <p className="text-gray-200 text-sm leading-relaxed flex-1">{explanation.text}</p>
                     </div>
-                    <span className="text-xs font-semibold text-gray-300">{explanation.confidence}%</span>
+                    {explanation.confidence > 0 && (
+                      <div className="ml-6 flex items-center gap-2">
+                        <span className="text-xs text-gray-400">Confidence:</span>
+                        <div className="flex-1 max-w-[200px] h-2 bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              explanation.confidence >= 80
+                                ? "bg-green-500"
+                                : explanation.confidence >= 60
+                                  ? "bg-yellow-500"
+                                  : "bg-orange-500"
+                            }`}
+                            style={{ width: `${explanation.confidence}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-300">{explanation.confidence}%</span>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
+            )}
+
+            {solutions.length > 0 && (
+              <div className="space-y-3 pt-3 border-t border-blue-700/30">
+                <h5 className="text-xs font-semibold text-green-300 uppercase tracking-wide">Recommended Solutions</h5>
+                {solutions.map((solution, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <span className="text-green-400 font-semibold text-sm mt-0.5">{idx + 1})</span>
+                    <p className="text-gray-200 text-sm leading-relaxed flex-1">{solution}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

@@ -67,10 +67,15 @@ export default function JiraTicketDetailPage() {
     return null
   }
 
-  const extractExplanationSection = (
+  const extractAIAnalysis = (
     description: string,
-  ): { explanations: Array<{ text: string; confidence: number }>; cleanedDescription: string } => {
+  ): {
+    explanations: Array<{ text: string; confidence: number }>
+    solutions: string[]
+    cleanedDescription: string
+  } => {
     const explanations: Array<{ text: string; confidence: number }> = []
+    const solutions: string[] = []
     let cleanedDescription = description
 
     // Find the "Explanation for Solution" section
@@ -95,12 +100,33 @@ export default function JiraTicketDetailPage() {
       }
 
       // Remove the explanation section from the description
-      cleanedDescription = description
+      cleanedDescription = cleanedDescription
         .replace(/Explanation for Solution.*?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i, "")
         .trim()
     }
 
-    return { explanations, cleanedDescription }
+    const solutionsMatch = description.match(/Possible Solutions?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i)
+
+    if (solutionsMatch) {
+      const solutionsContent = solutionsMatch[1]
+
+      // Extract numbered solutions
+      const solutionMatches = solutionsContent.matchAll(/(\d+)\)\s*([^]+?)(?=\d+\)|$)/g)
+
+      for (const match of solutionMatches) {
+        const solutionText = match[2].trim()
+        if (solutionText) {
+          solutions.push(solutionText)
+        }
+      }
+
+      // Remove the solutions section from the description
+      cleanedDescription = cleanedDescription
+        .replace(/Possible Solutions?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i, "")
+        .trim()
+    }
+
+    return { explanations, solutions, cleanedDescription }
   }
 
   const cleanDescription = (description: string): string => {
@@ -335,10 +361,12 @@ export default function JiraTicketDetailPage() {
   }
 
   const customerEmail = extractEmailFromDescription(ticket.description || "")
-  const { explanations, cleanedDescription: descWithoutExplanation } = extractExplanationSection(
-    ticket.description || "",
-  )
-  const displayDescription = cleanDescription(descWithoutExplanation)
+  const {
+    explanations,
+    solutions,
+    cleanedDescription: descWithoutAIAnalysis,
+  } = extractAIAnalysis(ticket.description || "")
+  const displayDescription = cleanDescription(descWithoutAIAnalysis)
 
   return (
     <div className="min-h-screen bg-black">
@@ -460,6 +488,7 @@ export default function JiraTicketDetailPage() {
               ticketTitle={ticket.summary}
               ticketDescription={displayDescription}
               explanations={explanations}
+              solutions={solutions}
             />
           </div>
         </div>
