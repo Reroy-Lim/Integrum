@@ -48,10 +48,19 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
   const formatSolutions = (solutions: string) => {
     if (!solutions) return null
 
+    // First, normalize and fix split confidence patterns
     const normalizedSolutions = solutions
-      .replace(/Confidence:\s*(\d+)/gi, "(Confidence: $1)") // Ensure parentheses
-      .replace(/\(\(Confidence:/gi, "(Confidence:") // Remove double parentheses if any
-      .replace(/\)\)/g, ")") // Remove double closing parentheses
+      // Join split confidence patterns like "(Confidence:\n88)" or "(Confidence:\n88) .5"
+      .replace(/$$Confidence:\s*\n\s*(\d+(?:\.\d+)?)\s*$$/gi, "(Confidence: $1)")
+      // Handle cases where closing paren is on next line: "(Confidence: 88\n)"
+      .replace(/$$Confidence:\s*(\d+(?:\.\d+)?)\s*\n\s*$$/gi, "(Confidence: $1)")
+      // Handle cases where number is on next line: "(Confidence:\n88"
+      .replace(/\(Confidence:\s*\n\s*(\d+(?:\.\d+)?)/gi, "(Confidence: $1")
+      // Ensure all confidence patterns have parentheses
+      .replace(/Confidence:\s*(\d+(?:\.\d+)?)\s*/gi, "(Confidence: $1)")
+      // Remove double parentheses if any
+      .replace(/\(\(Confidence:/gi, "(Confidence:")
+      .replace(/\)\)/g, ")")
 
     // Preprocess: Add line breaks before numbered items and bullet points
     const preprocessed = normalizedSolutions
@@ -99,7 +108,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
               text: bulletText,
             })
           }
-        } else if (trimmedLine.match(/$$Confidence:\s*\d+$$/i)) {
+        } else if (trimmedLine.match(/$$Confidence:\s*\d+(?:\.\d+)?$$/i)) {
           // Append to the last item if it exists
           if (currentSection.items.length > 0) {
             const lastItem = currentSection.items[currentSection.items.length - 1]
