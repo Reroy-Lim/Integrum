@@ -610,6 +610,7 @@ export default function IntegrumPortal() {
     }
 
     const handleLimitChange = (category: string, limit: number) => {
+      console.log(`[v0] Changing limit for "${category}" to ${limit}`)
       setTicketLimits((prev) => ({
         ...prev,
         [category]: limit,
@@ -710,8 +711,10 @@ export default function IntegrumPortal() {
                   {categories.map((category) => {
                     const categoryTickets = categorizeTickets(category.name)
                     const limit = ticketLimits[category.name]
-                    const displayedTickets = limit === -1 ? categoryTickets : categoryTickets.slice(0, limit)
-                    const hasMore = categoryTickets.length > limit && limit !== -1
+                    const effectiveLimit =
+                      limit === -1 ? categoryTickets.length : Math.min(limit, categoryTickets.length)
+                    const displayedTickets = categoryTickets.slice(0, effectiveLimit)
+                    const totalTickets = categoryTickets.length
 
                     return (
                       <div key={category.name} className="space-y-4">
@@ -721,7 +724,7 @@ export default function IntegrumPortal() {
                           <h3>{category.name}</h3>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="hover:bg-black/10 rounded p-1 transition-colors">
+                              <button className="hover:bg-black/10 rounded p-1 transition-colors focus:outline-none focus:ring-2 focus:ring-black/20">
                                 <ChevronDown className="w-5 h-5 text-black" />
                               </button>
                             </DropdownMenuTrigger>
@@ -742,38 +745,34 @@ export default function IntegrumPortal() {
                           </DropdownMenu>
                         </div>
 
+                        <div className="px-2">
+                          <p className="text-sm text-gray-700 font-medium">
+                            Showing {displayedTickets.length} of {totalTickets} tickets
+                          </p>
+                        </div>
+
                         <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
                           {displayedTickets.length > 0 ? (
-                            <>
-                              {displayedTickets.map((ticket) => (
-                                <Card key={ticket.key} className="bg-white border-gray-300">
-                                  <CardHeader className="pb-3">
-                                    <CardTitle className="text-sm text-black line-clamp-2">{ticket.summary}</CardTitle>
-                                    <CardDescription className="text-xs text-gray-600">
-                                      {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
-                                    </CardDescription>
-                                  </CardHeader>
-                                  <CardContent className="pt-0">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
-                                      className="w-full text-white bg-green-600 border-green-600 hover:bg-green-700 hover:text-white text-xs"
-                                    >
-                                      View Ticket Info
-                                    </Button>
-                                  </CardContent>
-                                </Card>
-                              ))}
-                              {hasMore && (
-                                <div className="text-center py-2">
-                                  <p className="text-sm text-gray-600">
-                                    Showing {displayedTickets.length} of {categoryTickets.length} tickets
-                                  </p>
-                                  <p className="text-xs text-gray-500">Use the dropdown above to show more</p>
-                                </div>
-                              )}
-                            </>
+                            displayedTickets.map((ticket) => (
+                              <Card key={ticket.key} className="bg-white border-gray-300">
+                                <CardHeader className="pb-3">
+                                  <CardTitle className="text-sm text-black line-clamp-2">{ticket.summary}</CardTitle>
+                                  <CardDescription className="text-xs text-gray-600">
+                                    {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent className="pt-0">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
+                                    className="w-full text-white bg-green-600 border-green-600 hover:bg-green-700 hover:text-white text-xs"
+                                  >
+                                    View Ticket Info
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))
                           ) : (
                             <Card className="bg-white border-gray-300">
                               <CardContent className="p-4 text-center">
