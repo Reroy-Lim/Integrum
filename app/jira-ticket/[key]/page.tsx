@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, ArrowLeft, Calendar, User, AlertCircle, Mail } from "@/components/icons"
 import { Badge } from "@/components/ui/badge"
 import type { JiraTicket } from "@/lib/jira-api"
+import type { JSX } from "react/jsx-runtime"
 
 export default function JiraTicketDetailPage() {
   const params = useParams()
@@ -78,10 +79,10 @@ export default function JiraTicketDetailPage() {
     if (!description) return <p className="text-gray-300">No description provided</p>
 
     const lines = description.split("\n")
-    const sections: { header?: string; content: string[] }[] = []
+    const elements: JSX.Element[] = []
     let currentSection: { header?: string; content: string[] } = { content: [] }
+    let sectionIndex = 0
 
-    // Section headers to detect (case-insensitive)
     const sectionHeaders = [
       "Description Detail:",
       "Steps to Reproduce:",
@@ -95,16 +96,126 @@ export default function JiraTicketDetailPage() {
       "Explanation for Solution",
     ]
 
+    const renderSection = (section: { header?: string; content: string[] }, idx: number) => {
+      const sectionElements: JSX.Element[] = []
+
+      if (section.header) {
+        sectionElements.push(
+          <h4 key={`header-${idx}`} className="font-bold text-white mb-2">
+            {section.header}
+          </h4>,
+        )
+      }
+
+      if (section.content.length > 0) {
+        const contentElements: JSX.Element[] = []
+        let inList = false
+        let listItems: string[] = []
+        let listType: "bullet" | "numbered" | null = null
+
+        const flushList = () => {
+          if (listItems.length > 0 && listType) {
+            if (listType === "bullet") {
+              contentElements.push(
+                <ul key={`list-${idx}-${contentElements.length}`} className="space-y-2 ml-4">
+                  {listItems.map((item, i) => (
+                    <li key={i} className="flex items-start space-x-2">
+                      <span className="text-gray-400 mt-1">•</span>
+                      <span className="text-gray-300 flex-1">{item}</span>
+                    </li>
+                  ))}
+                </ul>,
+              )
+            } else {
+              contentElements.push(
+                <ol key={`list-${idx}-${contentElements.length}`} className="space-y-2 ml-4">
+                  {listItems.map((item, i) => (
+                    <li key={i} className="flex items-start space-x-2">
+                      <span className="text-gray-400 mt-1">{i + 1})</span>
+                      <span className="text-gray-300 flex-1">{item}</span>
+                    </li>
+                  ))}
+                </ol>,
+              )
+            }
+            listItems = []
+            listType = null
+            inList = false
+          }
+        }
+
+        for (let i = 0; i < section.content.length; i++) {
+          const line = section.content[i]
+          const trimmedLine = line.trim()
+
+          const bulletMatch = trimmedLine.match(/^[•\-*]\s+(.+)/)
+          const numberedMatch = trimmedLine.match(/^\d+[).]\s+(.+)/)
+
+          if (bulletMatch) {
+            if (listType !== "bullet") {
+              flushList()
+              listType = "bullet"
+            }
+            inList = true
+            listItems.push(bulletMatch[1])
+          } else if (numberedMatch) {
+            if (listType !== "numbered") {
+              flushList()
+              listType = "numbered"
+            }
+            inList = true
+            listItems.push(numberedMatch[1])
+          } else {
+            // Regular paragraph
+            flushList()
+            if (trimmedLine) {
+              const keyValueMatch = trimmedLine.match(/^([^:]+):\s*(.+)/)
+              if (keyValueMatch && section.header?.includes("Additional Details")) {
+                contentElements.push(
+                  <p key={`line-${idx}-${i}`} className="text-gray-300">
+                    <span className="font-semibold">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
+                  </p>,
+                )
+              } else {
+                contentElements.push(
+                  <p key={`line-${idx}-${i}`} className="text-gray-300">
+                    {trimmedLine}
+                  </p>,
+                )
+              }
+            }
+          }
+        }
+
+        // Flush any remaining list
+        flushList()
+
+        if (contentElements.length > 0) {
+          sectionElements.push(
+            <div key={`content-${idx}`} className="space-y-2">
+              {contentElements}
+            </div>,
+          )
+        }
+      }
+
+      return (
+        <div key={`section-${idx}`} className="mb-4">
+          {sectionElements}
+        </div>
+      )
+    }
+
     for (const line of lines) {
       const trimmedLine = line.trim()
 
       // Check if line is a section header
-      const isHeader = sectionHeaders.some((header) => trimmedLine.toLowerCase().startsWith(header.toLowerCase()))
+      const isHeader = sectionHeaders.some((header) => trimmedLine.toLowerCase() === header.toLowerCase())
 
       if (isHeader) {
-        // Save previous section if it has content
+        // Render previous section
         if (currentSection.header || currentSection.content.length > 0) {
-          sections.push(currentSection)
+          elements.push(renderSection(currentSection, sectionIndex++))
         }
         // Start new section
         currentSection = { header: trimmedLine, content: [] }
@@ -113,44 +224,12 @@ export default function JiraTicketDetailPage() {
       }
     }
 
-    // Add the last section
+    // Render the last section
     if (currentSection.header || currentSection.content.length > 0) {
-      sections.push(currentSection)
+      elements.push(renderSection(currentSection, sectionIndex++))
     }
 
-    return (
-      <div className="space-y-4">
-        {sections.map((section, idx) => (
-          <div key={idx}>
-            {section.header && <h4 className="font-bold text-white mb-2">{section.header}</h4>}
-            {section.content.length > 0 && (
-              <div className="space-y-2">
-                {section.content.map((line, lineIdx) => {
-                  // Check if line is a bullet point or numbered list
-                  const isBullet = /^[•\-*]\s/.test(line)
-                  const isNumbered = /^\d+[).]\s/.test(line)
-
-                  if (isBullet || isNumbered) {
-                    return (
-                      <div key={lineIdx} className="flex items-start space-x-2 ml-4">
-                        <span className="text-gray-400 mt-1">•</span>
-                        <p className="text-gray-300 flex-1">{line.replace(/^[•\-*\d+).]\s*/, "")}</p>
-                      </div>
-                    )
-                  }
-
-                  return (
-                    <p key={lineIdx} className="text-gray-300">
-                      {line}
-                    </p>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    )
+    return <div className="space-y-4">{elements}</div>
   }
 
   const getStatusColor = (status: string) => {
