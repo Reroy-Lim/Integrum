@@ -455,17 +455,32 @@ export default function JiraTicketDetailPage() {
                   Back to Your Tickets
                 </Button>
                 {ticket.attachments && ticket.attachments.length > 0 && (
-                  <Button
-                    onClick={() => {
-                      // Download the first attachment (or show a menu if multiple)
-                      const attachment = ticket.attachments![0]
-                      window.open(attachment.content, "_blank")
-                    }}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Attachment
-                  </Button>
+                  <div className="flex-1">
+                    {ticket.attachments.length === 1 ? (
+                      <Button
+                        onClick={() => window.open(ticket.attachments![0].content, "_blank")}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download {ticket.attachments[0].filename}
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-400 mb-2">{ticket.attachments.length} Attachments:</p>
+                        {ticket.attachments.map((attachment) => (
+                          <Button
+                            key={attachment.id}
+                            onClick={() => window.open(attachment.content, "_blank")}
+                            variant="outline"
+                            className="w-full text-sm"
+                          >
+                            <Download className="w-3 h-3 mr-2" />
+                            {attachment.filename} ({(attachment.size / 1024).toFixed(1)} KB)
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
                 {isMasterAccount && (
                   <Button
