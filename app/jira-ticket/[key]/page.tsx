@@ -67,6 +67,42 @@ export default function JiraTicketDetailPage() {
     return null
   }
 
+  const extractExplanationSection = (
+    description: string,
+  ): { explanations: Array<{ text: string; confidence: number }>; cleanedDescription: string } => {
+    const explanations: Array<{ text: string; confidence: number }> = []
+    let cleanedDescription = description
+
+    // Find the "Explanation for Solution" section
+    const explanationMatch = description.match(
+      /Explanation for Solution.*?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i,
+    )
+
+    if (explanationMatch) {
+      const explanationContent = explanationMatch[1]
+
+      // Extract numbered items with confidence percentages
+      const itemMatches = explanationContent.matchAll(/(\d+)\)\s*(.*?)(?:Confidence:\s*(\d+)|(?=\d+\)|$))/gs)
+
+      for (const match of itemMatches) {
+        const text = match[2].trim()
+        const confidenceMatch = explanationContent.match(new RegExp(`${match[1]}\\).*?Confidence:\\s*(\\d+)`, "s"))
+        const confidence = confidenceMatch ? Number.parseInt(confidenceMatch[1]) : 0
+
+        if (text) {
+          explanations.push({ text, confidence })
+        }
+      }
+
+      // Remove the explanation section from the description
+      cleanedDescription = description
+        .replace(/Explanation for Solution.*?:([\s\S]*?)(?=\n[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:|$)/i, "")
+        .trim()
+    }
+
+    return { explanations, cleanedDescription }
+  }
+
   const cleanDescription = (description: string): string => {
     if (!description) return ""
 
@@ -299,7 +335,10 @@ export default function JiraTicketDetailPage() {
   }
 
   const customerEmail = extractEmailFromDescription(ticket.description || "")
-  const displayDescription = cleanDescription(ticket.description || "")
+  const { explanations, cleanedDescription: descWithoutExplanation } = extractExplanationSection(
+    ticket.description || "",
+  )
+  const displayDescription = cleanDescription(descWithoutExplanation)
 
   return (
     <div className="min-h-screen bg-black">
@@ -416,7 +455,12 @@ export default function JiraTicketDetailPage() {
           </Card>
 
           <div className="lg:sticky lg:top-6 lg:self-start">
-            <TicketChatbot ticketKey={ticket.key} ticketTitle={ticket.summary} ticketDescription={displayDescription} />
+            <TicketChatbot
+              ticketKey={ticket.key}
+              ticketTitle={ticket.summary}
+              ticketDescription={displayDescription}
+              explanations={explanations}
+            />
           </div>
         </div>
       </section>
