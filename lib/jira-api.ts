@@ -26,6 +26,13 @@ export interface JiraTicket {
   issuetype: {
     name: string
   }
+  attachments?: Array<{
+    id: string
+    filename: string
+    size: number
+    mimeType: string
+    content: string
+  }>
 }
 
 export interface JiraConfig {
@@ -88,7 +95,7 @@ export class JiraApiClient {
       const params = new URLSearchParams({
         jql,
         maxResults: maxResults.toString(),
-        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype",
+        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype,attachment",
       })
 
       const baseUrl = this.config.baseUrl.replace(/\/$/, "")
@@ -198,7 +205,7 @@ export class JiraApiClient {
       const params = new URLSearchParams({
         jql,
         maxResults: "1",
-        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype",
+        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype,attachment",
       })
 
       const baseUrl = this.config.baseUrl.replace(/\/$/, "")
@@ -233,6 +240,16 @@ export class JiraApiClient {
       }
     }
 
+    const attachments = issue.fields.attachment
+      ? issue.fields.attachment.map((att: any) => ({
+          id: att.id,
+          filename: att.filename,
+          size: att.size,
+          mimeType: att.mimeType,
+          content: att.content,
+        }))
+      : []
+
     return {
       id: issue.id,
       key: issue.key,
@@ -262,6 +279,7 @@ export class JiraApiClient {
       issuetype: {
         name: issue.fields.issuetype.name,
       },
+      attachments: attachments.length > 0 ? attachments : undefined,
     }
   }
 

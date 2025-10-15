@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, ArrowLeft, Calendar, User, AlertCircle, Mail } from "@/components/icons"
+import { Loader2, ArrowLeft, Calendar, User, AlertCircle, Mail, Download } from "@/components/icons"
 import { Badge } from "@/components/ui/badge"
 import type { JiraTicket } from "@/lib/jira-api"
 import { TicketChatbot } from "@/components/ticket-chatbot"
@@ -454,6 +454,19 @@ export default function JiraTicketDetailPage() {
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Your Tickets
                 </Button>
+                {ticket.attachments && ticket.attachments.length > 0 && (
+                  <Button
+                    onClick={() => {
+                      // Download the first attachment (or show a menu if multiple)
+                      const attachment = ticket.attachments![0]
+                      window.open(attachment.content, "_blank")
+                    }}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Attachment
+                  </Button>
+                )}
                 {isMasterAccount && (
                   <Button
                     onClick={() =>

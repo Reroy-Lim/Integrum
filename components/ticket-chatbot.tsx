@@ -91,7 +91,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
     <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
       <div className="flex items-center gap-2 p-4 border-b border-gray-700">
         <Bot className="w-5 h-5 text-blue-400" />
-        <h3 className="font-semibold text-blue-400">AI Support Assistant</h3>
+        <h3 className="font-semibold text-blue-400">Ticket Information Assistant</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
