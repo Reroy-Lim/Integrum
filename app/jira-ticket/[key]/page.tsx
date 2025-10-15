@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, ArrowLeft, Calendar, User, AlertCircle, Mail } from "@/components/icons"
 import { Badge } from "@/components/ui/badge"
 import type { JiraTicket } from "@/lib/jira-api"
-import type { JSX } from "react/jsx-runtime"
 
 export default function JiraTicketDetailPage() {
   const params = useParams()
@@ -79,9 +78,8 @@ export default function JiraTicketDetailPage() {
     if (!description) return <p className="text-gray-300">No description provided</p>
 
     const lines = description.split("\n")
-    const elements: JSX.Element[] = []
+    const sections: { header?: string; content: string[] }[] = []
     let currentSection: { header?: string; content: string[] } = { content: [] }
-    let sectionIndex = 0
 
     const sectionHeaders = [
       "Description Detail:",
@@ -94,142 +92,90 @@ export default function JiraTicketDetailPage() {
       "Possible Solutions:",
       "Explanation for Solution + Confidence Percentage:",
       "Explanation for Solution",
+      "Environment:",
+      "Resolution:",
+      "Timestamp:",
+      "Language:",
+      "Operating System:",
+      "Application Version:",
+      "Browser:",
+      "Network:",
     ]
-
-    const renderSection = (section: { header?: string; content: string[] }, idx: number) => {
-      const sectionElements: JSX.Element[] = []
-
-      if (section.header) {
-        sectionElements.push(
-          <h4 key={`header-${idx}`} className="font-bold text-white mb-2">
-            {section.header}
-          </h4>,
-        )
-      }
-
-      if (section.content.length > 0) {
-        const contentElements: JSX.Element[] = []
-        let inList = false
-        let listItems: string[] = []
-        let listType: "bullet" | "numbered" | null = null
-
-        const flushList = () => {
-          if (listItems.length > 0 && listType) {
-            if (listType === "bullet") {
-              contentElements.push(
-                <ul key={`list-${idx}-${contentElements.length}`} className="space-y-2 ml-4">
-                  {listItems.map((item, i) => (
-                    <li key={i} className="flex items-start space-x-2">
-                      <span className="text-gray-400 mt-1">•</span>
-                      <span className="text-gray-300 flex-1">{item}</span>
-                    </li>
-                  ))}
-                </ul>,
-              )
-            } else {
-              contentElements.push(
-                <ol key={`list-${idx}-${contentElements.length}`} className="space-y-2 ml-4">
-                  {listItems.map((item, i) => (
-                    <li key={i} className="flex items-start space-x-2">
-                      <span className="text-gray-400 mt-1">{i + 1})</span>
-                      <span className="text-gray-300 flex-1">{item}</span>
-                    </li>
-                  ))}
-                </ol>,
-              )
-            }
-            listItems = []
-            listType = null
-            inList = false
-          }
-        }
-
-        for (let i = 0; i < section.content.length; i++) {
-          const line = section.content[i]
-          const trimmedLine = line.trim()
-
-          const bulletMatch = trimmedLine.match(/^[•\-*]\s+(.+)/)
-          const numberedMatch = trimmedLine.match(/^\d+[).]\s+(.+)/)
-
-          if (bulletMatch) {
-            if (listType !== "bullet") {
-              flushList()
-              listType = "bullet"
-            }
-            inList = true
-            listItems.push(bulletMatch[1])
-          } else if (numberedMatch) {
-            if (listType !== "numbered") {
-              flushList()
-              listType = "numbered"
-            }
-            inList = true
-            listItems.push(numberedMatch[1])
-          } else {
-            // Regular paragraph
-            flushList()
-            if (trimmedLine) {
-              const keyValueMatch = trimmedLine.match(/^([^:]+):\s*(.+)/)
-              if (keyValueMatch && section.header?.includes("Additional Details")) {
-                contentElements.push(
-                  <p key={`line-${idx}-${i}`} className="text-gray-300">
-                    <span className="font-semibold">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
-                  </p>,
-                )
-              } else {
-                contentElements.push(
-                  <p key={`line-${idx}-${i}`} className="text-gray-300">
-                    {trimmedLine}
-                  </p>,
-                )
-              }
-            }
-          }
-        }
-
-        // Flush any remaining list
-        flushList()
-
-        if (contentElements.length > 0) {
-          sectionElements.push(
-            <div key={`content-${idx}`} className="space-y-2">
-              {contentElements}
-            </div>,
-          )
-        }
-      }
-
-      return (
-        <div key={`section-${idx}`} className="mb-4">
-          {sectionElements}
-        </div>
-      )
-    }
 
     for (const line of lines) {
       const trimmedLine = line.trim()
+      if (!trimmedLine) continue
 
       // Check if line is a section header
-      const isHeader = sectionHeaders.some((header) => trimmedLine.toLowerCase() === header.toLowerCase())
+      const isHeader = sectionHeaders.some((header) => trimmedLine.toLowerCase().startsWith(header.toLowerCase()))
 
       if (isHeader) {
-        // Render previous section
+        // Save previous section if it has content
         if (currentSection.header || currentSection.content.length > 0) {
-          elements.push(renderSection(currentSection, sectionIndex++))
+          sections.push(currentSection)
         }
         // Start new section
         currentSection = { header: trimmedLine, content: [] }
-      } else if (trimmedLine) {
+      } else {
         currentSection.content.push(trimmedLine)
       }
     }
 
-    // Render the last section
+    // Add the last section
     if (currentSection.header || currentSection.content.length > 0) {
-      elements.push(renderSection(currentSection, sectionIndex++))
+      sections.push(currentSection)
     }
 
-    return <div className="space-y-4">{elements}</div>
+    return (
+      <div className="space-y-4 text-gray-100">
+        {sections.map((section, idx) => (
+          <div key={idx} className="space-y-2">
+            {section.header && <h4 className="font-bold text-white text-base">{section.header}</h4>}
+            {section.content.length > 0 && (
+              <div className="space-y-1.5">
+                {section.content.map((line, lineIdx) => {
+                  const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
+                  const numberedMatch = line.match(/^(\d+)[).]\s+(.+)/)
+
+                  if (bulletMatch) {
+                    return (
+                      <div key={lineIdx} className="flex items-start space-x-2 ml-2">
+                        <span className="text-gray-400 mt-0.5 select-none">•</span>
+                        <p className="text-gray-300 flex-1 leading-relaxed">{bulletMatch[1]}</p>
+                      </div>
+                    )
+                  }
+
+                  if (numberedMatch) {
+                    return (
+                      <div key={lineIdx} className="flex items-start space-x-2 ml-2">
+                        <span className="text-gray-400 mt-0.5 select-none font-medium">{numberedMatch[1]})</span>
+                        <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
+                      </div>
+                    )
+                  }
+
+                  const keyValueMatch = line.match(/^([^:]+):\s*(.+)/)
+                  if (keyValueMatch && section.header?.toLowerCase().includes("additional details")) {
+                    return (
+                      <p key={lineIdx} className="text-gray-300 leading-relaxed ml-2">
+                        <span className="font-medium text-gray-200">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
+                      </p>
+                    )
+                  }
+
+                  return (
+                    <p key={lineIdx} className="text-gray-300 leading-relaxed">
+                      {line}
+                    </p>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    )
   }
 
   const getStatusColor = (status: string) => {
