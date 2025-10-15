@@ -385,7 +385,6 @@ export default function JiraTicketDetailPage() {
                     )}
                   </div>
                   <CardTitle className="text-2xl text-white mb-2">{ticket.summary}</CardTitle>
-                  <CardDescription className="text-gray-400">{ticket.issuetype.name}</CardDescription>
                 </div>
               </div>
 

@@ -68,10 +68,9 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
         // Start new section
         currentSection = { header: trimmedLine, content: [] }
       } else {
-        // Check for numbered items
         const numberedMatch = trimmedLine.match(/^(\d+)\)\s*(.+)/)
         if (numberedMatch) {
-          currentSection.content.push(`${numberedMatch[1]}) ${numberedMatch[2]}`)
+          currentSection.content.push(numberedMatch[2]) // Just the text without the number
         } else {
           currentSection.content.push(trimmedLine)
         }
@@ -109,19 +108,11 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
                     {section.content.length > 0 && (
                       <div className="space-y-2">
                         {section.content.map((line, lineIdx) => {
-                          const numberedMatch = line.match(/^(\d+)\)\s*(.+)/)
-                          if (numberedMatch) {
-                            return (
-                              <div key={lineIdx} className="flex items-start gap-2">
-                                <span className="text-blue-400 font-medium text-sm mt-0.5">{numberedMatch[1]})</span>
-                                <p className="text-gray-300 text-sm leading-relaxed flex-1">{numberedMatch[2]}</p>
-                              </div>
-                            )
-                          }
                           return (
-                            <p key={lineIdx} className="text-gray-300 text-sm leading-relaxed">
-                              {line}
-                            </p>
+                            <div key={lineIdx} className="flex items-start gap-2">
+                              <span className="text-blue-400 text-sm mt-0.5">•</span>
+                              <p className="text-gray-300 text-sm leading-relaxed flex-1">{line}</p>
+                            </div>
                           )
                         })}
                       </div>
