@@ -81,6 +81,7 @@ export default function IntegrumPortal() {
   const [tickets, setTickets] = useState<JiraTicket[]>([])
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
   const [ticketsError, setTicketsError] = useState<string | null>(null)
+  const [ticketLimit, setTicketLimit] = useState(100)
 
   const userEmail = session?.user?.email || ""
 
@@ -96,8 +97,8 @@ export default function IntegrumPortal() {
       setTicketsError(null)
 
       try {
-        console.log("[v0] Fetching tickets for user:", userEmail)
-        const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}`)
+        console.log("[v0] Fetching tickets for user:", userEmail, "with limit:", ticketLimit)
+        const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=${ticketLimit}`)
 
         console.log("[v0] Jira API response status:", response.status)
 
@@ -131,7 +132,7 @@ export default function IntegrumPortal() {
 
     const intervalId = setInterval(fetchTickets, 30000)
     return () => clearInterval(intervalId)
-  }, [userEmail])
+  }, [userEmail, ticketLimit])
 
   const refreshTickets = async () => {
     if (!userEmail) return
@@ -140,7 +141,7 @@ export default function IntegrumPortal() {
     setTicketsError(null)
 
     try {
-      const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}`)
+      const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=${ticketLimit}`)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch tickets: ${response.statusText}`)
@@ -631,15 +632,34 @@ export default function IntegrumPortal() {
             <div className="bg-blue-100 rounded-lg p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-3xl font-bold text-black">Your Ticket Page</h2>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={refreshTickets}
-                  disabled={isLoadingTickets}
-                  className="flex items-center space-x-2 bg-green-600 text-white border-green-600 hover:bg-green-700"
-                >
-                  {isLoadingTickets ? <Loader2 className="w-4 h-4 animate-spin" /> : "Refresh"}
-                </Button>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="ticket-limit" className="text-sm font-medium text-black">
+                      Show:
+                    </label>
+                    <select
+                      id="ticket-limit"
+                      value={ticketLimit}
+                      onChange={(e) => setTicketLimit(Number(e.target.value))}
+                      className="px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value={50}>50 tickets</option>
+                      <option value={100}>100 tickets</option>
+                      <option value={200}>200 tickets</option>
+                      <option value={500}>500 tickets</option>
+                      <option value={1000}>1000 tickets</option>
+                    </select>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refreshTickets}
+                    disabled={isLoadingTickets}
+                    className="flex items-center space-x-2 bg-green-600 text-white border-green-600 hover:bg-green-700"
+                  >
+                    {isLoadingTickets ? <Loader2 className="w-4 h-4 animate-spin" /> : "Refresh"}
+                  </Button>
+                </div>
               </div>
 
               {session?.user && (
@@ -702,7 +722,6 @@ export default function IntegrumPortal() {
                           className={`flex items-center justify-between text-xl font-semibold text-black border-b border-gray-600 pb-2 px-4 py-2 rounded-t-lg ${category.color}`}
                         >
                           <h3>{category.name}</h3>
-                          <ChevronDown className="w-5 h-5 text-black" />
                         </div>
 
                         <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">

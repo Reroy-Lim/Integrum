@@ -4,8 +4,10 @@ import { JiraApiClient } from "@/lib/jira-api"
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const userEmail = searchParams.get("email")
+  const limit = searchParams.get("limit")
+  const maxResults = limit ? Number.parseInt(limit, 10) : 100
 
-  console.log("[v0] Jira API Route: Request for user:", userEmail)
+  console.log("[v0] Jira API Route: Request for user:", userEmail, "with limit:", maxResults)
 
   if (!userEmail) {
     return NextResponse.json({ error: "User email is required" }, { status: 400 })
@@ -46,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     const jiraClient = new JiraApiClient(jiraConfig)
-    const tickets = await jiraClient.getTicketsByUser(userEmail)
+    const tickets = await jiraClient.getTicketsByUser(userEmail, maxResults)
 
     console.log("[v0] Jira API Route: Returning", tickets.length, "tickets")
     return NextResponse.json({ tickets })

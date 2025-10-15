@@ -70,17 +70,24 @@ export class JiraApiClient {
     }
   }
 
-  async getTicketsByUser(userEmail: string): Promise<JiraTicket[]> {
+  async getTicketsByUser(userEmail: string, maxResults = 100): Promise<JiraTicket[]> {
     try {
       const masterEmail = "heyroy23415@gmail.com"
       const isMasterAccount = userEmail.toLowerCase() === masterEmail.toLowerCase()
 
-      console.log("[v0] Jira API: Fetching tickets for user:", userEmail, "| Is master:", isMasterAccount)
+      console.log(
+        "[v0] Jira API: Fetching tickets for user:",
+        userEmail,
+        "| Is master:",
+        isMasterAccount,
+        "| Limit:",
+        maxResults,
+      )
 
       const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
       const params = new URLSearchParams({
         jql,
-        maxResults: "1000",
+        maxResults: maxResults.toString(),
         fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype",
       })
 
