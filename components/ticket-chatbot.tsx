@@ -112,10 +112,10 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
                 {solutionSections.map((section, idx) => (
                   <div key={idx} className="space-y-3">
                     {section.header && (
-                      <h4 className="font-bold text-blue-400 text-sm mb-3 underline">{section.header}</h4>
+                      <h4 className="font-bold text-blue-400 text-sm mb-2 underline">{section.header}</h4>
                     )}
                     {section.content.length > 0 && (
-                      <div className="space-y-2">
+                      <div className="space-y-2 mt-2">
                         {section.content.map((item, lineIdx) => {
                           if (item.type === "numbered") {
                             return (
