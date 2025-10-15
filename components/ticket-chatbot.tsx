@@ -48,12 +48,17 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
   const formatSolutions = (solutions: string) => {
     if (!solutions) return null
 
-    // Split by looking ahead for number followed by closing parenthesis
-    const preprocessed = solutions.replace(/(\d+\))/g, "\n$1").trim()
+    // Preprocess: Add line breaks before numbered items and bullet points
+    const preprocessed = solutions
+      .replace(/(\d+\))/g, "\n$1") // Add line break before numbered items
+      .replace(/•/g, "\n•\n") // Add line breaks before and after bullets
+      .trim()
 
     const lines = preprocessed.split("\n")
-    const sections: { header?: string; content: string[] }[] = []
-    let currentSection: { header?: string; content: string[] } = { content: [] }
+    const sections: { header?: string; items: { type: "numbered" | "bullet"; number?: string; text: string }[] }[] = []
+    let currentSection: { header?: string; items: { type: "numbered" | "bullet"; number?: string; text: string }[] } = {
+      items: [],
+    }
 
     for (const line of lines) {
       const trimmedLine = line.trim()
@@ -65,23 +70,55 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
         trimmedLine.toLowerCase().startsWith("explanation for solution")
       ) {
         // Save previous section if it has content
-        if (currentSection.header || currentSection.content.length > 0) {
+        if (currentSection.header || currentSection.items.length > 0) {
           sections.push(currentSection)
         }
         // Start new section
-        currentSection = { header: trimmedLine, content: [] }
+        currentSection = { header: trimmedLine, items: [] }
       } else {
+        // Check for numbered item (1), 2), 3), etc.)
         const numberedMatch = trimmedLine.match(/^(\d+)\)\s*(.+)/)
         if (numberedMatch) {
-          currentSection.content.push(numberedMatch[2]) // Just the text without the number
+          currentSection.items.push({
+            type: "numbered",
+            number: numberedMatch[1],
+            text: numberedMatch[2],
+          })
+        }
+        // Check for bullet point
+        else if (trimmedLine.startsWith("•")) {
+          const bulletText = trimmedLine.substring(1).trim()
+          if (bulletText) {
+            currentSection.items.push({
+              type: "bullet",
+              text: bulletText,
+            })
+          }
+        }
+        // Regular text (like confidence percentages)
+        else if (trimmedLine.match(/\(Confidence:/i)) {
+          // Append to the last item if it exists
+          if (currentSection.items.length > 0) {
+            const lastItem = currentSection.items[currentSection.items.length - 1]
+            lastItem.text += `\n${trimmedLine}`
+          }
         } else {
-          currentSection.content.push(trimmedLine)
+          // Append to the last item if it exists, otherwise add as new item
+          if (currentSection.items.length > 0) {
+            const lastItem = currentSection.items[currentSection.items.length - 1]
+            lastItem.text += ` ${trimmedLine}`
+          } else {
+            currentSection.items.push({
+              type: "bullet",
+              text: trimmedLine,
+            })
+          }
         }
       }
     }
 
     // Add the last section
-    if (currentSection.header || currentSection.content.length > 0) {
+    if (currentSection.header || currentSection.items.length > 0) {
       sections.push(currentSection)
     }
 
@@ -104,20 +141,33 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div className="max-w-[85%] bg-gray-800 rounded-lg p-4 border border-blue-500/30">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {solutionSections.map((section, idx) => (
                   <div key={idx} className="space-y-3">
-                    {section.header && <h4 className="font-bold text-blue-400 text-sm mb-2">{section.header}</h4>}
-                    {section.content.length > 0 && (
-                      <div className="space-y-3">
-                        {section.content.map((line, lineIdx) => {
-                          return (
-                            <div key={lineIdx} className="flex items-start gap-2">
-                              <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0">•</span>
-                              <p className="text-blue-300 text-sm leading-relaxed flex-1">{line}</p>
-                            </div>
-                          )
-                        })}
+                    {section.header && <h4 className="font-bold text-blue-400 text-sm mb-3">{section.header}</h4>}
+                    {section.items.length > 0 && (
+                      <div className="space-y-4">
+                        {section.items.map((item, itemIdx) => (
+                          <div key={itemIdx} className="flex items-start gap-2">
+                            {item.type === "numbered" ? (
+                              <>
+                                <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0 font-medium">
+                                  {item.number})
+                                </span>
+                                <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line">
+                                  {item.text}
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0">•</span>
+                                <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line">
+                                  {item.text}
+                                </p>
+                              </>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
