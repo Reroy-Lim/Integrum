@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Loader2, Mail, User, AlertCircle } from "@/components/icons"
-import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, ChevronDown, ChevronUp } from "lucide-react"
+import { Zap, Home, FileText, HelpCircle, Phone, Shield, Key, Lightbulb, ChevronDown } from "lucide-react"
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
 import { GoogleSignInModal } from "@/components/google-signin-modal"
 import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog"
@@ -82,12 +83,11 @@ export default function IntegrumPortal() {
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
   const [ticketsError, setTicketsError] = useState<string | null>(null)
 
-  const [categoryPages, setCategoryPages] = useState<Record<string, number>>({
-    "In Progress": 1,
-    "Pending Reply": 1,
-    Resolved: 1,
+  const [ticketLimits, setTicketLimits] = useState<Record<string, number>>({
+    "In Progress": 100,
+    "Pending Reply": 100,
+    Resolved: 100,
   })
-  const TICKETS_PER_PAGE = 100
 
   const userEmail = session?.user?.email || ""
 
@@ -275,7 +275,7 @@ export default function IntegrumPortal() {
     const ticketSent = searchParams.get("ticketSent")
     if (ticketSent === "true") {
       setShowSuccessMessage(true)
-      window.history.replaceState({}, "", "/")
+      window.history.replaceState({}, "/", window.location.pathname)
     }
   }, [searchParams])
 
@@ -385,7 +385,7 @@ export default function IntegrumPortal() {
   )
 
   const renderSuccessMessageDialog = () => (
-    <Dialog open={showSuccessMessage} onOpenChange={setShowSuccessMessage}>
+    <Dialog open={showSuccessMessage} onOpenChange={() => setShowSuccessMessage(false)}>
       <DialogContent className="max-w-md w-full bg-white">
         <DialogHeader className="space-y-4">
           <div className="flex items-center justify-center">
@@ -609,35 +609,11 @@ export default function IntegrumPortal() {
       return filtered
     }
 
-    const getPaginatedTickets = (category: string) => {
-      const allCategoryTickets = categorizeTickets(category)
-      const currentPage = categoryPages[category] || 1
-      const startIndex = (currentPage - 1) * TICKETS_PER_PAGE
-      const endIndex = startIndex + TICKETS_PER_PAGE
-      return allCategoryTickets.slice(startIndex, endIndex)
-    }
-
-    const getTotalPages = (category: string) => {
-      const allCategoryTickets = categorizeTickets(category)
-      return Math.ceil(allCategoryTickets.length / TICKETS_PER_PAGE)
-    }
-
-    const handlePageChange = (category: string, direction: "up" | "down") => {
-      setCategoryPages((prev) => {
-        const currentPage = prev[category] || 1
-        const totalPages = getTotalPages(category)
-        const newPage = direction === "up" ? Math.max(1, currentPage - 1) : Math.min(totalPages, currentPage + 1)
-        return { ...prev, [category]: newPage }
-      })
-    }
-
-    const getTicketRange = (category: string) => {
-      const allCategoryTickets = categorizeTickets(category)
-      const totalTickets = allCategoryTickets.length
-      const currentPage = categoryPages[category] || 1
-      const startIndex = (currentPage - 1) * TICKETS_PER_PAGE + 1
-      const endIndex = Math.min(currentPage * TICKETS_PER_PAGE, totalTickets)
-      return { startIndex, endIndex, totalTickets }
+    const handleLimitChange = (category: string, limit: number) => {
+      setTicketLimits((prev) => ({
+        ...prev,
+        [category]: limit,
+      }))
     }
 
     const categories = [
@@ -732,11 +708,10 @@ export default function IntegrumPortal() {
               ) : hasTickets ? (
                 <div className="grid md:grid-cols-3 gap-6">
                   {categories.map((category) => {
-                    const categoryTickets = getPaginatedTickets(category.name)
-                    const allCategoryTickets = categorizeTickets(category.name)
-                    const { startIndex, endIndex, totalTickets } = getTicketRange(category.name)
-                    const currentPage = categoryPages[category.name] || 1
-                    const totalPages = getTotalPages(category.name)
+                    const categoryTickets = categorizeTickets(category.name)
+                    const limit = ticketLimits[category.name]
+                    const displayedTickets = limit === -1 ? categoryTickets : categoryTickets.slice(0, limit)
+                    const hasMore = categoryTickets.length > limit && limit !== -1
 
                     return (
                       <div key={category.name} className="space-y-4">
@@ -744,53 +719,61 @@ export default function IntegrumPortal() {
                           className={`flex items-center justify-between text-xl font-semibold text-black border-b border-gray-600 pb-2 px-4 py-2 rounded-t-lg ${category.color}`}
                         >
                           <h3>{category.name}</h3>
-                          <div className="flex items-center space-x-2">
-                            {totalTickets > 0 && (
-                              <span className="text-sm font-normal">
-                                {startIndex}-{endIndex} of {totalTickets}
-                              </span>
-                            )}
-                            <div className="flex flex-col">
-                              <button
-                                onClick={() => handlePageChange(category.name, "up")}
-                                disabled={currentPage === 1 || totalTickets === 0}
-                                className="disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black/10 rounded p-0.5"
-                              >
-                                <ChevronUp className="w-4 h-4 text-black" />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="hover:bg-black/10 rounded p-1 transition-colors">
+                                <ChevronDown className="w-5 h-5 text-black" />
                               </button>
-                              <button
-                                onClick={() => handlePageChange(category.name, "down")}
-                                disabled={currentPage >= totalPages || totalTickets === 0}
-                                className="disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black/10 rounded p-0.5"
-                              >
-                                <ChevronDown className="w-4 h-4 text-black" />
-                              </button>
-                            </div>
-                          </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem onClick={() => handleLimitChange(category.name, 100)}>
+                                Show first 100 tickets
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleLimitChange(category.name, 200)}>
+                                Show first 200 tickets
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleLimitChange(category.name, 500)}>
+                                Show first 500 tickets
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleLimitChange(category.name, -1)}>
+                                Show all tickets
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
 
                         <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
-                          {categoryTickets.length > 0 ? (
-                            categoryTickets.map((ticket) => (
-                              <Card key={ticket.key} className="bg-white border-gray-300">
-                                <CardHeader className="pb-3">
-                                  <CardTitle className="text-sm text-black line-clamp-2">{ticket.summary}</CardTitle>
-                                  <CardDescription className="text-xs text-gray-600">
-                                    {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
-                                  </CardDescription>
-                                </CardHeader>
-                                <CardContent className="pt-0">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
-                                    className="w-full text-white bg-green-600 border-green-600 hover:bg-green-700 hover:text-white text-xs"
-                                  >
-                                    View Ticket Info
-                                  </Button>
-                                </CardContent>
-                              </Card>
-                            ))
+                          {displayedTickets.length > 0 ? (
+                            <>
+                              {displayedTickets.map((ticket) => (
+                                <Card key={ticket.key} className="bg-white border-gray-300">
+                                  <CardHeader className="pb-3">
+                                    <CardTitle className="text-sm text-black line-clamp-2">{ticket.summary}</CardTitle>
+                                    <CardDescription className="text-xs text-gray-600">
+                                      {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
+                                    </CardDescription>
+                                  </CardHeader>
+                                  <CardContent className="pt-0">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
+                                      className="w-full text-white bg-green-600 border-green-600 hover:bg-green-700 hover:text-white text-xs"
+                                    >
+                                      View Ticket Info
+                                    </Button>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                              {hasMore && (
+                                <div className="text-center py-2">
+                                  <p className="text-sm text-gray-600">
+                                    Showing {displayedTickets.length} of {categoryTickets.length} tickets
+                                  </p>
+                                  <p className="text-xs text-gray-500">Use the dropdown above to show more</p>
+                                </div>
+                              )}
+                            </>
                           ) : (
                             <Card className="bg-white border-gray-300">
                               <CardContent className="p-4 text-center">
