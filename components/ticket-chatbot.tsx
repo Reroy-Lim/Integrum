@@ -91,7 +91,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
     <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
       <div className="flex items-center gap-2 p-4 border-b border-gray-700">
         <Bot className="w-5 h-5 text-blue-400" />
-        <h3 className="font-semibold text-white">AI Support Assistant</h3>
+        <h3 className="font-semibold text-blue-400">AI Support Assistant</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -103,15 +103,15 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
             <div className="max-w-[85%] bg-gray-800 rounded-lg p-4 border border-blue-500/30">
               <div className="space-y-4">
                 {solutionSections.map((section, idx) => (
-                  <div key={idx}>
-                    {section.header && <h4 className="font-bold text-blue-400 text-sm mb-2">{section.header}</h4>}
+                  <div key={idx} className="space-y-3">
+                    {section.header && <h4 className="font-bold text-blue-400 text-sm mb-3">{section.header}</h4>}
                     {section.content.length > 0 && (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {section.content.map((line, lineIdx) => {
                           return (
                             <div key={lineIdx} className="flex items-start gap-2">
-                              <span className="text-blue-400 text-sm mt-0.5">•</span>
-                              <p className="text-gray-300 text-sm leading-relaxed flex-1">{line}</p>
+                              <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0">•</span>
+                              <p className="text-blue-300 text-sm leading-relaxed flex-1">{line}</p>
                             </div>
                           )
                         })}
@@ -125,8 +125,8 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
         )}
 
         {messages.length === 0 && !solutionSections && (
-          <div className="flex flex-col items-center justify-center h-full text-center text-gray-400">
-            <Bot className="w-12 h-12 mb-4 text-gray-600" />
+          <div className="flex flex-col items-center justify-center h-full text-center text-blue-400">
+            <Bot className="w-12 h-12 mb-4 text-blue-500" />
             <p className="text-sm">Ask me anything about this ticket.</p>
             <p className="text-xs mt-2">I can help troubleshoot, suggest solutions, or answer questions.</p>
           </div>
@@ -142,7 +142,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
 
             <div
               className={`max-w-[80%] rounded-lg p-3 ${
-                message.role === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-100"
+                message.role === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-blue-300"
               }`}
             >
               {message.parts.map((part, index) => {
@@ -172,9 +172,9 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
             </div>
             <div className="bg-gray-800 rounded-lg p-3">
               <div className="flex gap-1">
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
@@ -190,7 +190,7 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
             disabled={status === "in_progress"}
-            className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+            className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
           />
           <Button
             type="submit"
