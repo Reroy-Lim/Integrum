@@ -292,9 +292,11 @@ export default function JiraTicketDetailPage() {
                       {ticket.key}
                     </Badge>
                     <Badge className={`${getStatusColor(ticket.status.name)} text-white`}>{ticket.status.name}</Badge>
-                    <Badge className={`${getPriorityColor(ticket.priority.name)} text-white`}>
-                      {ticket.priority.name}
-                    </Badge>
+                    {isMasterAccount && (
+                      <Badge className={`${getPriorityColor(ticket.priority.name)} text-white`}>
+                        {ticket.priority.name}
+                      </Badge>
+                    )}
                   </div>
                   <CardTitle className="text-2xl text-white mb-2">{ticket.summary}</CardTitle>
                   <CardDescription className="text-gray-400">{ticket.issuetype.name}</CardDescription>
@@ -302,16 +304,18 @@ export default function JiraTicketDetailPage() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4 mt-6">
-                <div className="flex items-center space-x-3 text-gray-300">
-                  <User className="w-5 h-5 text-blue-400" />
-                  <div>
-                    <p className="text-xs text-gray-500">Reporter</p>
-                    <p className="font-medium">{ticket.reporter.displayName}</p>
-                    <p className="text-sm text-gray-400">{ticket.reporter.emailAddress}</p>
+                {isMasterAccount && (
+                  <div className="flex items-center space-x-3 text-gray-300">
+                    <User className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <p className="text-xs text-gray-500">Reporter</p>
+                      <p className="font-medium">{ticket.reporter.displayName}</p>
+                      <p className="text-sm text-gray-400">{ticket.reporter.emailAddress}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {ticket.assignee && (
+                {isMasterAccount && ticket.assignee && (
                   <div className="flex items-center space-x-3 text-gray-300">
                     <User className="w-5 h-5 text-green-400" />
                     <div>
@@ -365,12 +369,16 @@ export default function JiraTicketDetailPage() {
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Your Tickets
                 </Button>
-                <Button
-                  onClick={() => window.open(`${process.env.NEXT_PUBLIC_JIRA_BASE_URL}/browse/${ticket.key}`, "_blank")}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  View in Jira
-                </Button>
+                {isMasterAccount && (
+                  <Button
+                    onClick={() =>
+                      window.open(`${process.env.NEXT_PUBLIC_JIRA_BASE_URL}/browse/${ticket.key}`, "_blank")
+                    }
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    View in Jira
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
