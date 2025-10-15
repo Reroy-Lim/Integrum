@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, ArrowLeft, Calendar, User, AlertCircle, Mail } from "@/components/icons"
 import { Badge } from "@/components/ui/badge"
 import type { JiraTicket } from "@/lib/jira-api"
+import { TicketChatbot } from "@/components/ticket-chatbot"
 
 export default function JiraTicketDetailPage() {
   const params = useParams()
@@ -311,7 +312,7 @@ export default function JiraTicketDetailPage() {
       </nav>
 
       <section className="py-12 px-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-6">
           <Card className="bg-gray-900 border-gray-700">
             <CardHeader>
               <div className="flex items-start justify-between mb-4">
@@ -413,6 +414,10 @@ export default function JiraTicketDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          <div className="lg:sticky lg:top-6 lg:self-start">
+            <TicketChatbot ticketKey={ticket.key} ticketTitle={ticket.summary} ticketDescription={displayDescription} />
+          </div>
         </div>
       </section>
     </div>
