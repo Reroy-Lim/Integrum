@@ -49,8 +49,10 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
     if (!solutions) return null
 
     const lines = solutions.split("\n")
-    const sections: { header?: string; content: string[] }[] = []
-    let currentSection: { header?: string; content: string[] } = { content: [] }
+    const sections: { header?: string; content: { type: "numbered" | "text"; number?: number; text: string }[] }[] = []
+    let currentSection: { header?: string; content: { type: "numbered" | "text"; number?: number; text: string }[] } = {
+      content: [],
+    }
 
     for (const line of lines) {
       const trimmedLine = line.trim()
@@ -68,11 +70,16 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
         // Start new section
         currentSection = { header: trimmedLine, content: [] }
       } else {
+        // Check for numbered items (1), 2), 3), etc.)
         const numberedMatch = trimmedLine.match(/^(\d+)\)\s*(.+)/)
         if (numberedMatch) {
-          currentSection.content.push(numberedMatch[2]) // Just the text without the number
+          currentSection.content.push({
+            type: "numbered",
+            number: Number.parseInt(numberedMatch[1]),
+            text: numberedMatch[2],
+          })
         } else {
-          currentSection.content.push(trimmedLine)
+          currentSection.content.push({ type: "text", text: trimmedLine })
         }
       }
     }
@@ -104,16 +111,28 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
               <div className="space-y-4">
                 {solutionSections.map((section, idx) => (
                   <div key={idx} className="space-y-3">
-                    {section.header && <h4 className="font-bold text-blue-400 text-sm mb-3">{section.header}</h4>}
+                    {section.header && (
+                      <h4 className="font-bold text-blue-400 text-sm mb-3 underline">{section.header}</h4>
+                    )}
                     {section.content.length > 0 && (
-                      <div className="space-y-3">
-                        {section.content.map((line, lineIdx) => {
-                          return (
-                            <div key={lineIdx} className="flex items-start gap-2">
-                              <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0">•</span>
-                              <p className="text-blue-300 text-sm leading-relaxed flex-1">{line}</p>
-                            </div>
-                          )
+                      <div className="space-y-2">
+                        {section.content.map((item, lineIdx) => {
+                          if (item.type === "numbered") {
+                            return (
+                              <div key={lineIdx} className="flex items-start gap-2">
+                                <span className="text-blue-400 text-sm font-semibold flex-shrink-0">
+                                  {item.number}.
+                                </span>
+                                <p className="text-blue-300 text-sm leading-relaxed flex-1">{item.text}</p>
+                              </div>
+                            )
+                          } else {
+                            return (
+                              <p key={lineIdx} className="text-blue-300 text-sm leading-relaxed">
+                                {item.text}
+                              </p>
+                            )
+                          }
                         })}
                       </div>
                     )}
