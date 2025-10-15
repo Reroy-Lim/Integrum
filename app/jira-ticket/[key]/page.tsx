@@ -129,8 +129,10 @@ export default function JiraTicketDetailPage() {
     return (
       <div className="space-y-6 text-gray-100">
         {sections.map((section, idx) => (
-          <div key={idx} className="space-y-3">
-            {section.header && <h4 className="font-bold text-white text-base leading-relaxed">{section.header}</h4>}
+          <div key={idx}>
+            {section.header && (
+              <h4 className="font-bold text-white text-base leading-relaxed mb-3">{section.header}</h4>
+            )}
             {section.content.length > 0 && (
               <div className="space-y-3">
                 {section.content.map((line, lineIdx) => {
