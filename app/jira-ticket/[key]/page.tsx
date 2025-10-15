@@ -69,11 +69,15 @@ export default function JiraTicketDetailPage() {
   const cleanDescription = (description: string): string => {
     if (!description) return ""
 
-    // Remove only the "From: [email]" part, not the entire line
-    const cleaned = description.replace(
-      /^From:\s*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6}(?=[A-Z]|\s|$|[^a-zA-Z0-9])\s*/i,
-      "",
-    )
+    // This ensures we don't accidentally truncate "Description Detail:"
+    const descriptionDetailIndex = description.indexOf("Description Detail:")
+    if (descriptionDetailIndex > 0) {
+      // Found "Description Detail:" - remove everything before it
+      return description.substring(descriptionDetailIndex).trim()
+    }
+
+    // If "Description Detail:" is not found, try to remove just the "From:" line
+    const cleaned = description.replace(/^From:\s*[^\n]+\n?/i, "")
     return cleaned.trim()
   }
 
