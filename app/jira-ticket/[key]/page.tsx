@@ -140,7 +140,9 @@ export default function JiraTicketDetailPage() {
   const formatDescription = (description: string) => {
     if (!description) return <p className="text-gray-300">No description provided</p>
 
-    const lines = description.split("\n")
+    const preprocessed = description.replace(/(\d+\.\s+[^0-9]+?)(?=\d+\.)/g, "$1\n")
+    const lines = preprocessed.split("\n")
+
     const sections: { header?: string; content: string[] }[] = []
     let currentSection: { header?: string; content: string[] } = { content: [] }
 
@@ -195,10 +197,10 @@ export default function JiraTicketDetailPage() {
             }
           })
         } else if (contentAfterHeader) {
-          const numberedItemsMatch = contentAfterHeader.match(/\d+\)/g)
+          const numberedItemsMatch = contentAfterHeader.match(/\d+[.)]/g)
           if (numberedItemsMatch && numberedItemsMatch.length > 1) {
             // Multiple numbered items on the same line - split them
-            const splitItems = contentAfterHeader.split(/(?=\d+\))/)
+            const splitItems = contentAfterHeader.split(/(?=\d+[.)])/)
             splitItems.forEach((item) => {
               const trimmedItem = item.trim()
               if (trimmedItem) {
@@ -211,10 +213,10 @@ export default function JiraTicketDetailPage() {
           }
         }
       } else {
-        const numberedItemsMatch = trimmedLine.match(/\d+\)/g)
+        const numberedItemsMatch = trimmedLine.match(/\d+[.)]/g)
         if (numberedItemsMatch && numberedItemsMatch.length > 1) {
           // Multiple numbered items on the same line - split them
-          const splitItems = trimmedLine.split(/(?=\d+\))/)
+          const splitItems = trimmedLine.split(/(?=\d+[.)])/)
           splitItems.forEach((item) => {
             const trimmedItem = item.trim()
             if (trimmedItem) {
@@ -243,7 +245,7 @@ export default function JiraTicketDetailPage() {
               <div className="space-y-3">
                 {section.content.map((line, lineIdx) => {
                   const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
-                  const numberedMatch = line.match(/^(\d+)\)\s*(.+)/)
+                  const numberedMatch = line.match(/^(\d+)[.)]\s*(.+)/)
 
                   if (bulletMatch) {
                     return (
@@ -256,8 +258,8 @@ export default function JiraTicketDetailPage() {
 
                   if (numberedMatch) {
                     return (
-                      <div key={lineIdx} className="flex items-start space-x-3 ml-4">
-                        <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]})</span>
+                      <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
+                        <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]}.</span>
                         <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
                       </div>
                     )
