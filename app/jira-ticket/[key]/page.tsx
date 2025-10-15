@@ -74,6 +74,85 @@ export default function JiraTicketDetailPage() {
     return cleaned.trim()
   }
 
+  const formatDescription = (description: string) => {
+    if (!description) return <p className="text-gray-300">No description provided</p>
+
+    const lines = description.split("\n")
+    const sections: { header?: string; content: string[] }[] = []
+    let currentSection: { header?: string; content: string[] } = { content: [] }
+
+    // Section headers to detect (case-insensitive)
+    const sectionHeaders = [
+      "Description Detail:",
+      "Steps to Reproduce:",
+      "Expected Behavior:",
+      "Actual Behavior:",
+      "Critical Issues:",
+      "Logs & Errors:",
+      "Additional Details:",
+      "Possible Solutions:",
+      "Explanation for Solution + Confidence Percentage:",
+      "Explanation for Solution",
+    ]
+
+    for (const line of lines) {
+      const trimmedLine = line.trim()
+
+      // Check if line is a section header
+      const isHeader = sectionHeaders.some((header) => trimmedLine.toLowerCase().startsWith(header.toLowerCase()))
+
+      if (isHeader) {
+        // Save previous section if it has content
+        if (currentSection.header || currentSection.content.length > 0) {
+          sections.push(currentSection)
+        }
+        // Start new section
+        currentSection = { header: trimmedLine, content: [] }
+      } else if (trimmedLine) {
+        currentSection.content.push(trimmedLine)
+      }
+    }
+
+    // Add the last section
+    if (currentSection.header || currentSection.content.length > 0) {
+      sections.push(currentSection)
+    }
+
+    return (
+      <div className="space-y-4">
+        {sections.map((section, idx) => (
+          <div key={idx}>
+            {section.header && <h4 className="font-bold text-white mb-2">{section.header}</h4>}
+            {section.content.length > 0 && (
+              <div className="space-y-2">
+                {section.content.map((line, lineIdx) => {
+                  // Check if line is a bullet point or numbered list
+                  const isBullet = /^[•\-*]\s/.test(line)
+                  const isNumbered = /^\d+[).]\s/.test(line)
+
+                  if (isBullet || isNumbered) {
+                    return (
+                      <div key={lineIdx} className="flex items-start space-x-2 ml-4">
+                        <span className="text-gray-400 mt-1">•</span>
+                        <p className="text-gray-300 flex-1">{line.replace(/^[•\-*\d+).]\s*/, "")}</p>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <p key={lineIdx} className="text-gray-300">
+                      {line}
+                    </p>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   const getStatusColor = (status: string) => {
     const statusLower = status.toLowerCase()
     if (statusLower.includes("progress") || statusLower.includes("development")) {
@@ -226,7 +305,7 @@ export default function JiraTicketDetailPage() {
               <div>
                 <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
                 <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                  <p className="text-gray-300 whitespace-pre-wrap">{displayDescription || "No description provided"}</p>
+                  {formatDescription(displayDescription)}
                 </div>
               </div>
 
