@@ -94,9 +94,15 @@ export default function JiraTicketDetailPage() {
     return solutionsLines.join("\n").trim()
   }
 
-  const cleanDescription = (description: string): string => {
+  const cleanDescription = (description: string, isMasterAccount: boolean): string => {
     if (!description) return ""
 
+    // For master account, keep the "From:" line
+    if (isMasterAccount) {
+      return description.trim()
+    }
+
+    // For non-master accounts, remove the "From:" line
     // This ensures we don't accidentally truncate "Description Detail:"
     const descriptionDetailIndex = description.indexOf("Description Detail:")
     if (descriptionDetailIndex > 0) {
@@ -383,7 +389,7 @@ export default function JiraTicketDetailPage() {
   }
 
   const customerEmail = extractEmailFromDescription(ticket.description || "")
-  const cleanedDescription = cleanDescription(ticket.description || "")
+  const cleanedDescription = cleanDescription(ticket.description || "", isMasterAccount)
   const solutionsSections = extractSolutionsSections(cleanedDescription)
   const displayDescription = removeSolutionsSections(cleanedDescription)
 
