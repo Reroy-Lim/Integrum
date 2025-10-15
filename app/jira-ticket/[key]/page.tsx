@@ -107,15 +107,26 @@ export default function JiraTicketDetailPage() {
       if (!trimmedLine) continue
 
       // Check if line is a section header
-      const isHeader = sectionHeaders.some((header) => trimmedLine.toLowerCase().startsWith(header.toLowerCase()))
+      const matchedHeader = sectionHeaders.find((header) => trimmedLine.toLowerCase().startsWith(header.toLowerCase()))
 
-      if (isHeader) {
+      if (matchedHeader) {
         // Save previous section if it has content
         if (currentSection.header || currentSection.content.length > 0) {
           sections.push(currentSection)
         }
-        // Start new section
-        currentSection = { header: trimmedLine, content: [] }
+
+        // Extract just the header part (up to and including the colon)
+        const headerEndIndex = trimmedLine.toLowerCase().indexOf(matchedHeader.toLowerCase()) + matchedHeader.length
+        const header = trimmedLine.substring(0, headerEndIndex)
+        const contentAfterHeader = trimmedLine.substring(headerEndIndex).trim()
+
+        // Start new section with just the header
+        currentSection = { header, content: [] }
+
+        // If there's content after the header on the same line, add it as separate content
+        if (contentAfterHeader) {
+          currentSection.content.push(contentAfterHeader)
+        }
       } else {
         currentSection.content.push(trimmedLine)
       }
