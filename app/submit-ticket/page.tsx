@@ -6,7 +6,7 @@ import { useSession } from "@/lib/use-session"
 
 export default function SubmitTicketPage() {
   const router = useRouter()
-  const { status } = useSession()
+  const { data: session, status } = useSession()
 
   useEffect(() => {
     console.log("[v0] Submit ticket page loaded, status:", status)
@@ -14,8 +14,11 @@ export default function SubmitTicketPage() {
     if (status === "authenticated") {
       console.log("[v0] User authenticated, opening Gmail")
 
-      // Open Gmail with pre-filled recipient
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=heyroy23415@gmail.com`
+      const userEmail = session?.user?.email
+      const gmailUrl = userEmail
+        ? `https://mail.google.com/mail/u/${userEmail}/?view=cm&fs=1&to=heyroy23415@gmail.com`
+        : `https://mail.google.com/mail/?view=cm&fs=1&to=heyroy23415@gmail.com`
+
       window.open(gmailUrl, "_blank")
 
       console.log("[v0] Gmail opened, redirecting to home with success message")
@@ -26,7 +29,7 @@ export default function SubmitTicketPage() {
       // If somehow they reached this page without authentication, redirect home
       router.push("/")
     }
-  }, [status, router])
+  }, [status, router, session])
 
   return (
     <div className="flex items-center justify-center min-h-screen">

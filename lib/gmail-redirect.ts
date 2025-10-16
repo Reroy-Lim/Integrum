@@ -1,37 +1,59 @@
 export class GmailRedirectHandler {
-  static generateGmailComposeUrl(to: string, subject: string, body: string, customerEmail: string): string {
+  static generateGmailComposeUrl(
+    to: string,
+    subject: string,
+    body: string,
+    customerEmail: string,
+    userEmail?: string,
+  ): string {
     const params = new URLSearchParams({
       to,
       su: subject,
       body: `${body}\n\nFrom: ${customerEmail}`,
-      authuser: customerEmail, // Force Gmail to use this specific account
     })
 
-    return `https://mail.google.com/mail/?view=cm&fs=1&${params.toString()}`
+    // Direct Gmail compose URL without OAuth wrapper
+    const accountPath = userEmail ? `/u/${userEmail}/` : "/"
+    return `https://mail.google.com/mail${accountPath}?view=cm&fs=1&${params.toString()}`
   }
 
-  static generateAccountSwitchUrl(to: string, subject: string, body: string, customerEmail: string): string {
+  static generateAccountSwitchUrl(
+    to: string,
+    subject: string,
+    body: string,
+    customerEmail: string,
+    userEmail?: string,
+  ): string {
     const params = new URLSearchParams({
       to,
       su: subject,
       body: `${body}\n\nFrom: ${customerEmail}`,
     })
 
-    // Use Gmail's account switcher with the specific email
-    return `https://mail.google.com/mail/?authuser=${encodeURIComponent(customerEmail)}&view=cm&fs=1&${params.toString()}`
+    // Use Gmail's account switcher (authuser=0 forces account selection)
+    const accountPath = userEmail ? `/u/${userEmail}/` : "/u/0/"
+    return `https://mail.google.com/mail${accountPath}?authuser=0&view=cm&fs=1&${params.toString()}`
   }
 
-  static generateAddAccountUrl(to: string, subject: string, body: string, customerEmail: string): string {
+  static generateAddAccountUrl(
+    to: string,
+    subject: string,
+    body: string,
+    customerEmail: string,
+    userEmail?: string,
+  ): string {
     const params = new URLSearchParams({
       to,
       su: subject,
       body: `${body}\n\nFrom: ${customerEmail}`,
-      authuser: customerEmail, // Force Gmail to use this specific account after login
     })
 
-    const finalGmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&${params.toString()}`
+    // This creates the final Gmail compose URL that will be used after account selection
+    const accountPath = userEmail ? `/u/${userEmail}/` : "/"
+    const finalGmailUrl = `https://mail.google.com/mail${accountPath}?view=cm&fs=1&${params.toString()}`
 
-    return `https://accounts.google.com/v3/signin/accountchooser?Email=${encodeURIComponent(customerEmail)}&continue=${encodeURIComponent(finalGmailUrl)}&service=mail`
+    // Direct redirect to Google's account chooser - shows all signed-in accounts
+    return `https://accounts.google.com/v3/signin/accountchooser?continue=${encodeURIComponent(finalGmailUrl)}&service=mail`
   }
 
   static generateReturnUrl(ticketId: string): string {
