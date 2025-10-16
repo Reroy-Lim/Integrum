@@ -10,45 +10,6 @@ import type { Ticket } from "@/lib/types"
 import { ConversationHistory } from "@/components/conversation-history"
 import { ReplyInterface } from "@/components/reply-interface"
 
-const SnowAnimation = () => {
-  const snowflakes = Array.from({ length: 50 }, (_, i) => (
-    <div
-      key={i}
-      className="absolute animate-pulse"
-      style={{
-        left: `${Math.random() * 100}%`,
-        animationDelay: `${Math.random() * 3}s`,
-        animationDuration: `${3 + Math.random() * 2}s`,
-      }}
-    >
-      <div
-        className="w-3 h-3 bg-white rounded-full opacity-70"
-        style={{
-          animation: `snowfall ${3 + Math.random() * 2}s linear infinite`,
-        }}
-      />
-    </div>
-  ))
-
-  return (
-    <>
-      <style jsx>{`
-        @keyframes snowfall {
-          0% {
-            transform: translateY(-100vh) rotate(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(100vh) rotate(360deg);
-            opacity: 0;
-          }
-        }
-      `}</style>
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">{snowflakes}</div>
-    </>
-  )
-}
-
 export default function TicketDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -93,35 +54,37 @@ export default function TicketDetailPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "Resolved":
-        return <CheckCircle className="w-4 h-4 text-green-500" />
+        return <CheckCircle className="w-4 h-4 text-green-400" />
       case "In Progress":
-        return <Clock className="w-4 h-4 text-blue-500" />
+        return <Clock className="w-4 h-4 text-blue-400" />
       case "Awaiting Reply":
-        return <AlertCircle className="w-4 h-4 text-yellow-500" />
+        return <AlertCircle className="w-4 h-4 text-yellow-400" />
       default:
-        return <Clock className="w-4 h-4 text-gray-500" />
+        return <Clock className="w-4 h-4 text-gray-400" />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Resolved":
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-green-500/20 text-green-300 border-green-500/50"
       case "In Progress":
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-blue-500/20 text-blue-300 border-blue-500/50"
       case "Awaiting Reply":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
+        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/50"
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-gray-500/20 text-gray-300 border-gray-500/50"
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black relative">
-        <SnowAnimation />
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 relative">
         <div className="flex items-center justify-center min-h-screen relative z-10">
-          <div className="text-white text-xl">Loading ticket details...</div>
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="text-foreground text-xl">Loading ticket details...</div>
+          </div>
         </div>
       </div>
     )
@@ -129,12 +92,14 @@ export default function TicketDetailPage() {
 
   if (error || !ticket) {
     return (
-      <div className="min-h-screen bg-black relative">
-        <SnowAnimation />
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 relative">
         <div className="flex items-center justify-center min-h-screen relative z-10">
-          <div className="text-center">
+          <div className="text-center space-y-4">
             <div className="text-red-400 text-xl mb-4">{error || "Ticket not found"}</div>
-            <Button onClick={() => router.back()} variant="outline" className="text-white border-white">
+            <Button
+              onClick={() => router.back()}
+              className="bg-card hover:bg-card/80 text-foreground border-2 border-border transition-all duration-300"
+            >
               Go Back
             </Button>
           </div>
@@ -144,37 +109,39 @@ export default function TicketDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black relative">
-      <SnowAnimation />
-
-      {/* Header */}
-      <nav className="flex items-center justify-between p-6 border-b border-border relative z-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 relative">
+      <nav className="flex items-center justify-between p-6 border-b-2 border-border/50 backdrop-blur-sm bg-card/5 relative z-10">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => router.push("/")} className="text-white hover:text-gray-300">
+          <Button
+            variant="ghost"
+            onClick={() => router.push("/")}
+            className="text-foreground hover:text-primary hover:bg-primary/10 transition-all duration-300"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-2xl font-bold text-primary">INTEGRUM</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+            INTEGRUM
+          </h1>
         </div>
       </nav>
 
       <div className="py-8 px-6 relative z-10">
         <div className="max-w-6xl mx-auto space-y-6">
-          {/* Ticket Header */}
-          <Card className="bg-white border-gray-200">
+          <Card className="bg-card/50 backdrop-blur-sm border-2 border-border hover:border-primary/50 transition-all duration-300">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <Badge className={getStatusColor(ticket.status)}>
+                    <Badge className={`${getStatusColor(ticket.status)} border-2`}>
                       <div className="flex items-center space-x-1">
                         {getStatusIcon(ticket.status)}
                         <span>{ticket.status}</span>
                       </div>
                     </Badge>
                   </div>
-                  <CardTitle className="text-xl text-gray-900">{ticket.title}</CardTitle>
-                  <CardDescription className="text-gray-600">
+                  <CardTitle className="text-xl text-foreground">{ticket.title}</CardTitle>
+                  <CardDescription className="text-muted-foreground">
                     Ticket #{ticket.ticketNumber || ticket.id} • Submitted by {ticket.sender} on{" "}
                     {new Date(ticket.date).toLocaleDateString()}
                   </CardDescription>
@@ -185,47 +152,48 @@ export default function TicketDetailPage() {
             {ticket.description && (
               <CardContent>
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-gray-900">Description</h3>
-                  <p className="text-gray-700 leading-relaxed">{ticket.description}</p>
+                  <h3 className="font-semibold text-foreground">Description</h3>
+                  <p className="text-muted-foreground leading-relaxed">{ticket.description}</p>
                 </div>
               </CardContent>
             )}
           </Card>
 
-          {/* AI Proposed Solutions */}
           {ticket.aiProposedSolution && ticket.aiProposedSolution.length > 0 && (
-            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-primary/10 backdrop-blur-sm border-2 border-primary/30 hover:border-primary/50 transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-gray-900">
-                  <Bot className="w-5 h-5 text-blue-600" />
+                <CardTitle className="flex items-center space-x-2 text-foreground">
+                  <Bot className="w-5 h-5 text-primary" />
                   <span>AI Proposed Solutions</span>
                 </CardTitle>
-                <CardDescription className="text-gray-600">
+                <CardDescription className="text-muted-foreground">
                   Our AI system has analyzed your issue and suggests the following solutions
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {ticket.aiProposedSolution.map((solution, index) => (
-                  <div key={index} className="bg-white rounded-lg p-4 border border-blue-100">
+                  <div
+                    key={index}
+                    className="bg-card/70 backdrop-blur-sm rounded-lg p-4 border-2 border-border hover:border-accent/50 transition-all duration-300"
+                  >
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold text-gray-900">Solution {index + 1}</h4>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      <h4 className="font-semibold text-foreground">Solution {index + 1}</h4>
+                      <Badge className="bg-accent/20 text-accent border-2 border-accent/50">
                         {solution.confidence}% confidence
                       </Badge>
                     </div>
-                    <p className="text-gray-700 mb-2">{solution.solution}</p>
-                    <p className="text-sm text-gray-600 italic">{solution.explanation}</p>
+                    <p className="text-foreground mb-2">{solution.solution}</p>
+                    <p className="text-sm text-muted-foreground italic">{solution.explanation}</p>
                   </div>
                 ))}
               </CardContent>
             </Card>
           )}
 
-          {/* Conversation History */}
-          <Card className="bg-white border-gray-200">
+          <Card className="bg-card/50 backdrop-blur-sm border-2 border-border hover:border-primary/50 transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-gray-900">Conversation History</CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardTitle className="text-foreground">Conversation History</CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Communication between you and our helpdesk team
               </CardDescription>
             </CardHeader>
@@ -242,13 +210,13 @@ export default function TicketDetailPage() {
           />
 
           {ticket.status === "Resolved" && (
-            <Card className="bg-green-50 border-green-200">
+            <Card className="bg-green-500/10 backdrop-blur-sm border-2 border-green-500/50">
               <CardContent className="p-4">
-                <div className="flex items-center space-x-2 text-green-700">
+                <div className="flex items-center space-x-2 text-green-300">
                   <CheckCircle className="w-5 h-5" />
                   <span className="font-medium">This ticket has been resolved</span>
                 </div>
-                <p className="text-sm text-green-600 mt-1">
+                <p className="text-sm text-green-400/80 mt-1">
                   If you need further assistance, please submit a new ticket.
                 </p>
               </CardContent>
