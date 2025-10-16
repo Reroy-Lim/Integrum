@@ -398,6 +398,10 @@ export default function IntegrumPortal() {
             The arrival of this email confirms that we have successfully received your request, and a proposal will be
             linked to your ticket.
           </p>
+          <p className="text-gray-600 font-medium">
+            Within 5-10 minutes after receiving your auto-acknowledgement, don't forget to click on refresh to see the
+            updated ticket information.
+          </p>
         </DialogDescription>
 
         <div className="flex justify-center mt-4">
