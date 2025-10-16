@@ -63,58 +63,58 @@ export default function TicketProcessingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 flex items-center justify-center p-6">
-      <Card className="w-full max-w-md bg-card border-2 border-border shadow-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center p-6">
+      <Card className="w-full max-w-md bg-white/95 backdrop-blur shadow-2xl">
         <CardHeader className="text-center space-y-4 pb-6">
           {status === "processing" && (
             <>
               <div className="flex justify-center">
                 <div className="relative">
-                  <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                  <Mail className="w-8 h-8 text-accent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                  <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
+                  <Mail className="w-8 h-8 text-blue-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
                 </div>
               </div>
-              <CardTitle className="text-2xl font-bold text-foreground">Ticket is being created...</CardTitle>
-              <p className="text-muted-foreground">Your ticket is being processed. Please be patient.</p>
+              <CardTitle className="text-2xl font-bold text-gray-800">Ticket is being created...</CardTitle>
+              <p className="text-gray-600">Your ticket is being processed. Please be patient.</p>
             </>
           )}
 
           {status === "done" && (
             <>
               <div className="flex justify-center">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="w-10 h-10 text-primary" />
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
               </div>
-              <CardTitle className="text-2xl font-bold text-foreground">Ticket Successfully Created!</CardTitle>
-              <p className="text-muted-foreground">You may now view it on your dashboard.</p>
+              <CardTitle className="text-2xl font-bold text-gray-800">Ticket Successfully Created!</CardTitle>
+              <p className="text-gray-600">You may now view it on your dashboard.</p>
             </>
           )}
 
           {status === "error" && (
             <>
               <div className="flex justify-center">
-                <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center">
-                  <Mail className="w-10 h-10 text-destructive" />
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                  <Mail className="w-10 h-10 text-red-600" />
                 </div>
               </div>
-              <CardTitle className="text-2xl font-bold text-foreground">Processing Error</CardTitle>
-              <p className="text-muted-foreground">{errorMessage}</p>
+              <CardTitle className="text-2xl font-bold text-gray-800">Processing Error</CardTitle>
+              <p className="text-gray-600">{errorMessage}</p>
             </>
           )}
         </CardHeader>
 
         <CardContent className="space-y-6">
           {/* Live Timer */}
-          <div className="bg-secondary rounded-lg p-4 text-center border border-border">
-            <p className="text-sm text-muted-foreground mb-1">Processing time</p>
-            <p className="text-3xl font-mono font-bold text-primary">{formatTime(elapsedTime)}</p>
+          <div className="bg-gray-50 rounded-lg p-4 text-center">
+            <p className="text-sm text-gray-600 mb-1">Processing time</p>
+            <p className="text-3xl font-mono font-bold text-blue-600">{formatTime(elapsedTime)}</p>
           </div>
 
           {/* Ticket ID */}
-          <div className="bg-primary/10 border-2 border-primary/30 rounded-lg p-4">
-            <p className="text-sm text-primary mb-1">Ticket ID</p>
-            <p className="text-lg font-semibold text-foreground">{ticketId}</p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-700 mb-1">Ticket ID</p>
+            <p className="text-lg font-semibold text-blue-900">{ticketId}</p>
           </div>
 
           {/* Status Messages */}
@@ -136,20 +136,13 @@ export default function TicketProcessingPage() {
           )}
 
           {status === "done" && (
-            <Button
-              onClick={handleViewDashboard}
-              className="w-full bg-primary hover:bg-accent text-primary-foreground transition-all duration-300"
-            >
+            <Button onClick={handleViewDashboard} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
               View Dashboard
             </Button>
           )}
 
           {status === "error" && (
-            <Button
-              onClick={() => router.push("/")}
-              variant="outline"
-              className="w-full border-border hover:bg-secondary"
-            >
+            <Button onClick={() => router.push("/")} variant="outline" className="w-full">
               Back to Home
             </Button>
           )}
