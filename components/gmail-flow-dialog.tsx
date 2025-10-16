@@ -48,7 +48,9 @@ export function GmailFlowDialog({ isOpen, onClose, ticketId, customerEmail, gmai
     const urls = generateGmailUrls()
     const selectedUrl = urls[urlType]
 
-    console.log(`[v0] Opening Gmail with ${urlType} method for:`, customerEmail)
+    console.log(`[v0] Opening Gmail with ${urlType} method`)
+    console.log(`[v0] Logged-in user email: ${customerEmail}`)
+    console.log(`[v0] Gmail URL: ${selectedUrl}`)
     window.open(selectedUrl, "_blank")
     setStep("waiting")
   }

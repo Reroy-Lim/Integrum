@@ -4,9 +4,9 @@ export class GmailRedirectHandler {
       to,
       su: subject,
       body: `${body}\n\nFrom: ${customerEmail}`,
+      authuser: customerEmail, // Force Gmail to use this specific account
     })
 
-    // Direct Gmail compose URL without OAuth wrapper
     return `https://mail.google.com/mail/?view=cm&fs=1&${params.toString()}`
   }
 
@@ -17,8 +17,8 @@ export class GmailRedirectHandler {
       body: `${body}\n\nFrom: ${customerEmail}`,
     })
 
-    // Use Gmail's account switcher (authuser=0 forces account selection)
-    return `https://mail.google.com/mail/u/0/?authuser=0&view=cm&fs=1&${params.toString()}`
+    // Use Gmail's account switcher with the specific email
+    return `https://mail.google.com/mail/?authuser=${encodeURIComponent(customerEmail)}&view=cm&fs=1&${params.toString()}`
   }
 
   static generateAddAccountUrl(to: string, subject: string, body: string, customerEmail: string): string {
@@ -26,13 +26,12 @@ export class GmailRedirectHandler {
       to,
       su: subject,
       body: `${body}\n\nFrom: ${customerEmail}`,
+      authuser: customerEmail, // Force Gmail to use this specific account after login
     })
 
-    // This creates the final Gmail compose URL that will be used after account selection
     const finalGmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&${params.toString()}`
 
-    // Direct redirect to Google's account chooser - shows all signed-in accounts
-    return `https://accounts.google.com/v3/signin/accountchooser?continue=${encodeURIComponent(finalGmailUrl)}&service=mail`
+    return `https://accounts.google.com/v3/signin/accountchooser?Email=${encodeURIComponent(customerEmail)}&continue=${encodeURIComponent(finalGmailUrl)}&service=mail`
   }
 
   static generateReturnUrl(ticketId: string): string {
