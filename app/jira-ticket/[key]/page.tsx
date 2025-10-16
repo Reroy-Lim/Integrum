@@ -328,30 +328,47 @@ export default function JiraTicketDetailPage() {
 
   const handleDownloadAttachment = async (attachmentId: string, filename: string) => {
     try {
+      console.log("[v0] Download button clicked")
+      console.log("[v0] Attachment ID:", attachmentId)
+      console.log("[v0] Filename:", filename)
+      console.log("[v0] Fetching from:", `/api/jira/attachment/${attachmentId}`)
+
       const response = await fetch(`/api/jira/attachment/${attachmentId}`)
 
+      console.log("[v0] Response status:", response.status)
+      console.log("[v0] Response ok:", response.ok)
+      console.log("[v0] Response headers:", Object.fromEntries(response.headers.entries()))
+
       if (!response.ok) {
-        throw new Error("Failed to download attachment")
+        const errorText = await response.text()
+        console.error("[v0] Error response body:", errorText)
+        throw new Error(`Failed to download attachment: ${response.status} ${response.statusText}`)
       }
 
+      console.log("[v0] Creating blob from response")
       // Create a blob from the response
       const blob = await response.blob()
+      console.log("[v0] Blob created, size:", blob.size, "type:", blob.type)
 
       // Create a temporary URL for the blob
       const url = window.URL.createObjectURL(blob)
+      console.log("[v0] Blob URL created:", url)
 
       // Create a temporary anchor element and trigger download
       const a = document.createElement("a")
       a.href = url
       a.download = filename
       document.body.appendChild(a)
+      console.log("[v0] Triggering download for:", filename)
       a.click()
 
       // Cleanup
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
+      console.log("[v0] Download completed successfully")
     } catch (error) {
-      console.error("Error downloading attachment:", error)
+      console.error("[v0] Error downloading attachment:", error)
+      console.error("[v0] Error stack:", error instanceof Error ? error.stack : "No stack trace")
       alert("Failed to download attachment. Please try again.")
     }
   }
