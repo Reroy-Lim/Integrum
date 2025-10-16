@@ -1,14 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { JiraApiClient } from "@/lib/jira-api"
 import acknowledgementStore from "@/lib/acknowledgement-store"
-import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    // Extract customer email and ticket information from the webhook payload
     const { customerEmail, ticketId, messageId, status, emailTimestamp } = body
 
+    // Verify this is an acknowledgement notification
     if (status === "acknowledgement_sent") {
       let latestTicket = null
       let isValidAcknowledgement = false
@@ -30,7 +31,8 @@ export async function POST(request: NextRequest) {
             const emailTime = new Date(emailTimestamp).getTime()
             const timeDifference = Math.abs(emailTime - ticketCreatedTime)
 
-            const maxTimeDifference = 10 * 60 * 1000
+            // Allow 10 minutes tolerance for time differences
+            const maxTimeDifference = 10 * 60 * 1000 // 10 minutes in milliseconds
 
             if (timeDifference <= maxTimeDifference) {
               isValidAcknowledgement = true
@@ -43,10 +45,11 @@ export async function POST(request: NextRequest) {
               )
             }
           } else if (latestTicket) {
+            // If no email timestamp provided, check if ticket was created recently (within last 15 minutes)
             const ticketCreatedTime = new Date(latestTicket.created).getTime()
             const currentTime = new Date().getTime()
             const timeSinceCreation = currentTime - ticketCreatedTime
-            const maxRecentTime = 15 * 60 * 1000
+            const maxRecentTime = 15 * 60 * 1000 // 15 minutes
 
             if (timeSinceCreation <= maxRecentTime) {
               isValidAcknowledgement = true
@@ -67,33 +70,9 @@ export async function POST(request: NextRequest) {
           timestamp: new Date().toISOString(),
           acknowledged: true,
           latestTicket,
-          emailTimestamp,
-          verified: true,
+          emailTimestamp, // Store original email timestamp for reference
+          verified: true, // Mark as verified
         })
-
-        try {
-          const supabase = await createClient()
-
-          const { error } = await supabase
-            .from("pending_tickets")
-            .update({
-              status: "created",
-              ticket_key: latestTicket.key,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("user_email", customerEmail)
-            .eq("status", "pending")
-            .order("created_at", { ascending: false })
-            .limit(1)
-
-          if (error) {
-            console.error("[v0] Error updating pending ticket:", error)
-          } else {
-            console.log("[v0] Updated pending ticket status to 'created' for", customerEmail)
-          }
-        } catch (error) {
-          console.error("[v0] Error updating pending ticket in Supabase:", error)
-        }
 
         return NextResponse.json({
           success: true,
@@ -102,24 +81,6 @@ export async function POST(request: NextRequest) {
           verified: true,
         })
       } else {
-        try {
-          const supabase = await createClient()
-
-          await supabase
-            .from("pending_tickets")
-            .update({
-              status: "failed",
-              error_message: "Acknowledgement verification failed - time mismatch or no recent ticket found",
-              updated_at: new Date().toISOString(),
-            })
-            .eq("user_email", customerEmail)
-            .eq("status", "pending")
-            .order("created_at", { ascending: false })
-            .limit(1)
-        } catch (error) {
-          console.error("[v0] Error updating failed pending ticket:", error)
-        }
-
         return NextResponse.json(
           {
             success: false,
