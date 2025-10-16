@@ -1,10 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { JiraApiClient } from "@/lib/jira-api"
+import acknowledgementStore from "@/lib/acknowledgement-store"
 import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+
     const { customerEmail, ticketId, messageId, status, emailTimestamp } = body
 
     if (status === "acknowledgement_sent") {
@@ -27,10 +29,18 @@ export async function POST(request: NextRequest) {
             const ticketCreatedTime = new Date(latestTicket.created).getTime()
             const emailTime = new Date(emailTimestamp).getTime()
             const timeDifference = Math.abs(emailTime - ticketCreatedTime)
+
             const maxTimeDifference = 10 * 60 * 1000
 
             if (timeDifference <= maxTimeDifference) {
               isValidAcknowledgement = true
+              console.log(
+                `[v0] Valid acknowledgement: Email time ${emailTimestamp} matches ticket created time ${latestTicket.created}`,
+              )
+            } else {
+              console.log(
+                `[v0] Invalid acknowledgement: Time difference too large (${timeDifference}ms) between email and ticket`,
+              )
             }
           } else if (latestTicket) {
             const ticketCreatedTime = new Date(latestTicket.created).getTime()
@@ -40,6 +50,9 @@ export async function POST(request: NextRequest) {
 
             if (timeSinceCreation <= maxRecentTime) {
               isValidAcknowledgement = true
+              console.log(`[v0] Valid acknowledgement: Recent ticket created ${latestTicket.created}`)
+            } else {
+              console.log(`[v0] Invalid acknowledgement: Ticket too old (${timeSinceCreation}ms ago)`)
             }
           }
         } catch (error) {
@@ -48,26 +61,38 @@ export async function POST(request: NextRequest) {
       }
 
       if (isValidAcknowledgement && latestTicket) {
-        const supabase = await createClient()
-
-        const { error } = await supabase.from("acknowledgements").insert({
-          customer_email: customerEmail,
-          ticket_key: latestTicket.key,
-          message_id: messageId,
-          email_timestamp: emailTimestamp,
+        acknowledgementStore.set(customerEmail, {
+          ticketId: latestTicket.key,
+          messageId,
+          timestamp: new Date().toISOString(),
           acknowledged: true,
+          latestTicket,
+          emailTimestamp,
           verified: true,
         })
 
-        if (error) {
-          console.error("Error storing acknowledgement:", error)
-          return NextResponse.json(
-            {
-              success: false,
-              message: "Failed to store acknowledgement",
-            },
-            { status: 500 },
-          )
+        try {
+          const supabase = await createClient()
+
+          const { error } = await supabase
+            .from("pending_tickets")
+            .update({
+              status: "created",
+              ticket_key: latestTicket.key,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_email", customerEmail)
+            .eq("status", "pending")
+            .order("created_at", { ascending: false })
+            .limit(1)
+
+          if (error) {
+            console.error("[v0] Error updating pending ticket:", error)
+          } else {
+            console.log("[v0] Updated pending ticket status to 'created' for", customerEmail)
+          }
+        } catch (error) {
+          console.error("[v0] Error updating pending ticket in Supabase:", error)
         }
 
         return NextResponse.json({
@@ -77,6 +102,24 @@ export async function POST(request: NextRequest) {
           verified: true,
         })
       } else {
+        try {
+          const supabase = await createClient()
+
+          await supabase
+            .from("pending_tickets")
+            .update({
+              status: "failed",
+              error_message: "Acknowledgement verification failed - time mismatch or no recent ticket found",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_email", customerEmail)
+            .eq("status", "pending")
+            .order("created_at", { ascending: false })
+            .limit(1)
+        } catch (error) {
+          console.error("[v0] Error updating failed pending ticket:", error)
+        }
+
         return NextResponse.json(
           {
             success: false,

@@ -15,7 +15,6 @@ import { GoogleSignInModal } from "@/components/google-signin-modal"
 import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog"
 import { useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { useAcknowledgementPolling } from "@/hooks/use-acknowledgement-polling"
 import type { JiraTicket } from "@/lib/jira-api"
 
 const SnowAnimation = () => {
@@ -85,11 +84,6 @@ export default function IntegrumPortal() {
   const [ticketLimit, setTicketLimit] = useState(100)
 
   const userEmail = session?.user?.email || ""
-
-  const { acknowledgement, isPolling } = useAcknowledgementPolling(
-    userEmail,
-    isAuthenticated && currentView === "yourTickets",
-  )
 
   useEffect(() => {
     const fetchTickets = async () => {
