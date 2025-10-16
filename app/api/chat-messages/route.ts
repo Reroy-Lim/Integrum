@@ -104,7 +104,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    const jiraCommentText = `${userEmail}: ${message}`
+    const isMasterAccount = userEmail === process.env.JIRA_EMAIL
+    const jiraCommentText = isMasterAccount ? message : `${userEmail}: ${message}`
 
     const [dbResult, jiraResult] = await Promise.all([
       supabase
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
         .select()
         .single(),
       getJiraCommentsClient()
-        .addComment(ticketKey, jiraCommentText) // Include email prefix for identification
+        .addComment(ticketKey, jiraCommentText)
         .catch((error) => {
           console.error("[v0] Error posting to Jira:", error)
           return null
