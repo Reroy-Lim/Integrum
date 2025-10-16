@@ -35,23 +35,34 @@ export async function GET(request: NextRequest) {
     const jiraClient = getJiraCommentsClient()
     const jiraMessages = jiraComments.map((comment) => {
       let messageText = jiraClient.extractTextFromADF(comment.body)
+      let actualUserEmail = comment.author.emailAddress
 
-      // Remove email prefix if present (format: "email@example.com: message")
-      const emailPrefixMatch = messageText.match(/^[^\s]+@[^\s]+:\s*(.+)$/s)
+      const emailPrefixMatch = messageText.match(/^([^\s]+@[^\s]+):\s*(.+)$/s)
       if (emailPrefixMatch) {
-        messageText = emailPrefixMatch[1]
+        actualUserEmail = emailPrefixMatch[1] // Use the email from the prefix
+        messageText = emailPrefixMatch[2] // Remove the prefix from display
       }
 
       return {
         id: `jira-${comment.id}`,
         ticket_key: ticketKey,
-        user_email: comment.author.emailAddress,
-        author_name: comment.author.displayName, // Include author's display name
+        user_email: actualUserEmail, // Use actual sender email, not Jira service account
+        author_name: actualUserEmail.split("@")[0], // Extract name from email
         message: messageText,
-        role: comment.author.emailAddress === process.env.JIRA_EMAIL ? "support" : "user",
+        role: actualUserEmail === process.env.JIRA_EMAIL ? "support" : "user",
         created_at: comment.created,
         source: "jira",
       }
+    })
+
+    const dbMessageMap = new Map(
+      dbMessages.map((msg) => [`${msg.user_email}:${msg.message.trim().toLowerCase()}`, msg]),
+    )
+
+    // Filter out Jira messages that are duplicates of database messages
+    const uniqueJiraMessages = jiraMessages.filter((jiraMsg) => {
+      const key = `${jiraMsg.user_email}:${jiraMsg.message.trim().toLowerCase()}`
+      return !dbMessageMap.has(key)
     })
 
     const enrichedDbMessages = dbMessages.map((msg) => ({
@@ -59,11 +70,19 @@ export async function GET(request: NextRequest) {
       author_name: msg.user_email.split("@")[0], // Extract name from email
     }))
 
-    const allMessages = [...enrichedDbMessages, ...jiraMessages].sort(
+    const allMessages = [...enrichedDbMessages, ...uniqueJiraMessages].sort(
       (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     )
 
-    console.log("[v0] Fetched", dbMessages.length, "DB messages and", jiraMessages.length, "Jira comments")
+    console.log(
+      "[v0] Fetched",
+      dbMessages.length,
+      "DB messages,",
+      jiraMessages.length,
+      "Jira comments,",
+      uniqueJiraMessages.length,
+      "unique Jira messages",
+    )
 
     return NextResponse.json({ messages: allMessages })
   } catch (error) {
@@ -85,6 +104,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
+    const jiraCommentText = `${userEmail}: ${message}`
+
     const [dbResult, jiraResult] = await Promise.all([
       supabase
         .from("chat_messages")
@@ -97,7 +118,7 @@ export async function POST(request: NextRequest) {
         .select()
         .single(),
       getJiraCommentsClient()
-        .addComment(ticketKey, message) // Post message directly without email prefix
+        .addComment(ticketKey, jiraCommentText) // Include email prefix for identification
         .catch((error) => {
           console.error("[v0] Error posting to Jira:", error)
           return null
