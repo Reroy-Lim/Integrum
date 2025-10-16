@@ -82,15 +82,6 @@ export class JiraApiClient {
       const masterEmail = "heyroy23415@gmail.com"
       const isMasterAccount = userEmail.toLowerCase() === masterEmail.toLowerCase()
 
-      console.log(
-        "[v0] Jira API: Fetching tickets for user:",
-        userEmail,
-        "| Is master:",
-        isMasterAccount,
-        "| Limit:",
-        maxResults,
-      )
-
       const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
       const params = new URLSearchParams({
         jql,
@@ -106,8 +97,6 @@ export class JiraApiClient {
         headers: this.getAuthHeaders(),
       })
 
-      console.log("[v0] Jira API: Response status:", response.status)
-
       if (!response.ok) {
         const errorText = await response.text()
         console.error("[v0] Jira API: Error response:", errorText)
@@ -117,20 +106,13 @@ export class JiraApiClient {
       const data = await response.json()
       const allTickets = data.issues.map((issue: any) => this.transformJiraIssue(issue))
 
-      console.log("[v0] Jira API: Total tickets fetched:", allTickets.length)
-
-      // If master account, return all tickets
       if (isMasterAccount) {
-        console.log("[v0] Jira API: Master account - returning all tickets")
         return allTickets
       }
 
-      console.log("[v0] Jira API: Starting email filtering for non-master account:", userEmail)
-
-      const filteredTickets = allTickets.filter((ticket, index) => {
+      const filteredTickets = allTickets.filter((ticket) => {
         const description = ticket.description || ""
 
-        // This ensures [a-z]{2,6} only matches lowercase letters, stopping at "Description"
         const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/
 
         const patterns = [
@@ -144,43 +126,21 @@ export class JiraApiClient {
         ]
 
         let ticketOwnerEmail: string | null = null
-        let matchedPatternName = "none"
 
-        // Try each pattern
         for (const pattern of patterns) {
           const match = description.match(pattern.regex)
           if (match && match[1]) {
             ticketOwnerEmail = match[1].trim().toLowerCase()
-            matchedPatternName = pattern.name
             break
           }
         }
 
-        // Fallback: if no "From:" field found, check if description contains the user's email anywhere
         if (!ticketOwnerEmail && description.toLowerCase().includes(userEmail.toLowerCase())) {
           ticketOwnerEmail = userEmail.toLowerCase()
-          matchedPatternName = "fallback (email found in description)"
         }
 
-        const matches = ticketOwnerEmail === userEmail.toLowerCase()
-
-        console.log(`\n[v0] Jira API: ===== Ticket ${ticket.key} =====`)
-        console.log(`  - Extracted email: ${ticketOwnerEmail || "NONE"}`)
-        console.log(`  - Pattern matched: ${matchedPatternName}`)
-        console.log(`  - Matches user (${userEmail}): ${matches}`)
-        console.log(`  - Description (first 200 chars): ${description.substring(0, 200)}...`)
-        console.log(`[v0] Jira API: ===== End ${ticket.key} =====\n`)
-
-        return matches
+        return ticketOwnerEmail === userEmail.toLowerCase()
       })
-
-      console.log("[v0] Jira API: Filtered", filteredTickets.length, "tickets for", userEmail)
-
-      // If no matches, show warning
-      if (filteredTickets.length === 0 && allTickets.length > 0) {
-        console.log("[v0] Jira API: ⚠️ NO MATCHES FOUND for user:", userEmail)
-        console.log("[v0] Jira API: Please check the logs above to see why tickets were not matched")
-      }
 
       return filteredTickets
     } catch (error) {
@@ -225,7 +185,6 @@ export class JiraApiClient {
       if (typeof issue.fields.description === "string") {
         description = issue.fields.description
       } else if (issue.fields.description.content) {
-        // Handle Atlassian Document Format (ADF)
         description = this.extractTextFromADF(issue.fields.description)
       }
     }
@@ -277,12 +236,10 @@ export class JiraApiClient {
     const extractText = (node: any): string => {
       if (!node) return ""
 
-      // If it's a text node, return the text directly
       if (node.type === "text" && node.text) {
         return node.text
       }
 
-      // If it's a block-level node (paragraph, heading, etc.), process children and add newline
       if (node.type === "paragraph" || node.type === "heading") {
         let text = ""
         if (node.content && Array.isArray(node.content)) {
@@ -290,10 +247,9 @@ export class JiraApiClient {
             text += extractText(child)
           }
         }
-        return text + "\n" // Add newline after each paragraph/heading
+        return text + "\n"
       }
 
-      // For other container nodes (doc, listItem, etc.), just process children
       if (node.content && Array.isArray(node.content)) {
         let text = ""
         for (const child of node.content) {
@@ -308,7 +264,6 @@ export class JiraApiClient {
     return extractText(adf).trim()
   }
 
-  // Map JIRA status to our categories
   mapStatusToCategory(status: string): string {
     const statusLower = status.toLowerCase()
 
