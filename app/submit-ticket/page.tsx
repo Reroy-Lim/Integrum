@@ -1,14 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
-import { TicketCreationMonitor } from "@/components/ticket-creation-monitor"
 
 export default function SubmitTicketPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
-  const [showMonitor, setShowMonitor] = useState(false)
 
   useEffect(() => {
     console.log("[v0] Submit ticket page loaded, status:", status)
@@ -23,32 +21,21 @@ export default function SubmitTicketPage() {
 
       window.open(gmailUrl, "_blank")
 
-      console.log("[v0] Gmail opened, showing ticket creation monitor")
+      console.log("[v0] Gmail opened, redirecting to ticket processing page")
 
-      setShowMonitor(true)
+      router.push("/ticket-processing/pending")
     } else if (status === "unauthenticated") {
       console.log("[v0] User not authenticated, redirecting to home")
       router.push("/")
     }
   }, [status, router, session])
 
-  const handleMonitorClose = () => {
-    setShowMonitor(false)
-    router.push("/")
-  }
-
   return (
-    <>
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Opening Gmail...</h2>
-          <p className="text-muted-foreground">Please wait while we redirect you.</p>
-        </div>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold mb-2">Opening Gmail...</h2>
+        <p className="text-muted-foreground">Please wait while we redirect you.</p>
       </div>
-
-      {session?.user?.email && (
-        <TicketCreationMonitor isOpen={showMonitor} onClose={handleMonitorClose} userEmail={session.user.email} />
-      )}
-    </>
+    </div>
   )
 }

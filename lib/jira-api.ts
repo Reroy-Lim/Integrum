@@ -337,3 +337,15 @@ export class JiraApiClient {
     return "In Progression" // Default
   }
 }
+
+export async function getJiraTicket(ticketKey: string): Promise<JiraTicket | null> {
+  const jiraConfig: JiraConfig = {
+    baseUrl: process.env.JIRA_BASE_URL || "",
+    email: process.env.JIRA_EMAIL || "",
+    apiToken: process.env.JIRA_API_TOKEN || "",
+    projectKey: process.env.JIRA_PROJECT_KEY || "",
+  }
+
+  const jiraClient = new JiraApiClient(jiraConfig)
+  return jiraClient.getTicket(ticketKey)
+}
