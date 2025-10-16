@@ -1,33 +1,43 @@
 "use client"
 
 import type React from "react"
-
-import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport } from "ai"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User } from "lucide-react"
+import { Send, Bot, User, Headset } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+
+interface ChatMessage {
+  id: string
+  ticket_key: string
+  user_email: string
+  message: string
+  role: "user" | "support"
+  created_at: string
+}
 
 interface TicketChatbotProps {
   ticketKey: string
   ticketTitle: string
   ticketDescription: string
   solutionsSections?: string
+  currentUserEmail: string
+  isMasterAccount: boolean
 }
 
-export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solutionsSections }: TicketChatbotProps) {
+export function TicketChatbot({
+  ticketKey,
+  ticketTitle,
+  ticketDescription,
+  solutionsSections,
+  currentUserEmail,
+  isMasterAccount,
+}: TicketChatbotProps) {
   const [input, setInput] = useState("")
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSending, setIsSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  const ticketContext = `Ticket: ${ticketKey}\nTitle: ${ticketTitle}\nDescription: ${ticketDescription.substring(0, 500)}...`
-
-  const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-      body: { ticketContext, solutionsSections },
-    }),
-  })
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -37,12 +47,77 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
     scrollToBottom()
   }, [messages])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim() || status === "in_progress") return
+  const loadMessages = async () => {
+    try {
+      console.log("[v0] Loading chat messages for ticket:", ticketKey)
+      const response = await fetch(`/api/chat-messages?ticketKey=${ticketKey}`)
+      if (!response.ok) {
+        throw new Error("Failed to load messages")
+      }
+      const data = await response.json()
+      console.log("[v0] Loaded", data.messages?.length || 0, "messages")
+      setMessages(data.messages || [])
+    } catch (error) {
+      console.error("[v0] Error loading messages:", error)
+    }
+  }
 
-    sendMessage({ text: input })
+  useEffect(() => {
+    loadMessages()
+
+    // Poll for new messages every 5 seconds
+    pollingIntervalRef.current = setInterval(() => {
+      loadMessages()
+    }, 5000)
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+    }
+  }, [ticketKey])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim() || isSending) return
+
+    const messageText = input.trim()
     setInput("")
+    setIsSending(true)
+
+    try {
+      console.log("[v0] Sending message:", {
+        ticketKey,
+        userEmail: currentUserEmail,
+        role: isMasterAccount ? "support" : "user",
+      })
+
+      const response = await fetch("/api/chat-messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ticketKey,
+          userEmail: currentUserEmail,
+          message: messageText,
+          role: isMasterAccount ? "support" : "user",
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to send message")
+      }
+
+      console.log("[v0] Message sent successfully")
+
+      // Reload messages immediately after sending
+      await loadMessages()
+    } catch (error) {
+      console.error("[v0] Error sending message:", error)
+      alert("Failed to send message. Please try again.")
+      setInput(messageText) // Restore the message
+    } finally {
+      setIsSending(false)
+    }
   }
 
   const formatSolutions = (solutions: string) => {
@@ -143,7 +218,8 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
     <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
       <div className="flex items-center gap-2 p-4 border-b border-gray-700">
         <Bot className="w-5 h-5 text-blue-400" />
-        <h3 className="font-semibold text-blue-400">Ticket Information Assistant</h3>
+        <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
+        <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -192,54 +268,62 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
         {messages.length === 0 && !solutionSections && (
           <div className="flex flex-col items-center justify-center h-full text-center text-blue-400">
             <Bot className="w-12 h-12 mb-4 text-blue-500" />
-            <p className="text-sm">Ask me anything about this ticket.</p>
-            <p className="text-xs mt-2">I can help troubleshoot, suggest solutions, or answer questions.</p>
+            <p className="text-sm">Start a conversation about this ticket.</p>
+            <p className="text-xs mt-2">
+              {isMasterAccount
+                ? "You can respond to the user's questions here."
+                : "Ask questions or provide updates about your issue."}
+            </p>
           </div>
         )}
 
-        {messages.map((message) => (
-          <div key={message.id} className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-            {message.role === "assistant" && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                <Bot className="w-5 h-5 text-white" />
+        {messages.map((message) => {
+          const isCurrentUser = message.user_email === currentUserEmail
+          const isSupport = message.role === "support"
+
+          return (
+            <div key={message.id} className={`flex gap-3 ${isCurrentUser ? "justify-end" : "justify-start"}`}>
+              {!isCurrentUser && (
+                <div
+                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    isSupport ? "bg-green-600" : "bg-gray-700"
+                  }`}
+                >
+                  {isSupport ? <Headset className="w-5 h-5 text-white" /> : <User className="w-5 h-5 text-gray-300" />}
+                </div>
+              )}
+
+              <div
+                className={`max-w-[80%] rounded-lg p-3 ${
+                  isCurrentUser
+                    ? "bg-blue-600 text-white"
+                    : isSupport
+                      ? "bg-green-900/30 text-green-300 border border-green-500/30"
+                      : "bg-gray-800 text-blue-300"
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.message}</p>
+                <p className="text-xs mt-1 opacity-60">
+                  {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </p>
               </div>
-            )}
 
-            <div
-              className={`max-w-[80%] rounded-lg p-3 ${
-                message.role === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-blue-300"
-              }`}
-            >
-              {message.parts.map((part, index) => {
-                if (part.type === "text") {
-                  return (
-                    <p key={index} className="text-sm whitespace-pre-wrap leading-relaxed">
-                      {part.text}
-                    </p>
-                  )
-                }
-                return null
-              })}
+              {isCurrentUser && (
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+              )}
             </div>
+          )
+        })}
 
-            {message.role === "user" && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
-                <User className="w-5 h-5 text-gray-300" />
-              </div>
-            )}
-          </div>
-        ))}
-
-        {status === "in_progress" && (
-          <div className="flex gap-3 justify-start">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
-            <div className="bg-gray-800 rounded-lg p-3">
+        {isSending && (
+          <div className="flex gap-3 justify-end">
+            <div className="bg-blue-600/50 rounded-lg p-3">
               <div className="flex gap-1">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
@@ -253,13 +337,13 @@ export function TicketChatbot({ ticketKey, ticketTitle, ticketDescription, solut
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            disabled={status === "in_progress"}
+            placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
+            disabled={isSending}
             className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
           />
           <Button
             type="submit"
-            disabled={!input.trim() || status === "in_progress"}
+            disabled={!input.trim() || isSending}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Send className="w-4 h-4" />
