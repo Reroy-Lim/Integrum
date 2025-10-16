@@ -60,7 +60,11 @@ export class JiraApiClient {
 
   async getTicket(ticketKey: string): Promise<JiraTicket | null> {
     try {
-      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}`, {
+      const params = new URLSearchParams({
+        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype,attachment",
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}?${params.toString()}`, {
         method: "GET",
         headers: this.getAuthHeaders(),
       })
