@@ -832,13 +832,14 @@ export default function IntegrumPortal() {
               </p>
             </div>
 
+            {/* Changed "minutes." to "period of time" */}
             <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group">
               <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Zap className="w-6 h-6 text-emerald-400" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">Instant Responses</h3>
               <p className="text-foreground/75 leading-relaxed">
-                Auto-acknowledgement and AI-powered initial responses within minutes.
+                Auto-acknowledgement and AI-powered initial responses within period of time.
               </p>
             </div>
 
@@ -953,13 +954,29 @@ export default function IntegrumPortal() {
           onCancel={handleLogoutCancel}
         />
 
-        <section className="py-12 px-6 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <div className="bg-card/80 border-2 border-border backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-4xl font-bold text-foreground bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                  Your Ticket Page
-                </h2>
+        <section className="py-16 px-6 relative z-10">
+          <div className="max-w-7xl mx-auto">
+            {/* Header Section */}
+            <div className="text-center mb-12">
+              <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                Your Ticket Page
+              </h2>
+              <p className="text-foreground/70 text-lg">Track and manage all your support tickets</p>
+            </div>
+
+            {/* User Info & Controls */}
+            <div className="bg-card/90 border-2 border-border backdrop-blur-sm rounded-2xl p-6 shadow-2xl mb-8">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                {session?.user && (
+                  <div className="flex items-center space-x-3 px-6 py-3 bg-primary/10 border-2 border-primary/30 rounded-xl">
+                    <User className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="text-xs text-foreground/60 font-medium">Logged in as</p>
+                      <p className="font-semibold text-foreground">{session.user.email}</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
                     <label htmlFor="ticket-limit" className="text-sm font-medium text-foreground/80">
@@ -989,65 +1006,60 @@ export default function IntegrumPortal() {
                   </Button>
                 </div>
               </div>
+            </div>
 
-              {session?.user && (
-                <div className="mb-6 p-4 bg-primary/10 border-2 border-primary/30 rounded-xl">
-                  <p className="text-sm text-foreground/70 font-medium">Logged in as:</p>
-                  <p className="font-semibold text-foreground text-lg">{session.user.email}</p>
-                </div>
-              )}
-
-              {ticketsError && (
-                <div className="mb-6 p-4 bg-red-900/20 border border-red-800 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <AlertCircle className="w-6 h-6 text-red-400" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-red-300">Error Loading Tickets</h3>
-                      <p className="text-sm text-red-400">{ticketsError}. Please try refreshing the page.</p>
-                    </div>
+            {ticketsError && (
+              <div className="mb-6 p-4 bg-red-900/20 border border-red-800 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="w-6 h-6 text-red-400" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-red-300">Error Loading Tickets</h3>
+                    <p className="text-sm text-red-400">{ticketsError}. Please try refreshing the page.</p>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {isProcessing && processingTicketId && (
-                <div className="mb-6 p-4 bg-blue-900/20 border border-blue-800 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center justify-center">
-                      <div className="relative">
-                        <div className="w-12 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                          <Mail className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
-                          <Lightbulb className="w-2 h-2 text-yellow-800" />
-                        </div>
+            {isProcessing && processingTicketId && (
+              <div className="mb-6 p-4 bg-blue-900/20 border border-blue-800 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-center">
+                    <div className="relative">
+                      <div className="w-12 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                        <Mail className="w-6 h-6 text-blue-400" />
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                        <Lightbulb className="w-2 h-2 text-yellow-800" />
                       </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-blue-300">Email Submitted Successfully!</h3>
-                      <p className="text-sm text-blue-400">
-                        Ticket ID: <strong>{processingTicketId}</strong> - Auto-acknowledgement is on the way. The AI
-                        proposition will be provided shortly within 5 minutes.
-                      </p>
-                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-blue-300">Email Submitted Successfully!</h3>
+                    <p className="text-sm text-blue-400">
+                      Ticket ID: <strong>{processingTicketId}</strong> - Auto-acknowledgement is on the way. The AI
+                      proposition will be provided shortly within 5 minutes.
+                    </p>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {isLoadingTickets && tickets.length === 0 ? (
-                <div className="text-center py-12">
-                  <Loader2 className="w-16 h-16 text-blue-500 mx-auto mb-4 animate-spin" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Loading Your Tickets...</h3>
-                  <p className="text-gray-400">Fetching your tickets from Jira</p>
-                </div>
-              ) : hasTickets ? (
-                <div className="grid md:grid-cols-3 gap-6">
+            {isLoadingTickets && tickets.length === 0 ? (
+              <div className="text-center py-12">
+                <Loader2 className="w-16 h-16 text-primary mx-auto mb-4 animate-spin" />
+                <h3 className="text-xl font-semibold text-foreground mb-2">Loading Your Tickets...</h3>
+                <p className="text-foreground/60">Fetching your tickets from Jira</p>
+              </div>
+            ) : hasTickets ? (
+              <div className="flex justify-center">
+                <div className="grid md:grid-cols-3 gap-6 max-w-6xl w-full">
                   {categories.map((category) => {
                     const categoryTickets = categorizeTickets(category.name)
 
                     return (
                       <div key={category.name} className="space-y-4">
                         <div
-                          className={`flex items-center justify-between text-xl font-bold text-white border-2 border-${category.color.replace("bg-", "")}/50 pb-2 px-6 py-4 rounded-xl ${category.color} shadow-lg`}
+                          className={`flex items-center justify-center text-xl font-bold text-white border-2 px-6 py-4 rounded-xl ${category.color} shadow-lg hover:shadow-xl transition-all duration-300`}
                         >
                           <h3>{category.name}</h3>
                         </div>
@@ -1091,23 +1103,28 @@ export default function IntegrumPortal() {
                     )
                   })}
                 </div>
-              ) : (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">No Tickets Yet</h3>
-                  <p className="text-gray-400 mb-6">
-                    You haven't submitted any tickets yet. Get started by submitting your first ticket!
-                  </p>
-                  <Button onClick={handleSubmitTicket} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Submit Your First Ticket
-                  </Button>
-                </div>
-              )}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-card/50 border-2 border-border rounded-2xl">
+                <FileText className="w-16 h-16 text-foreground/40 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-foreground mb-2">No Tickets Yet</h3>
+                <p className="text-foreground/60 mb-6">
+                  You haven't submitted any tickets yet. Get started by submitting your first ticket!
+                </p>
+                <Button
+                  onClick={handleSubmitTicket}
+                  className="bg-primary text-primary-foreground border-2 border-primary hover:bg-accent hover:border-accent hover:shadow-lg hover:shadow-accent/30 transition-all duration-300 px-8 py-3 rounded-xl font-semibold"
+                >
+                  Submit Your First Ticket
+                </Button>
+              </div>
+            )}
 
+            <div className="mt-8 text-center">
               <Button
                 onClick={() => setCurrentView("home")}
                 variant="outline"
-                className="mt-8 border-2 border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary px-8 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg hover:shadow-primary/30 transition-all duration-300"
+                className="border-2 border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary px-8 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg hover:shadow-primary/30 transition-all duration-300"
               >
                 Back to Home
               </Button>
