@@ -33,17 +33,33 @@ export async function GET(request: NextRequest) {
     const dbMessages = dbResult.data || []
 
     const jiraClient = getJiraCommentsClient()
-    const jiraMessages = jiraComments.map((comment) => ({
-      id: `jira-${comment.id}`,
-      ticket_key: ticketKey,
-      user_email: comment.author.emailAddress,
-      message: jiraClient.extractTextFromADF(comment.body),
-      role: comment.author.emailAddress === process.env.JIRA_EMAIL ? "support" : "user",
-      created_at: comment.created,
-      source: "jira",
+    const jiraMessages = jiraComments.map((comment) => {
+      let messageText = jiraClient.extractTextFromADF(comment.body)
+
+      // Remove email prefix if present (format: "email@example.com: message")
+      const emailPrefixMatch = messageText.match(/^[^\s]+@[^\s]+:\s*(.+)$/s)
+      if (emailPrefixMatch) {
+        messageText = emailPrefixMatch[1]
+      }
+
+      return {
+        id: `jira-${comment.id}`,
+        ticket_key: ticketKey,
+        user_email: comment.author.emailAddress,
+        author_name: comment.author.displayName, // Include author's display name
+        message: messageText,
+        role: comment.author.emailAddress === process.env.JIRA_EMAIL ? "support" : "user",
+        created_at: comment.created,
+        source: "jira",
+      }
+    })
+
+    const enrichedDbMessages = dbMessages.map((msg) => ({
+      ...msg,
+      author_name: msg.user_email.split("@")[0], // Extract name from email
     }))
 
-    const allMessages = [...dbMessages, ...jiraMessages].sort(
+    const allMessages = [...enrichedDbMessages, ...jiraMessages].sort(
       (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     )
 
@@ -81,7 +97,7 @@ export async function POST(request: NextRequest) {
         .select()
         .single(),
       getJiraCommentsClient()
-        .addComment(ticketKey, `${userEmail}: ${message}`)
+        .addComment(ticketKey, message) // Post message directly without email prefix
         .catch((error) => {
           console.error("[v0] Error posting to Jira:", error)
           return null

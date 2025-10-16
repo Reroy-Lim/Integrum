@@ -10,6 +10,7 @@ interface ChatMessage {
   id: string
   ticket_key: string
   user_email: string
+  author_name?: string
   message: string
   role: "user" | "support"
   created_at: string
@@ -281,6 +282,9 @@ export function TicketChatbot({
           const isCurrentUser = message.user_email === currentUserEmail
           const isSupport = message.role === "support"
 
+          // Determine display name
+          const displayName = message.author_name || message.user_email.split("@")[0]
+
           return (
             <div key={message.id} className={`flex gap-3 ${isCurrentUser ? "justify-end" : "justify-start"}`}>
               {!isCurrentUser && (
@@ -293,19 +297,23 @@ export function TicketChatbot({
                 </div>
               )}
 
-              <div
-                className={`max-w-[80%] rounded-lg p-3 ${
-                  isCurrentUser
-                    ? "bg-blue-600 text-white"
-                    : isSupport
-                      ? "bg-green-900/30 text-green-300 border border-green-500/30"
-                      : "bg-gray-800 text-blue-300"
-                }`}
-              >
-                <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.message}</p>
-                <p className="text-xs mt-1 opacity-60">
-                  {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </p>
+              <div className="flex flex-col gap-1">
+                {!isCurrentUser && <span className="text-xs text-gray-400 px-1">{displayName}</span>}
+
+                <div
+                  className={`rounded-lg p-3 ${
+                    isCurrentUser
+                      ? "bg-blue-600 text-white"
+                      : isSupport
+                        ? "bg-green-900/30 text-green-300 border border-green-500/30"
+                        : "bg-gray-800 text-blue-300"
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.message}</p>
+                  <p className="text-xs mt-1 opacity-60">
+                    {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
               </div>
 
               {isCurrentUser && (
