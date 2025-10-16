@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
+import { Loader2, Mail } from "lucide-react"
 
 export default function SubmitTicketPage() {
   const router = useRouter()
@@ -31,9 +32,15 @@ export default function SubmitTicketPage() {
   }, [status, router, session])
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">Opening Gmail...</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950">
+      <div className="text-center space-y-4">
+        <div className="flex justify-center mb-6">
+          <div className="relative">
+            <Loader2 className="w-16 h-16 text-primary animate-spin" />
+            <Mail className="w-8 h-8 text-accent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold text-foreground">Opening Gmail...</h2>
         <p className="text-muted-foreground">Please wait while we redirect you.</p>
       </div>
     </div>

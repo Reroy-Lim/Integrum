@@ -375,11 +375,11 @@ export default function JiraTicketDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-16 h-16 text-blue-500 mx-auto mb-4 animate-spin" />
-          <h3 className="text-xl font-semibold text-white mb-2">Loading Ticket Details...</h3>
-          <p className="text-gray-400">Fetching ticket information from Jira</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-16 h-16 text-primary mx-auto mb-4 animate-spin" />
+          <h3 className="text-2xl font-bold text-foreground">Loading Ticket Details...</h3>
+          <p className="text-muted-foreground">Fetching ticket information from Jira</p>
         </div>
       </div>
     )
@@ -387,14 +387,14 @@ export default function JiraTicketDetailPage() {
 
   if (error || !ticket) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-6">
-        <Card className="max-w-md w-full bg-red-50 border-red-200">
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full bg-card border-border">
           <CardHeader>
             <div className="flex items-center space-x-3">
-              <AlertCircle className="w-8 h-8 text-red-600" />
+              <AlertCircle className="w-8 h-8 text-destructive" />
               <div>
-                <CardTitle className="text-red-800">Error Loading Ticket</CardTitle>
-                <CardDescription className="text-red-600">{error || "Ticket not found"}</CardDescription>
+                <CardTitle className="text-destructive-foreground">Error Loading Ticket</CardTitle>
+                <CardDescription className="text-muted-foreground">{error || "Ticket not found"}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -415,10 +415,16 @@ export default function JiraTicketDetailPage() {
   const displayDescription = removeSolutionsSections(cleanedDescription)
 
   return (
-    <div className="min-h-screen bg-black">
-      <nav className="flex items-center justify-between p-6 border-b border-gray-800">
-        <h1 className="text-2xl font-bold text-white">INTEGRUM</h1>
-        <Button variant="outline" onClick={() => router.push("/?view=yourTickets")}>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950">
+      <nav className="flex items-center justify-between p-6 border-b border-border backdrop-blur-sm bg-background/50">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          INTEGRUM
+        </h1>
+        <Button
+          variant="outline"
+          onClick={() => router.push("/?view=yourTickets")}
+          className="border-border hover:bg-secondary hover:text-secondary-foreground transition-all duration-300"
+        >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Your Tickets
         </Button>
@@ -426,7 +432,7 @@ export default function JiraTicketDetailPage() {
 
       <section className="py-12 px-6">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-6">
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-card border-2 border-border hover:border-primary/50 transition-all duration-300 shadow-lg hover:shadow-primary/20">
             <CardHeader>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
