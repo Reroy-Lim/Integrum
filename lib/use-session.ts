@@ -20,19 +20,28 @@ export function useSession() {
   const router = useRouter()
 
   useEffect(() => {
+    console.log("[v0] useSession: Fetching session from /api/auth/session")
+
     // Check session from cookie by making a request to a session endpoint
     fetch("/api/auth/session")
-      .then((res) => res.json())
+      .then((res) => {
+        console.log("[v0] useSession: Response status:", res.status)
+        return res.json()
+      })
       .then((data) => {
+        console.log("[v0] useSession: Response data:", data)
         if (data.session) {
+          console.log("[v0] useSession: Session found for user:", data.session.user.email)
           setSession(data.session)
           setStatus("authenticated")
         } else {
+          console.log("[v0] useSession: No session in response")
           setSession(null)
           setStatus("unauthenticated")
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("[v0] useSession: Error fetching session:", error)
         setSession(null)
         setStatus("unauthenticated")
       })
