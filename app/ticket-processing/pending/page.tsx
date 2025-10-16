@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
 import { Loader2, Mail } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 
 export default function PendingTicketPage() {
   const router = useRouter()
@@ -112,22 +111,12 @@ export default function PendingTicketPage() {
             </ul>
           </div>
 
-          {/* Status Messages */}
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-              <p className="text-sm text-gray-600">Monitoring for new ticket...</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-              <p className="text-sm text-gray-600">This usually takes 10-30 seconds</p>
+              <p className="text-sm text-gray-600">This usually takes 5-10 minutes...</p>
             </div>
           </div>
-
-          {/* Cancel Button */}
-          <Button onClick={() => router.push("/")} variant="outline" className="w-full">
-            Cancel and Return Home
-          </Button>
         </CardContent>
       </Card>
     </div>
