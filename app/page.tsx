@@ -709,15 +709,11 @@ export default function IntegrumPortal() {
         <div className="relative max-w-7xl mx-auto px-8 py-28 md:py-36">
           <div className="text-center max-w-5xl mx-auto">
             <div className="inline-flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-primary/25 via-accent/20 to-primary/25 border-2 border-primary/50 rounded-full mb-8 backdrop-blur-sm shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_40px_rgba(6,182,212,0.4)] transition-all duration-300 relative">
-              {/* Animated green indicator light */}
-              <div className="relative flex items-center justify-center">
-                <div className="w-3 h-3 bg-emerald-400 rounded-full shadow-[0_0_12px_rgba(52,211,153,0.8)]" />
-              </div>
               <span className="text-sm font-bold text-primary tracking-wider uppercase bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]">
-                AI-Powered Enterprise Support
+                AI-Powered Intelligent Support
               </span>
               {/* Glow effect overlay */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/10 via-primary/10 to-accent/10 blur-xl" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 blur-xl" />
             </div>
 
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 tracking-tight text-balance">
@@ -948,7 +944,7 @@ export default function IntegrumPortal() {
     const hasTickets = userTickets.length > 0
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950/30 to-gray-950">
         {renderNavigation()}
         {renderSecurityDialog()}
         <LogoutConfirmationDialog
@@ -959,19 +955,21 @@ export default function IntegrumPortal() {
 
         <section className="py-12 px-6 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <div className="bg-gray-900/50 border border-gray-800 backdrop-blur-sm rounded-lg p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-3xl font-bold text-white">Your Ticket Page</h2>
+            <div className="bg-card/80 border-2 border-border backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-4xl font-bold text-foreground bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                  Your Ticket Page
+                </h2>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
-                    <label htmlFor="ticket-limit" className="text-sm font-medium text-gray-300">
+                    <label htmlFor="ticket-limit" className="text-sm font-medium text-foreground/80">
                       Show:
                     </label>
                     <select
                       id="ticket-limit"
                       value={ticketLimit}
                       onChange={(e) => setTicketLimit(Number(e.target.value))}
-                      className="px-3 py-1.5 border border-gray-700 rounded-md text-sm bg-gray-800 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 border-2 border-border rounded-xl text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary hover:border-primary/50 transition-all"
                     >
                       <option value={50}>50 tickets</option>
                       <option value={100}>100 tickets</option>
@@ -985,7 +983,7 @@ export default function IntegrumPortal() {
                     size="sm"
                     onClick={refreshTickets}
                     disabled={isLoadingTickets}
-                    className="flex items-center space-x-2 bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
+                    className="flex items-center space-x-2 bg-emerald-600 text-white border-2 border-emerald-600 hover:bg-emerald-500 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 rounded-xl px-6 py-2"
                   >
                     {isLoadingTickets ? <Loader2 className="w-4 h-4 animate-spin" /> : "Refresh"}
                   </Button>
@@ -993,9 +991,9 @@ export default function IntegrumPortal() {
               </div>
 
               {session?.user && (
-                <div className="mb-6 p-3 bg-gray-800/50 border border-gray-700 rounded-lg">
-                  <p className="text-sm text-gray-400">Logged in as:</p>
-                  <p className="font-medium text-white">{session.user.email}</p>
+                <div className="mb-6 p-4 bg-primary/10 border-2 border-primary/30 rounded-xl">
+                  <p className="text-sm text-foreground/70 font-medium">Logged in as:</p>
+                  <p className="font-semibold text-foreground text-lg">{session.user.email}</p>
                 </div>
               )}
 
@@ -1049,7 +1047,7 @@ export default function IntegrumPortal() {
                     return (
                       <div key={category.name} className="space-y-4">
                         <div
-                          className={`flex items-center justify-between text-xl font-semibold text-white border-b border-gray-700 pb-2 px-4 py-2 rounded-t-lg ${category.color}`}
+                          className={`flex items-center justify-between text-xl font-bold text-white border-2 border-${category.color.replace("bg-", "")}/50 pb-2 px-6 py-4 rounded-xl ${category.color} shadow-lg`}
                         >
                           <h3>{category.name}</h3>
                         </div>
@@ -1059,11 +1057,13 @@ export default function IntegrumPortal() {
                             categoryTickets.map((ticket) => (
                               <Card
                                 key={ticket.key}
-                                className="bg-gray-800/50 border-gray-700 hover:bg-gray-800 transition-colors"
+                                className="bg-card border-2 border-border hover:border-primary/50 hover:bg-card/80 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 rounded-xl"
                               >
                                 <CardHeader className="pb-3">
-                                  <CardTitle className="text-sm text-white line-clamp-2">{ticket.summary}</CardTitle>
-                                  <CardDescription className="text-xs text-gray-400">
+                                  <CardTitle className="text-sm text-foreground line-clamp-2 font-semibold">
+                                    {ticket.summary}
+                                  </CardTitle>
+                                  <CardDescription className="text-xs text-foreground/60 font-medium">
                                     {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
                                   </CardDescription>
                                 </CardHeader>
@@ -1072,7 +1072,7 @@ export default function IntegrumPortal() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
-                                    className="w-full text-white bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:text-white text-xs"
+                                    className="w-full text-white bg-emerald-600 border-2 border-emerald-600 hover:bg-emerald-500 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 text-sm font-semibold rounded-xl py-2"
                                   >
                                     View Ticket Info
                                   </Button>
@@ -1080,9 +1080,9 @@ export default function IntegrumPortal() {
                               </Card>
                             ))
                           ) : (
-                            <Card className="bg-gray-800/50 border-gray-700">
-                              <CardContent className="p-4 text-center">
-                                <p className="text-gray-400 text-sm">No tickets in this category</p>
+                            <Card className="bg-card/50 border-2 border-border rounded-xl">
+                              <CardContent className="p-6 text-center">
+                                <p className="text-foreground/60 text-sm font-medium">No tickets in this category</p>
                               </CardContent>
                             </Card>
                           )}
@@ -1107,7 +1107,7 @@ export default function IntegrumPortal() {
               <Button
                 onClick={() => setCurrentView("home")}
                 variant="outline"
-                className="mt-8 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+                className="mt-8 border-2 border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary px-8 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg hover:shadow-primary/30 transition-all duration-300"
               >
                 Back to Home
               </Button>
