@@ -1,16 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const cookieStore = await cookies()
-    const userEmail = cookieStore.get("user_email")?.value
-
-    if (!userEmail) {
-      console.log("[v0] Unauthorized: No user email in cookies")
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
     const attachmentId = params.id
     const baseUrl = process.env.JIRA_BASE_URL?.replace(/\/$/, "")
     const email = process.env.JIRA_EMAIL
