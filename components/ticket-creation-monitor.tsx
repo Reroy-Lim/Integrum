@@ -14,7 +14,7 @@ interface TicketCreationMonitorProps {
 export function TicketCreationMonitor({ isOpen, onClose, userEmail }: TicketCreationMonitorProps) {
   const [status, setStatus] = useState<"waiting" | "checking" | "completed">("waiting")
   const [message, setMessage] = useState("Ticket is being created in process, Please be patient")
-  const [ticketInfo, setTicketInfo] = useState<{ key: string; summary: string } | null>(null)
+  const [ticketInfo, setTicketInfo] = useState<{ key: string; summary?: string } | null>(null)
   const [elapsedTime, setElapsedTime] = useState(0)
 
   useEffect(() => {
@@ -34,55 +34,75 @@ export function TicketCreationMonitor({ isOpen, onClose, userEmail }: TicketCrea
       setElapsedTime((prev) => prev + 1)
     }, 1000)
 
-    // Wait 3 minutes before starting to check workflow status
-    const initialDelay = setTimeout(
-      () => {
-        console.log("[v0] 3 minutes elapsed, starting workflow status checks")
-        setStatus("checking")
-        setMessage("Checking workflow execution status...")
+    setStatus("checking")
+    setMessage("Checking workflow execution status...")
 
-        // Start polling every 10 seconds
-        const pollInterval = setInterval(async () => {
-          try {
-            console.log("[v0] Polling workflow status...")
-            const response = await fetch(`/api/workflow/status?email=${encodeURIComponent(userEmail)}`)
+    const pollInterval = setInterval(async () => {
+      try {
+        console.log("[v0] Polling workflow status...")
+        const response = await fetch(`/api/workflow/status?email=${encodeURIComponent(userEmail)}`, {
+          cache: "no-store",
+        })
 
-            if (!response.ok) {
-              console.error("[v0] Workflow status check failed:", response.status)
-              return
-            }
+        if (!response.ok) {
+          console.error("[v0] Workflow status check failed:", response.status)
+          return
+        }
 
-            const data = await response.json()
-            console.log("[v0] Workflow status response:", data)
+        const data = await response.json()
+        console.log("[v0] Workflow status response:", data)
 
-            if (data.status === "completed") {
-              console.log("[v0] Workflow completed! Ticket created:", data.ticketKey)
-              setStatus("completed")
-              setMessage("Ticket created successfully!")
-              setTicketInfo({
-                key: data.ticketKey,
-                summary: data.ticketSummary,
-              })
-              clearInterval(pollInterval)
-              clearInterval(timeInterval)
-            } else {
-              setMessage(data.message || "Ticket is being created, please wait...")
-            }
-          } catch (error) {
-            console.error("[v0] Error polling workflow status:", error)
-          }
-        }, 10000) // Poll every 10 seconds
-
-        return () => {
+        if (data.status === "completed") {
+          console.log("[v0] Workflow completed! Ticket created:", data.ticketKey)
+          setStatus("completed")
+          setMessage("Ticket created successfully!")
+          setTicketInfo({
+            key: data.ticketKey,
+            summary: data.ticketSummary,
+          })
           clearInterval(pollInterval)
           clearInterval(timeInterval)
+
+          setTimeout(() => {
+            window.location.href = `/jira-ticket/${data.ticketKey}`
+          }, 2000)
+        } else if (data.status === "processing") {
+          setMessage(data.message || "Workflow completed, finalizing ticket details...")
+        } else {
+          setMessage(data.message || "Ticket is being created, please wait...")
         }
-      },
-      3 * 60 * 1000,
-    ) // 3 minutes = 180,000 ms
+      } catch (error) {
+        console.error("[v0] Error polling workflow status:", error)
+      }
+    }, 5000)
+    ;(async () => {
+      try {
+        const response = await fetch(`/api/workflow/status?email=${encodeURIComponent(userEmail)}`, {
+          cache: "no-store",
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data.status === "completed") {
+            setStatus("completed")
+            setMessage("Ticket created successfully!")
+            setTicketInfo({
+              key: data.ticketKey,
+              summary: data.ticketSummary,
+            })
+            clearInterval(pollInterval)
+            clearInterval(timeInterval)
+            setTimeout(() => {
+              window.location.href = `/jira-ticket/${data.ticketKey}`
+            }, 2000)
+          }
+        }
+      } catch (error) {
+        console.error("[v0] Error in immediate check:", error)
+      }
+    })()
 
     return () => {
-      clearTimeout(initialDelay)
+      clearInterval(pollInterval)
       clearInterval(timeInterval)
     }
   }, [isOpen, userEmail])
@@ -100,9 +120,8 @@ export function TicketCreationMonitor({ isOpen, onClose, userEmail }: TicketCrea
   }
 
   const handleClose = () => {
-    if (status === "completed") {
-      // Refresh the tickets page
-      window.location.href = "/?view=yourTickets"
+    if (status === "completed" && ticketInfo) {
+      window.location.href = `/jira-ticket/${ticketInfo.key}`
     } else {
       onClose()
     }
@@ -146,7 +165,9 @@ export function TicketCreationMonitor({ isOpen, onClose, userEmail }: TicketCrea
                 <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
                 <p className="text-gray-600 font-medium">{message}</p>
               </div>
-              <p className="text-sm text-gray-500">Monitoring workflow execution... Your ticket will appear shortly.</p>
+              <p className="text-sm text-gray-500">
+                Monitoring n8n workflow execution... Your ticket will appear shortly.
+              </p>
               <p className="text-xs text-gray-400">Elapsed time: {formatElapsedTime(elapsedTime)}</p>
             </>
           )}
@@ -159,12 +180,14 @@ export function TicketCreationMonitor({ isOpen, onClose, userEmail }: TicketCrea
                   <p className="text-xs text-green-700">
                     <strong>Ticket ID:</strong> {ticketInfo.key}
                   </p>
-                  <p className="text-xs text-green-700">
-                    <strong>Summary:</strong> {ticketInfo.summary}
-                  </p>
+                  {ticketInfo.summary && (
+                    <p className="text-xs text-green-700">
+                      <strong>Summary:</strong> {ticketInfo.summary}
+                    </p>
+                  )}
                 </div>
               </div>
-              <p className="text-sm text-gray-600">You can now view your ticket details and track its progress.</p>
+              <p className="text-sm text-gray-600">Redirecting to your ticket page...</p>
             </>
           )}
         </DialogDescription>
@@ -173,10 +196,7 @@ export function TicketCreationMonitor({ isOpen, onClose, userEmail }: TicketCrea
           {status === "completed" ? (
             <>
               <Button onClick={handleViewTicket} className="bg-blue-600 hover:bg-blue-700 text-white">
-                View Ticket
-              </Button>
-              <Button onClick={handleClose} variant="outline">
-                Close
+                View Ticket Now
               </Button>
             </>
           ) : (

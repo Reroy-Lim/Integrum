@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { n8nApi } from "@/lib/n8n-api"
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,7 +10,45 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Email parameter is required" }, { status: 400 })
     }
 
-    // This simulates checking if the workflow has completed by looking for newly created tickets
+    try {
+      const { success, execution } = await n8nApi.hasRecentSuccessfulExecution(userEmail)
+
+      if (success && execution) {
+        console.log("[v0] Found successful n8n execution:", execution.id)
+
+        // Now check if we have the acknowledgement with ticket details
+        const ackResponse = await fetch(
+          `${request.nextUrl.origin}/api/acknowledgement/status?email=${encodeURIComponent(userEmail)}`,
+          { cache: "no-store" },
+        )
+
+        if (ackResponse.ok) {
+          const ackData = await ackResponse.json()
+
+          if (ackData.acknowledged && ackData.data?.ticketId) {
+            // Both workflow completed and acknowledgement received
+            return NextResponse.json({
+              status: "completed",
+              message: "Ticket created successfully!",
+              ticketKey: ackData.data.ticketId,
+              workflowExecutionId: execution.id,
+              executionTime: execution.stoppedAt,
+            })
+          }
+        }
+
+        // Workflow completed but no acknowledgement yet
+        return NextResponse.json({
+          status: "processing",
+          message: "Workflow completed, finalizing ticket details...",
+          workflowExecutionId: execution.id,
+        })
+      }
+    } catch (n8nError) {
+      console.log("[v0] N8N API not available, falling back to Jira check:", n8nError)
+      // Fall through to Jira-based check
+    }
+
     const jiraBaseUrl = process.env.JIRA_BASE_URL
     const jiraEmail = process.env.JIRA_EMAIL
     const jiraApiToken = process.env.JIRA_API_TOKEN
