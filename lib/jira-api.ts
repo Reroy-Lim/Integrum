@@ -134,24 +134,24 @@ export class JiraApiClient {
         const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/
 
         const patterns = [
-          new RegExp(`From:\\s*${emailPattern.source}`), // From: email
-          new RegExp(`from:\\s*${emailPattern.source}`), // from: email
-          new RegExp(`FROM:\\s*${emailPattern.source}`), // FROM: email
-          new RegExp(`From:\\s*<${emailPattern.source}>`), // From: <email>
-          new RegExp(`from:\\s*<${emailPattern.source}>`), // from: <email>
-          new RegExp(`From:\\s*\\n\\s*${emailPattern.source}`), // From:\n email
-          new RegExp(`From\\s*:\\s*${emailPattern.source}`), // From : email
+          { name: "From: email", regex: new RegExp(`From:\\s*${emailPattern.source}`) },
+          { name: "from: email", regex: new RegExp(`from:\\s*${emailPattern.source}`) },
+          { name: "FROM: email", regex: new RegExp(`FROM:\\s*${emailPattern.source}`) },
+          { name: "From: <email>", regex: new RegExp(`From:\\s*<${emailPattern.source}>`) },
+          { name: "from: <email>", regex: new RegExp(`from:\\s*<${emailPattern.source}>`) },
+          { name: "From:\\n email", regex: new RegExp(`From:\\s*\\n\\s*${emailPattern.source}`) },
+          { name: "From : email", regex: new RegExp(`From\\s*:\\s*${emailPattern.source}`) },
         ]
 
         let ticketOwnerEmail: string | null = null
-        let matchedPattern = -1
+        let matchedPatternName = "none"
 
         // Try each pattern
-        for (let i = 0; i < patterns.length; i++) {
-          const match = description.match(patterns[i])
+        for (const pattern of patterns) {
+          const match = description.match(pattern.regex)
           if (match && match[1]) {
             ticketOwnerEmail = match[1].trim().toLowerCase()
-            matchedPattern = i
+            matchedPatternName = pattern.name
             break
           }
         }
@@ -159,37 +159,27 @@ export class JiraApiClient {
         // Fallback: if no "From:" field found, check if description contains the user's email anywhere
         if (!ticketOwnerEmail && description.toLowerCase().includes(userEmail.toLowerCase())) {
           ticketOwnerEmail = userEmail.toLowerCase()
-          matchedPattern = 999 // Fallback pattern
+          matchedPatternName = "fallback (email found in description)"
         }
 
         const matches = ticketOwnerEmail === userEmail.toLowerCase()
 
-        // Log first 5 tickets in detail for debugging
-        if (index < 5) {
-          console.log(`[v0] Jira API: Ticket ${ticket.key}:`)
-          console.log(`  - Extracted email: ${ticketOwnerEmail || "NONE"}`)
-          console.log(`  - Pattern used: ${matchedPattern >= 0 ? matchedPattern : "none"}`)
-          console.log(`  - Matches user: ${matches}`)
-          console.log(`  - Description preview: ${description.substring(0, 150)}...`)
-        }
+        console.log(`\n[v0] Jira API: ===== Ticket ${ticket.key} =====`)
+        console.log(`  - Extracted email: ${ticketOwnerEmail || "NONE"}`)
+        console.log(`  - Pattern matched: ${matchedPatternName}`)
+        console.log(`  - Matches user (${userEmail}): ${matches}`)
+        console.log(`  - Description (first 200 chars): ${description.substring(0, 200)}...`)
+        console.log(`[v0] Jira API: ===== End ${ticket.key} =====\n`)
 
         return matches
       })
 
       console.log("[v0] Jira API: Filtered", filteredTickets.length, "tickets for", userEmail)
 
-      // If no matches, show more detailed debugging
+      // If no matches, show warning
       if (filteredTickets.length === 0 && allTickets.length > 0) {
         console.log("[v0] Jira API: ⚠️ NO MATCHES FOUND for user:", userEmail)
-        console.log("[v0] Jira API: Showing full descriptions of first 2 tickets:")
-
-        for (let i = 0; i < Math.min(2, allTickets.length); i++) {
-          const ticket = allTickets[i]
-          const desc = ticket.description || "No description"
-          console.log(`\n[v0] Jira API: ===== Ticket ${ticket.key} FULL DESCRIPTION =====`)
-          console.log(desc)
-          console.log(`[v0] Jira API: ===== END ${ticket.key} =====\n`)
-        }
+        console.log("[v0] Jira API: Please check the logs above to see why tickets were not matched")
       }
 
       return filteredTickets
