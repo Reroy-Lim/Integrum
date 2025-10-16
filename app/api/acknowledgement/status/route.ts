@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import acknowledgementStore from "@/lib/acknowledgement-store"
+import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
 
@@ -18,15 +18,40 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const acknowledgementData = acknowledgementStore.get(customerEmail)
+    const supabase = await createClient()
 
-    if (acknowledgementData && acknowledgementData.acknowledged && acknowledgementData.verified) {
+    const { data, error } = await supabase
+      .from("acknowledgements")
+      .select("*")
+      .eq("customer_email", customerEmail)
+      .eq("verified", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single()
+
+    if (error && error.code !== "PGRST116") {
+      console.error("Error fetching acknowledgement:", error)
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Internal server error",
+        },
+        { status: 500 },
+      )
+    }
+
+    if (data && data.acknowledged && data.verified) {
       return NextResponse.json({
         success: true,
         acknowledged: true,
-        data: acknowledgementData,
-        latestTicket: acknowledgementData.latestTicket || null,
-        verified: true, // Indicate this acknowledgement has been verified
+        data: {
+          ticketId: data.ticket_key,
+          messageId: data.message_id,
+          timestamp: data.created_at,
+          acknowledged: data.acknowledged,
+          verified: data.verified,
+        },
+        verified: true,
       })
     }
 
