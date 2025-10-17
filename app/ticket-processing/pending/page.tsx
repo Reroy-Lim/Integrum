@@ -87,20 +87,6 @@ export default function PendingTicketPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center p-6">
       <Card className="w-full max-w-md bg-white/95 backdrop-blur shadow-2xl relative">
-        <button
-          onClick={handleReturnHome}
-          className="absolute -top-8 -right-8 w-24 h-24 hover:scale-110 transition-transform duration-300 cursor-pointer z-10"
-          aria-label="Return to home"
-        >
-          <Image
-            src="/error-illustration.png"
-            alt="Return to home"
-            width={96}
-            height={96}
-            className="w-full h-full object-contain"
-          />
-        </button>
-
         <CardHeader className="text-center space-y-4 pb-6">
           <div className="flex justify-center">
             <div className="relative">
