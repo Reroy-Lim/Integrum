@@ -24,7 +24,16 @@ export default function PendingTicketPage() {
   const [elapsedTime, setElapsedTime] = useState(0)
   const [foundTicket, setFoundTicket] = useState(false)
   const [showReopenDialog, setShowReopenDialog] = useState(false)
-  const [gmailWindowClosed, setGmailWindowClosed] = useState(false)
+  const [pendingData, setPendingData] = useState<{ gmailUrl: string; startTime: number } | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const data = localStorage.getItem("pendingTicket")
+      if (data) {
+        setPendingData(JSON.parse(data))
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (foundTicket) return
@@ -37,42 +46,15 @@ export default function PendingTicketPage() {
   }, [foundTicket])
 
   useEffect(() => {
-    const gmailWindowOpened = sessionStorage.getItem("gmailWindowOpened")
+    if (foundTicket || !pendingData) return
 
-    if (!gmailWindowOpened || foundTicket || gmailWindowClosed) return
+    const timeout = setTimeout(() => {
+      console.log("[v0] 45 seconds passed without ticket, showing help dialog")
+      setShowReopenDialog(true)
+    }, 45000) // 45 seconds
 
-    console.log("[v0] Starting Gmail tab monitoring")
-
-    // Check every 2 seconds if user has returned to this tab
-    const visibilityCheck = setInterval(() => {
-      if (!document.hidden) {
-        // User is back on this tab - check if they closed Gmail without sending
-        const timeSinceOpen = Date.now() - Number.parseInt(gmailWindowOpened)
-
-        // If less than 2 minutes have passed and no ticket found, assume they closed Gmail
-        if (timeSinceOpen < 2 * 60 * 1000 && !foundTicket) {
-          console.log("[v0] User returned quickly, Gmail tab may have been closed")
-          setGmailWindowClosed(true)
-          setShowReopenDialog(true)
-          clearInterval(visibilityCheck)
-        }
-      }
-    }, 2000)
-
-    // Also set a timeout - if after 30 seconds no ticket and user is viewing this page, ask
-    const quickCheckTimeout = setTimeout(() => {
-      if (!document.hidden && !foundTicket) {
-        console.log("[v0] 30 seconds passed, checking if user needs help")
-        setGmailWindowClosed(true)
-        setShowReopenDialog(true)
-      }
-    }, 30000)
-
-    return () => {
-      clearInterval(visibilityCheck)
-      clearTimeout(quickCheckTimeout)
-    }
-  }, [foundTicket, gmailWindowClosed])
+    return () => clearTimeout(timeout)
+  }, [foundTicket, pendingData])
 
   useEffect(() => {
     if (!userEmail) return
@@ -96,12 +78,15 @@ export default function PendingTicketPage() {
           const currentTime = Date.now()
           const timeDifference = currentTime - ticketCreatedTime
 
+          // Check if ticket was created within last 2 minutes
           if (timeDifference < 2 * 60 * 1000) {
             console.log("[v0] Found new ticket:", latestTicket.key)
             setFoundTicket(true)
 
-            sessionStorage.removeItem("gmailWindowOpened")
-            sessionStorage.removeItem("gmailUrl")
+            // Clean up localStorage
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("pendingTicket")
+            }
 
             setTimeout(() => {
               router.push(`/ticket-processing/${latestTicket.key}`)
@@ -113,7 +98,7 @@ export default function PendingTicketPage() {
       }
     }
 
-    // Initial check after 3 seconds (give time for email to be sent)
+    // Initial check after 3 seconds
     const initialTimeout = setTimeout(checkForNewTicket, 3000)
 
     // Poll every 5 seconds
@@ -126,22 +111,26 @@ export default function PendingTicketPage() {
   }, [userEmail, router, foundTicket])
 
   const handleReopenGmail = () => {
-    const gmailUrl = sessionStorage.getItem("gmailUrl")
-    if (gmailUrl) {
+    if (pendingData?.gmailUrl) {
       console.log("[v0] Reopening Gmail")
-      const newWindow = window.open(gmailUrl, "_blank")
-      if (newWindow) {
-        sessionStorage.setItem("gmailWindowOpened", Date.now().toString())
-        setGmailWindowClosed(false)
-        setShowReopenDialog(false)
+      window.open(pendingData.gmailUrl, "_blank")
+
+      // Update start time
+      const newData = { ...pendingData, startTime: Date.now() }
+      setPendingData(newData)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("pendingTicket", JSON.stringify(newData))
       }
+
+      setShowReopenDialog(false)
     }
   }
 
   const handleCancelTicket = () => {
     console.log("[v0] User canceled ticket creation")
-    sessionStorage.removeItem("gmailWindowOpened")
-    sessionStorage.removeItem("gmailUrl")
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("pendingTicket")
+    }
     router.push("/")
   }
 
@@ -202,11 +191,11 @@ export default function PendingTicketPage() {
           <AlertDialogHeader>
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="w-5 h-5 text-orange-500" />
-              <AlertDialogTitle className="text-gray-900">Gmail Tab Closed</AlertDialogTitle>
+              <AlertDialogTitle className="text-gray-900">Need Help?</AlertDialogTitle>
             </div>
             <AlertDialogDescription className="text-gray-600">
-              It looks like you may have closed the Gmail tab. Do you want to reopen it to continue creating your
-              ticket?
+              We haven't received your ticket email yet. Would you like to reopen Gmail to send it, or cancel the ticket
+              creation?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -218,7 +207,7 @@ export default function PendingTicketPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleReopenGmail}
-              className="bg-primary hover:bg-primary/90 text-white border-0"
+              className="bg-transparent border-2 border-primary text-white hover:bg-primary/10 hover:border-primary hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all duration-300 hover:scale-105"
             >
               Reopen Gmail
             </AlertDialogAction>
