@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Loader2, Mail, User, AlertCircle } from "@/components/icons"
+import { Loader2, Mail, AlertCircle } from "@/components/icons"
 import {
   Zap,
   Home,
@@ -575,28 +575,26 @@ export default function IntegrumPortal() {
       </div>
       <div className="flex items-center space-x-4">
         {isAuthenticated && session?.user ? (
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 text-gray-700">
-              <User className="w-4 h-4" />
-              <span className="text-sm">{session.user.email}</span>
-            </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-foreground/70 hidden md:inline">{session.user.email}</span>
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
               onClick={handleLogoutClick}
-              className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 bg-transparent"
+              className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
             >
               Logout
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </Button>
           </div>
         ) : (
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={handleGoogleAuth}
             disabled={isLoading}
-            className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 bg-transparent"
+            className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
           </Button>
         )}
       </div>
@@ -766,14 +764,8 @@ export default function IntegrumPortal() {
       <section className="py-24 px-8 bg-gradient-to-b from-background to-secondary/10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
-              {isMasterAccount ? "Master Account Features" : "Key Features"}
-            </h2>
-            <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
-              {isMasterAccount
-                ? "Full access to all enterprise capabilities and admin tools"
-                : "Everything you need for efficient support"}
-            </p>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">Platform Metrics</h2>
+            <p className="text-xl text-foreground/70 max-w-2xl mx-auto">Proven performance and reliability at scale</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -811,13 +803,9 @@ export default function IntegrumPortal() {
       <section className="py-24 px-8 bg-gradient-to-b from-background to-secondary/10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
-              {isMasterAccount ? "Master Account Features" : "Key Features"}
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">AI-Driven Features</h2>
             <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
-              {isMasterAccount
-                ? "Full access to all enterprise capabilities and admin tools"
-                : "Everything you need for efficient support"}
+              Intelligent automation for modern support teams
             </p>
           </div>
 
@@ -991,12 +979,12 @@ export default function IntegrumPortal() {
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-foreground/70 hidden md:inline">{session.user.email}</span>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant="ghost"
                   onClick={handleLogoutClick}
-                  className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
+                  className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
                 >
                   Logout
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
                 </Button>
               </div>
             ) : (
@@ -1038,13 +1026,23 @@ export default function IntegrumPortal() {
                         id="ticket-limit"
                         value={ticketLimit}
                         onChange={(e) => setTicketLimit(Number(e.target.value))}
-                        className="px-3 py-1.5 border-2 border-border rounded-lg text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="px-4 py-2 border-2 border-primary rounded-lg text-sm bg-secondary/80 text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:bg-secondary transition-all duration-200 cursor-pointer"
                       >
-                        <option value={50}>50 tickets</option>
-                        <option value={100}>100 tickets</option>
-                        <option value={200}>200 tickets</option>
-                        <option value={500}>500 tickets</option>
-                        <option value={1000}>1000 tickets</option>
+                        <option value={50} className="bg-secondary text-foreground">
+                          50 tickets
+                        </option>
+                        <option value={100} className="bg-secondary text-foreground">
+                          100 tickets
+                        </option>
+                        <option value={200} className="bg-secondary text-foreground">
+                          200 tickets
+                        </option>
+                        <option value={500} className="bg-secondary text-foreground">
+                          500 tickets
+                        </option>
+                        <option value={1000} className="bg-secondary text-foreground">
+                          1000 tickets
+                        </option>
                       </select>
                     </div>
                     <Button
@@ -1235,12 +1233,12 @@ export default function IntegrumPortal() {
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-foreground/70 hidden md:inline">{session.user.email}</span>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant="ghost"
                   onClick={handleLogoutClick}
-                  className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
+                  className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
                 >
                   Logout
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
                 </Button>
               </div>
             ) : (
@@ -1444,12 +1442,12 @@ export default function IntegrumPortal() {
             <div className="flex items-center space-x-4">
               <span className="text-sm text-foreground/70 hidden md:inline">{session.user.email}</span>
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
                 onClick={handleLogoutClick}
-                className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
+                className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
               >
                 Logout
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </Button>
             </div>
           ) : (
