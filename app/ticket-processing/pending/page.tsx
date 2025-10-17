@@ -126,7 +126,7 @@ export default function PendingTicketPage() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>error icon</p>
+                  <p>Error Icon?</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

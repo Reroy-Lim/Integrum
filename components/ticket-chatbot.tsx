@@ -2,8 +2,7 @@
 
 import type React from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Headset } from "lucide-react"
+import { Send, Bot, User, Headset, Paperclip, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface ChatMessage {
@@ -37,8 +36,11 @@ export function TicketChatbot({
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -78,12 +80,30 @@ export function TicketChatbot({
     }
   }, [ticketKey])
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    setAttachedFiles((prev) => [...prev, ...files])
+  }
+
+  const removeFile = (index: number) => {
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit(e as any)
+    }
+    // Shift+Enter will naturally create a line break
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || isSending) return
 
     const messageText = input.trim()
     setInput("")
+    setAttachedFiles([])
     setIsSending(true)
 
     try {
@@ -91,6 +111,7 @@ export function TicketChatbot({
         ticketKey,
         userEmail: currentUserEmail,
         role: isMasterAccount ? "support" : "user",
+        attachments: attachedFiles.length,
       })
 
       const response = await fetch("/api/chat-messages", {
@@ -341,13 +362,58 @@ export function TicketChatbot({
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+        {attachedFiles.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {attachedFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-blue-300"
+              >
+                <Paperclip className="w-3 h-3" />
+                <span className="max-w-[150px] truncate">{file.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(index)}
+                  className="hover:text-red-400 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2">
-          <Input
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+            accept="image/*,.pdf,.doc,.docx,.txt"
+          />
+          <Button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isSending}
+            variant="outline"
+            className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700 hover:text-blue-300"
+          >
+            <Paperclip className="w-4 h-4" />
+          </Button>
+          <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              isMasterAccount
+                ? "Type your response... (Shift+Enter for new line)"
+                : "Type your message... (Shift+Enter for new line)"
+            }
             disabled={isSending}
-            className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
+            rows={1}
+            className="flex-1 bg-gray-800 border border-gray-700 text-blue-300 placeholder:text-blue-500/50 rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            style={{ minHeight: "40px", maxHeight: "120px" }}
           />
           <Button
             type="submit"
