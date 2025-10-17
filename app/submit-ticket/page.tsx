@@ -9,11 +9,7 @@ export default function SubmitTicketPage() {
   const { data: session, status } = useSession()
 
   useEffect(() => {
-    console.log("[v0] Submit ticket page loaded, status:", status)
-
     if (status === "authenticated") {
-      console.log("[v0] User authenticated, opening Gmail")
-
       const userEmail = session?.user?.email
       const gmailUrl = userEmail
         ? `https://mail.google.com/mail/u/${userEmail}/?view=cm&fs=1&to=heyroy23415@gmail.com`
@@ -21,22 +17,8 @@ export default function SubmitTicketPage() {
 
       window.open(gmailUrl, "_blank")
 
-      // Store the Gmail URL and timestamp in localStorage for the pending page
-      if (typeof window !== "undefined") {
-        localStorage.setItem(
-          "pendingTicket",
-          JSON.stringify({
-            gmailUrl,
-            startTime: Date.now(),
-          }),
-        )
-      }
-
-      console.log("[v0] Gmail opened, redirecting to ticket processing page")
-
       router.push("/ticket-processing/pending")
     } else if (status === "unauthenticated") {
-      console.log("[v0] User not authenticated, redirecting to home")
       router.push("/")
     }
   }, [status, router, session])
