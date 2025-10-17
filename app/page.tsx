@@ -1040,9 +1040,11 @@ export default function IntegrumPortal() {
                         <option value={500} className="bg-secondary text-foreground">
                           500 tickets
                         </option>
-                        <option value={1000} className="bg-secondary text-foreground">
-                          1000 tickets
-                        </option>
+                        {isMasterAccount && (
+                          <option value={1000} className="bg-secondary text-foreground">
+                            1000 tickets
+                          </option>
+                        )}
                       </select>
                     </div>
                     <Button
@@ -1119,7 +1121,7 @@ export default function IntegrumPortal() {
                             <h3>{category.name}</h3>
                           </div>
 
-                          <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
+                          <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
                             {categoryTickets.length > 0 ? (
                               categoryTickets.map((ticket) => (
                                 <Card

@@ -125,4 +125,30 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Custom scrollbar styling matching the reference image */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: oklch(0.2 0.05 240); /* Dark blue track */
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: oklch(0.85 0.01 240); /* Light gray/white thumb */
+    border-radius: 4px;
+    border: 1px solid oklch(0.25 0.05 240);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.95 0 0); /* Brighter on hover */
+  }
+
+  /* Firefox scrollbar styling */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.85 0.01 240) oklch(0.2 0.05 240);
+  }
 }
