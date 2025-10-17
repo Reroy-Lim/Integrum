@@ -1400,21 +1400,10 @@ export default function IntegrumPortal() {
                     />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="bg-card/60 border-2 border-border border-t-0 rounded-b-xl p-5">
-                    <div className="text-foreground/80 space-y-3">
-                      <p>Don't worry! If you accidentally close the tab while your ticket is being processed:</p>
-                      <ul className="list-disc ml-6 space-y-1">
-                        <li>
-                          Look for the error icon (illustrated browser window with X) in the top right corner of the
-                          processing screen
-                        </li>
-                        <li>Click the error icon to navigate back to the home page</li>
-                        <li>Your ticket submission is still being processed in the background</li>
-                        <li>You can check your ticket status by clicking "View Tickets" from the home page</li>
-                        <li>The system will continue processing your ticket even if you close the tab</li>
-                      </ul>
-                      <p className="mt-3 text-sm text-foreground/70">
-                        <strong>Tip:</strong> Wait for the auto-acknowledgement email to confirm your ticket was
-                        successfully created before closing the tab.
+                    <div className="text-foreground/80">
+                      <p>
+                        Don't worry! If you accidentally close the tab while your ticket is being processed: Look for
+                        the error icon on right side of "What's happening?" to navigate back to "Home" page.
                       </p>
                     </div>
                   </CollapsibleContent>
