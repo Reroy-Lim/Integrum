@@ -19,7 +19,13 @@ export default function SubmitTicketPage() {
         ? `https://mail.google.com/mail/u/${userEmail}/?view=cm&fs=1&to=heyroy23415@gmail.com`
         : `https://mail.google.com/mail/?view=cm&fs=1&to=heyroy23415@gmail.com`
 
-      window.open(gmailUrl, "_blank")
+      const gmailWindow = window.open(gmailUrl, "_blank")
+
+      // Store window reference timestamp to track this specific window
+      if (gmailWindow) {
+        sessionStorage.setItem("gmailWindowOpened", Date.now().toString())
+        sessionStorage.setItem("gmailUrl", gmailUrl)
+      }
 
       console.log("[v0] Gmail opened, redirecting to ticket processing page")
 
