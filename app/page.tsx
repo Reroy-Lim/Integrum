@@ -668,12 +668,13 @@ export default function IntegrumPortal() {
             </div>
           ) : (
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={handleGoogleAuth}
               disabled={isLoading}
-              className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
+              className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </Button>
           )}
         </div>
@@ -732,7 +733,7 @@ export default function IntegrumPortal() {
                 size="lg"
                 onClick={handleSubmitTicket}
                 disabled={isLoading}
-                className="bg-primary hover:bg-primary/90 hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] text-primary-foreground px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border-0 rounded-xl cursor-pointer hover:scale-105"
+                className="bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl cursor-pointer hover:scale-105"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Mail className="w-5 h-5 mr-2" />}
                 Submit Ticket
@@ -742,7 +743,7 @@ export default function IntegrumPortal() {
                 variant="outline"
                 onClick={handleReviewTickets}
                 disabled={isLoading}
-                className="border-2 border-border text-foreground hover:bg-secondary/80 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] px-10 py-7 text-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300 rounded-xl bg-transparent cursor-pointer hover:scale-105"
+                className="bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl cursor-pointer hover:scale-105"
               >
                 <FileText className="w-5 h-5 mr-2" />
                 View Tickets
@@ -762,10 +763,22 @@ export default function IntegrumPortal() {
         </div>
       </section>
 
-      <section className="py-24 px-8 bg-card/30 border-y border-border">
+      <section className="py-24 px-8 bg-gradient-to-b from-background to-secondary/10">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-10 rounded-2xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
+              {isMasterAccount ? "Master Account Features" : "Key Features"}
+            </h2>
+            <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
+              {isMasterAccount
+                ? "Full access to all enterprise capabilities and admin tools"
+                : "Everything you need for efficient support"}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Statistics cards */}
+            <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl mb-6 shadow-lg">
                 <TrendingUp className="w-8 h-8 text-white" />
               </div>
@@ -774,7 +787,7 @@ export default function IntegrumPortal() {
               <div className="text-sm text-foreground/60 mt-2">Enterprise reliability</div>
             </div>
 
-            <div className="text-center p-10 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
+            <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl mb-6 shadow-lg">
                 <Clock className="w-8 h-8 text-white" />
               </div>
@@ -783,7 +796,7 @@ export default function IntegrumPortal() {
               <div className="text-sm text-foreground/60 mt-2">Average processing speed</div>
             </div>
 
-            <div className="text-center p-10 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
+            <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-xl mb-6 shadow-lg">
                 <Zap className="w-8 h-8 text-white" />
               </div>
@@ -810,7 +823,7 @@ export default function IntegrumPortal() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Features visible to all users */}
-            <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
+            <div className="p-8 rounded-2xl border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
               <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Mail className="w-6 h-6 text-emerald-400" />
               </div>
@@ -820,7 +833,7 @@ export default function IntegrumPortal() {
               </p>
             </div>
 
-            <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
+            <div className="p-8 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
               <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <FileText className="w-6 h-6 text-primary" />
               </div>
@@ -830,7 +843,7 @@ export default function IntegrumPortal() {
               </p>
             </div>
 
-            <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
+            <div className="p-8 rounded-2xl border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
               <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Zap className="w-6 h-6 text-emerald-400" />
               </div>
@@ -843,7 +856,7 @@ export default function IntegrumPortal() {
             {/* Additional features for master account */}
             {isMasterAccount && (
               <>
-                <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
+                <div className="p-8 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
                   <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <Shield className="w-6 h-6 text-primary" />
                   </div>
@@ -853,7 +866,7 @@ export default function IntegrumPortal() {
                   </p>
                 </div>
 
-                <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
+                <div className="p-8 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
                   <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <Lightbulb className="w-6 h-6 text-accent" />
                   </div>
@@ -863,7 +876,7 @@ export default function IntegrumPortal() {
                   </p>
                 </div>
 
-                <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
+                <div className="p-8 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
                   <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <TrendingUp className="w-6 h-6 text-accent" />
                   </div>
@@ -988,12 +1001,13 @@ export default function IntegrumPortal() {
               </div>
             ) : (
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={handleGoogleAuth}
                 disabled={isLoading}
-                className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
+                className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </Button>
             )}
           </div>
@@ -1038,7 +1052,7 @@ export default function IntegrumPortal() {
                       size="sm"
                       onClick={refreshTickets}
                       disabled={isLoadingTickets}
-                      className="flex items-center space-x-2 bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600 hover:shadow-lg transition-all duration-200"
+                      className="flex items-center space-x-2 bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all duration-300 hover:scale-105"
                     >
                       {isLoadingTickets ? <Loader2 className="w-4 h-4 animate-spin" /> : "Refresh"}
                     </Button>
@@ -1127,7 +1141,7 @@ export default function IntegrumPortal() {
                                       variant="outline"
                                       size="sm"
                                       onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
-                                      className="w-full text-white bg-emerald-500 border-emerald-500 hover:bg-emerald-600 hover:shadow-lg text-xs transition-all duration-200"
+                                      className="w-full bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] text-xs transition-all duration-300 hover:scale-105"
                                     >
                                       View Ticket Info
                                     </Button>
@@ -1155,7 +1169,7 @@ export default function IntegrumPortal() {
                     </p>
                     <Button
                       onClick={handleSubmitTicket}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground hover:shadow-lg transition-all duration-200"
+                      className="bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all duration-300 hover:scale-105"
                     >
                       Submit Your First Ticket
                     </Button>
@@ -1165,7 +1179,7 @@ export default function IntegrumPortal() {
                 <Button
                   onClick={() => setCurrentView("home")}
                   variant="outline"
-                  className="mt-8 border-2 border-border text-foreground hover:bg-secondary/80 transition-all duration-200"
+                  className="mt-8 bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all duration-300 hover:scale-105"
                 >
                   Back to Home
                 </Button>
@@ -1231,12 +1245,13 @@ export default function IntegrumPortal() {
               </div>
             ) : (
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={handleGoogleAuth}
                 disabled={isLoading}
-                className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
+                className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </Button>
             )}
           </div>
@@ -1296,7 +1311,7 @@ export default function IntegrumPortal() {
                   </CollapsibleTrigger>
                   <CollapsibleContent className="bg-card/60 border-2 border-border border-t-0 rounded-b-xl p-5">
                     <div className="text-foreground/80">
-                      Click the "Submit a Ticket" button on the homepage. You'll need to authenticate with Google first,
+                      Click the "Submit Ticket" button on the homepage. You'll need to authenticate with Google first,
                       then your email client will open with our support email pre-filled. Simply describe your issue and
                       send.
                     </div>
@@ -1346,7 +1361,7 @@ export default function IntegrumPortal() {
                   <CollapsibleContent className="bg-card/60 border-2 border-border border-t-0 rounded-b-xl p-5">
                     <div className="text-foreground/80">
                       Yes! After authenticating, use the "Review Tickets" button to see all your submitted tickets and
-                      their current status (In Progress, Resolved, Awaiting Reply, etc.).
+                      their current status (In Progress, Resolved, Awaiting Reply).
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
@@ -1367,7 +1382,7 @@ export default function IntegrumPortal() {
                         <li>A clear description of the problem</li>
                         <li>Steps to reproduce the issue</li>
                         <li>Expected vs actual behavior</li>
-                        <li>Screenshots or error messages (if applicable)</li>
+                        <li>Screenshots or error messages (mandatory)</li>
                         <li>Your browser and operating system</li>
                         <li>When the issue first occurred</li>
                       </ul>
@@ -1379,7 +1394,7 @@ export default function IntegrumPortal() {
               <Button
                 onClick={() => setCurrentView("home")}
                 variant="outline"
-                className="mt-10 border-2 border-border text-foreground hover:bg-secondary/80 transition-all duration-200"
+                className="mt-10 bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all duration-300 hover:scale-105"
               >
                 Back to Home
               </Button>
@@ -1439,12 +1454,13 @@ export default function IntegrumPortal() {
             </div>
           ) : (
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={handleGoogleAuth}
               disabled={isLoading}
-              className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
+              className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </Button>
           )}
         </div>
@@ -1484,7 +1500,7 @@ export default function IntegrumPortal() {
                     <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
                       <Phone className="w-5 h-5 text-primary" />
                     </div>
-                    <span className="text-foreground/90">Available via email support</span>
+                    <span className="text-foreground/90">+65 12345678</span>
                   </div>
                 </CardContent>
               </Card>
@@ -1516,7 +1532,7 @@ export default function IntegrumPortal() {
             <Button
               onClick={() => setCurrentView("home")}
               variant="outline"
-              className="mt-10 border-2 border-border text-foreground hover:bg-secondary/80 transition-all duration-200"
+              className="mt-10 bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all duration-300 hover:scale-105"
             >
               Back to Home
             </Button>

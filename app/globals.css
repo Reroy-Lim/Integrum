@@ -7,13 +7,14 @@
   /* Significantly brightened card backgrounds and borders for better visibility against black background */
   --background: oklch(0.08 0.01 250); /* Deep dark blue-black */
   --foreground: oklch(0.98 0 0); /* Even brighter white text */
-  --card: oklch(0.22 0.02 250); /* Much lighter card background - was 0.14, now 0.22 */
+  /* Removed card background color - cards now transparent with borders only */
+  --card: transparent;
   --card-foreground: oklch(0.98 0 0);
   --popover: oklch(0.22 0.02 250);
   --popover-foreground: oklch(0.98 0 0);
   --primary: oklch(0.7 0.22 240); /* Brighter blue */
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.28 0.03 250); /* Much lighter secondary - was 0.2, now 0.28 */
+  --secondary: oklch(0.28 0.03 250);
   --secondary-foreground: oklch(0.95 0 0);
   --muted: oklch(0.26 0.02 250);
   --muted-foreground: oklch(0.75 0.01 250);
@@ -21,7 +22,7 @@
   --accent-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.6 0.24 25);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.35 0.04 240); /* Much brighter borders with blue tint - was 0.25, now 0.35 */
+  --border: oklch(0.35 0.04 240);
   --input: oklch(0.22 0.02 250);
   --ring: oklch(0.5 0.02 250);
   --chart-1: oklch(0.7 0.22 240);
@@ -43,7 +44,8 @@
 .dark {
   --background: oklch(0.08 0.01 250);
   --foreground: oklch(0.98 0 0);
-  --card: oklch(0.22 0.02 250);
+  /* Removed card background color in dark mode as well */
+  --card: transparent;
   --card-foreground: oklch(0.98 0 0);
   --popover: oklch(0.22 0.02 250);
   --popover-foreground: oklch(0.98 0 0);
