@@ -120,7 +120,20 @@ export default function PendingTicketPage() {
           </div>
 
           {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 relative">
+            <button
+              onClick={handleReturnHome}
+              className="absolute top-2 right-2 w-10 h-10 hover:scale-110 transition-transform duration-300 cursor-pointer"
+              aria-label="Return to home"
+            >
+              <Image
+                src="/error-illustration.png"
+                alt="Return to home"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+              />
+            </button>
             <p className="text-sm text-blue-700 mb-2 font-medium">What's happening?</p>
             <ul className="text-xs text-blue-600 space-y-1">
               <li>• Waiting for your email to arrive</li>
