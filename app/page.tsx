@@ -21,7 +21,6 @@ import {
   ChevronDown,
   Clock,
   TrendingUp,
-  RefreshCw,
 } from "lucide-react"
 import { GmailFlowDialog } from "@/components/gmail-flow-dialog"
 import { GoogleSignInModal } from "@/components/google-signin-modal"
@@ -632,23 +631,25 @@ export default function IntegrumPortal() {
             <Button
               variant="ghost"
               onClick={() => setCurrentView("home")}
-              className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
+              className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200"
             >
               Home
             </Button>
             <Button
               variant="ghost"
               onClick={() => setCurrentView("faq")}
-              className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
+              className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
             >
               FAQ
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </Button>
             <Button
               variant="ghost"
               onClick={() => setCurrentView("contact")}
-              className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
+              className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
             >
               Contact
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </Button>
           </div>
         </div>
@@ -660,7 +661,7 @@ export default function IntegrumPortal() {
                 variant="outline"
                 size="sm"
                 onClick={handleLogoutClick}
-                className="border-border text-foreground hover:text-accent hover:bg-secondary/80 bg-transparent transition-colors"
+                className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
               >
                 Logout
               </Button>
@@ -670,7 +671,7 @@ export default function IntegrumPortal() {
               variant="outline"
               onClick={handleGoogleAuth}
               disabled={isLoading}
-              className="border-border text-foreground hover:text-accent hover:bg-secondary/80 bg-transparent transition-colors"
+              className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
             </Button>
@@ -731,7 +732,7 @@ export default function IntegrumPortal() {
                 size="lg"
                 onClick={handleSubmitTicket}
                 disabled={isLoading}
-                className="bg-primary hover:bg-gradient-to-r hover:from-primary hover:via-accent hover:to-primary text-primary-foreground px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all border-0 rounded-xl"
+                className="bg-primary hover:bg-primary/90 hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] text-primary-foreground px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border-0 rounded-xl cursor-pointer hover:scale-105"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Mail className="w-5 h-5 mr-2" />}
                 Submit Ticket
@@ -741,19 +742,18 @@ export default function IntegrumPortal() {
                 variant="outline"
                 onClick={handleReviewTickets}
                 disabled={isLoading}
-                className="border-2 border-border text-foreground hover:text-accent hover:bg-secondary/80 px-10 py-7 text-lg font-semibold shadow-md hover:shadow-lg transition-all rounded-xl bg-transparent"
+                className="border-2 border-border text-foreground hover:bg-secondary/80 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] px-10 py-7 text-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300 rounded-xl bg-transparent cursor-pointer hover:scale-105"
               >
                 <FileText className="w-5 h-5 mr-2" />
                 View Tickets
               </Button>
             </div>
 
-            {/* Changed "View documentation" to "View more in FAQ" */}
             <p className="text-sm text-foreground/60">
               Need help?{" "}
               <button
                 onClick={() => setCurrentView("faq")}
-                className="text-primary hover:text-accent font-semibold underline underline-offset-2 transition-colors"
+                className="text-primary hover:text-primary/80 font-semibold underline underline-offset-2 transition-colors"
               >
                 View more in FAQ
               </button>
@@ -765,7 +765,7 @@ export default function IntegrumPortal() {
       <section className="py-24 px-8 bg-card/30 border-y border-border">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-10 rounded-2xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:scale-[1.03] transition-all duration-300">
+            <div className="text-center p-10 rounded-2xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl mb-6 shadow-lg">
                 <TrendingUp className="w-8 h-8 text-white" />
               </div>
@@ -774,7 +774,7 @@ export default function IntegrumPortal() {
               <div className="text-sm text-foreground/60 mt-2">Enterprise reliability</div>
             </div>
 
-            <div className="text-center p-10 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300">
+            <div className="text-center p-10 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl mb-6 shadow-lg">
                 <Clock className="w-8 h-8 text-white" />
               </div>
@@ -783,7 +783,7 @@ export default function IntegrumPortal() {
               <div className="text-sm text-foreground/60 mt-2">Average processing speed</div>
             </div>
 
-            <div className="text-center p-10 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300">
+            <div className="text-center p-10 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-xl mb-6 shadow-lg">
                 <Zap className="w-8 h-8 text-white" />
               </div>
@@ -810,7 +810,7 @@ export default function IntegrumPortal() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Features visible to all users */}
-            <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group">
+            <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
               <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Mail className="w-6 h-6 text-emerald-400" />
               </div>
@@ -820,7 +820,7 @@ export default function IntegrumPortal() {
               </p>
             </div>
 
-            <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group">
+            <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
               <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <FileText className="w-6 h-6 text-primary" />
               </div>
@@ -830,7 +830,7 @@ export default function IntegrumPortal() {
               </p>
             </div>
 
-            <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group">
+            <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
               <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Zap className="w-6 h-6 text-emerald-400" />
               </div>
@@ -843,7 +843,7 @@ export default function IntegrumPortal() {
             {/* Additional features for master account */}
             {isMasterAccount && (
               <>
-                <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group">
+                <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
                   <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <Shield className="w-6 h-6 text-primary" />
                   </div>
@@ -853,7 +853,7 @@ export default function IntegrumPortal() {
                   </p>
                 </div>
 
-                <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group">
+                <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
                   <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <Lightbulb className="w-6 h-6 text-accent" />
                   </div>
@@ -863,7 +863,7 @@ export default function IntegrumPortal() {
                   </p>
                 </div>
 
-                <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group">
+                <div className="p-8 rounded-2xl bg-card border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
                   <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <TrendingUp className="w-6 h-6 text-accent" />
                   </div>
@@ -890,13 +890,58 @@ export default function IntegrumPortal() {
     </div>
   )
 
-  const renderFAQ = () => {
-    const toggleItem = (itemId: string) => {
-      setOpenItems((prev) => (prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]))
+  const renderYourTickets = () => {
+    const userTickets: JiraTicket[] = tickets
+    const urlParams = new URLSearchParams(window.location.search)
+    const isProcessing = urlParams.get("processing") === "true"
+    const processingTicketId = urlParams.get("ticket")
+
+    console.log("[v0] Total tickets in state:", userTickets.length)
+
+    if (userTickets.length > 0) {
+      const statusCounts: Record<string, number> = {}
+      userTickets.forEach((ticket) => {
+        const status = ticket.status.name
+        statusCounts[status] = (statusCounts[status] || 0) + 1
+      })
+      console.log("[v0] Status distribution:", statusCounts)
+
+      console.log(
+        "[v0] Sample tickets (first 5):",
+        userTickets.slice(0, 5).map((t) => ({
+          key: t.key,
+          summary: t.summary.substring(0, 50),
+          status: t.status.name,
+          mapped: mapStatusToCategory(t.status.name),
+        })),
+      )
     }
+
+    const categorizeTickets = (category: string) => {
+      const filtered = userTickets.filter((ticket) => {
+        const mappedCategory = mapStatusToCategory(ticket.status.name)
+        return mappedCategory === category
+      })
+      console.log(`[v0] Category "${category}" has ${filtered.length} tickets`)
+      return filtered
+    }
+
+    const categories = [
+      { name: "In Progress", color: "bg-yellow-500" },
+      { name: "Pending Reply", color: "bg-blue-500" },
+      { name: "Resolved", color: "bg-green-500" },
+    ]
+
+    categories.forEach((cat) => {
+      const count = categorizeTickets(cat.name).length
+      console.log(`[v0] "${cat.name}" category: ${count} tickets`)
+    })
+
+    const hasTickets = userTickets.length > 0
 
     return (
       <div className="min-h-screen bg-background">
+        {/* Modern Navigation matching home page */}
         <nav className="flex items-center justify-between px-8 py-5 border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
           <div className="flex items-center space-x-12">
             <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
@@ -906,23 +951,25 @@ export default function IntegrumPortal() {
               <Button
                 variant="ghost"
                 onClick={() => setCurrentView("home")}
-                className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
+                className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200"
               >
                 Home
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => setCurrentView("faq")}
-                className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
+                className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
               >
                 FAQ
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => setCurrentView("contact")}
-                className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
+                className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
               >
                 Contact
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </Button>
             </div>
           </div>
@@ -934,7 +981,7 @@ export default function IntegrumPortal() {
                   variant="outline"
                   size="sm"
                   onClick={handleLogoutClick}
-                  className="border-border text-foreground hover:text-accent hover:bg-secondary/80 bg-transparent transition-colors"
+                  className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
                 >
                   Logout
                 </Button>
@@ -944,7 +991,250 @@ export default function IntegrumPortal() {
                 variant="outline"
                 onClick={handleGoogleAuth}
                 disabled={isLoading}
-                className="border-border text-foreground hover:text-accent hover:bg-secondary/80 bg-transparent transition-colors"
+                className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+              </Button>
+            )}
+          </div>
+        </nav>
+
+        {renderSecurityDialog()}
+        <LogoutConfirmationDialog
+          isOpen={showLogoutConfirmation}
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
+        />
+
+        {/* Background animation matching home page */}
+        <div className="relative overflow-hidden bg-gradient-to-b from-background via-secondary/10 to-background">
+          <AIBackgroundAnimation />
+
+          <section className="relative py-16 px-8">
+            <div className="max-w-7xl mx-auto">
+              <div className="bg-card/50 border-2 border-border backdrop-blur-sm rounded-2xl p-8 shadow-xl">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-4xl font-bold text-foreground">Your Ticket Page</h2>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
+                      <label htmlFor="ticket-limit" className="text-sm font-medium text-foreground/80">
+                        Show:
+                      </label>
+                      <select
+                        id="ticket-limit"
+                        value={ticketLimit}
+                        onChange={(e) => setTicketLimit(Number(e.target.value))}
+                        className="px-3 py-1.5 border-2 border-border rounded-lg text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value={50}>50 tickets</option>
+                        <option value={100}>100 tickets</option>
+                        <option value={200}>200 tickets</option>
+                        <option value={500}>500 tickets</option>
+                        <option value={1000}>1000 tickets</option>
+                      </select>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={refreshTickets}
+                      disabled={isLoadingTickets}
+                      className="flex items-center space-x-2 bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600 hover:shadow-lg transition-all duration-200"
+                    >
+                      {isLoadingTickets ? <Loader2 className="w-4 h-4 animate-spin" /> : "Refresh"}
+                    </Button>
+                  </div>
+                </div>
+
+                {session?.user && (
+                  <div className="mb-6 p-4 bg-secondary/30 border-2 border-border rounded-xl">
+                    <p className="text-sm text-foreground/70">Logged in as:</p>
+                    <p className="font-medium text-foreground">{session.user.email}</p>
+                  </div>
+                )}
+
+                {ticketsError && (
+                  <div className="mb-6 p-4 bg-red-500/10 border-2 border-red-500/50 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <AlertCircle className="w-6 h-6 text-red-400" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-red-400">Error Loading Tickets</h3>
+                        <p className="text-sm text-red-400/80">{ticketsError}. Please try refreshing the page.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isProcessing && processingTicketId && (
+                  <div className="mb-6 p-4 bg-primary/10 border-2 border-primary/50 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-center">
+                        <div className="relative">
+                          <div className="w-12 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                            <Mail className="w-6 h-6 text-primary" />
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                            <Lightbulb className="w-2 h-2 text-yellow-800" />
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-primary">Email Submitted Successfully!</h3>
+                        <p className="text-sm text-foreground/80">
+                          Ticket ID: <strong>{processingTicketId}</strong> - Auto-acknowledgement is on the way. The AI
+                          proposition will be provided shortly within 5 minutes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isLoadingTickets && tickets.length === 0 ? (
+                  <div className="text-center py-16">
+                    <Loader2 className="w-16 h-16 text-primary mx-auto mb-4 animate-spin" />
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Loading Your Tickets...</h3>
+                    <p className="text-foreground/70">Fetching your tickets from Jira</p>
+                  </div>
+                ) : hasTickets ? (
+                  <div className="grid md:grid-cols-3 gap-6">
+                    {categories.map((category) => {
+                      const categoryTickets = categorizeTickets(category.name)
+
+                      return (
+                        <div key={category.name} className="space-y-4">
+                          <div
+                            className={`flex items-center justify-between text-xl font-semibold text-white border-b-2 border-border pb-2 px-4 py-3 rounded-t-xl ${category.color} shadow-lg`}
+                          >
+                            <h3>{category.name}</h3>
+                          </div>
+
+                          <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
+                            {categoryTickets.length > 0 ? (
+                              categoryTickets.map((ticket) => (
+                                <Card
+                                  key={ticket.key}
+                                  className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300"
+                                >
+                                  <CardHeader className="pb-3">
+                                    <CardTitle className="text-sm text-foreground line-clamp-2">
+                                      {ticket.summary}
+                                    </CardTitle>
+                                    <CardDescription className="text-xs text-foreground/60">
+                                      {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
+                                    </CardDescription>
+                                  </CardHeader>
+                                  <CardContent className="pt-0">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
+                                      className="w-full text-white bg-emerald-500 border-emerald-500 hover:bg-emerald-600 hover:shadow-lg text-xs transition-all duration-200"
+                                    >
+                                      View Ticket Info
+                                    </Button>
+                                  </CardContent>
+                                </Card>
+                              ))
+                            ) : (
+                              <Card className="bg-card/50 border-2 border-border">
+                                <CardContent className="p-4 text-center">
+                                  <p className="text-foreground/60 text-sm">No tickets in this category</p>
+                                </CardContent>
+                              </Card>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <FileText className="w-16 h-16 text-foreground/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-foreground mb-2">No Tickets Yet</h3>
+                    <p className="text-foreground/70 mb-6">
+                      You haven't submitted any tickets yet. Get started by submitting your first ticket!
+                    </p>
+                    <Button
+                      onClick={handleSubmitTicket}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground hover:shadow-lg transition-all duration-200"
+                    >
+                      Submit Your First Ticket
+                    </Button>
+                  </div>
+                )}
+
+                <Button
+                  onClick={() => setCurrentView("home")}
+                  variant="outline"
+                  className="mt-8 border-2 border-border text-foreground hover:bg-secondary/80 transition-all duration-200"
+                >
+                  Back to Home
+                </Button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    )
+  }
+
+  const renderFAQ = () => {
+    const toggleItem = (itemId: string) => {
+      setOpenItems((prev) => (prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]))
+    }
+
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Modern Navigation matching home page */}
+        <nav className="flex items-center justify-between px-8 py-5 border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
+          <div className="flex items-center space-x-12">
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              INTEGRUM
+            </h1>
+            <div className="hidden md:flex space-x-1">
+              <Button
+                variant="ghost"
+                onClick={() => setCurrentView("home")}
+                className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200"
+              >
+                Home
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setCurrentView("faq")}
+                className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
+              >
+                FAQ
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setCurrentView("contact")}
+                className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
+              >
+                Contact
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
+              </Button>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            {isAuthenticated && session?.user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-foreground/70 hidden md:inline">{session.user.email}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogoutClick}
+                  className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={handleGoogleAuth}
+                disabled={isLoading}
+                className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
               </Button>
@@ -960,147 +1250,149 @@ export default function IntegrumPortal() {
           onCancel={handleLogoutCancel}
         />
 
-        <section className="py-16 px-8 relative z-10 bg-gradient-to-b from-background via-secondary/10 to-background">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
-                Frequently Asked Questions
-              </h2>
-              <p className="text-xl text-foreground/70">Find answers to common questions about our support system</p>
-            </div>
+        {/* Background animation matching home page */}
+        <div className="relative overflow-hidden bg-gradient-to-b from-background via-secondary/10 to-background">
+          <AIBackgroundAnimation />
 
-            <div className="space-y-4">
-              <Collapsible
-                open={openItems.includes("email-address")}
-                onOpenChange={() => toggleItem("email-address")}
-                data-faq="email-address"
-              >
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-card border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all">
-                  <span className="text-foreground font-semibold text-lg">
-                    What to fill in email address "To" Under Compose?
-                  </span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("email-address") ? "rotate-180" : ""}`}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="bg-card/50 border-2 border-border border-t-0 rounded-b-xl p-6 mt-[-8px]">
-                  <div className="text-foreground/80 space-y-3 leading-relaxed">
-                    <p>Open Gmail Compose manually and fill in:</p>
-                    <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
-                      <p className="font-mono">
-                        <strong>To:</strong> heyroy23415@gmail.com
-                      </p>
+          <section className="relative py-16 px-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-4xl font-bold mb-10 text-foreground">Frequently Asked Questions</h2>
+
+              <div className="space-y-4">
+                <Collapsible
+                  open={openItems.includes("email-address")}
+                  onOpenChange={() => toggleItem("email-address")}
+                  data-faq="email-address"
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-5 bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all duration-300">
+                    <span className="text-foreground font-semibold">
+                      What to fill in email address "To" Under Compose?
+                    </span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("email-address") ? "rotate-180" : ""}`}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="bg-card/60 border-2 border-border border-t-0 rounded-b-xl p-5">
+                    <div className="text-foreground/80 space-y-3">
+                      <p>Open Gmail Compose manually and fill in:</p>
+                      <div className="bg-primary/10 border-2 border-primary/30 rounded-lg p-4">
+                        <p>
+                          <strong>To:</strong> heyroy23415@gmail.com
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+                  </CollapsibleContent>
+                </Collapsible>
 
-              <Collapsible open={openItems.includes("submit-ticket")} onOpenChange={() => toggleItem("submit-ticket")}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-card border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all">
-                  <span className="text-foreground font-semibold text-lg">How do I submit a support ticket?</span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("submit-ticket") ? "rotate-180" : ""}`}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="bg-card/50 border-2 border-border border-t-0 rounded-b-xl p-6 mt-[-8px]">
-                  <div className="text-foreground/80 leading-relaxed">
-                    Click the "Submit a Ticket" button on the homepage. You'll need to authenticate with Google first,
-                    then your email client will open with our support email pre-filled. Simply describe your issue and
-                    send.
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+                <Collapsible
+                  open={openItems.includes("submit-ticket")}
+                  onOpenChange={() => toggleItem("submit-ticket")}
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-5 bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all duration-300">
+                    <span className="text-foreground font-semibold">How do I submit a support ticket?</span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("submit-ticket") ? "rotate-180" : ""}`}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="bg-card/60 border-2 border-border border-t-0 rounded-b-xl p-5">
+                    <div className="text-foreground/80">
+                      Click the "Submit a Ticket" button on the homepage. You'll need to authenticate with Google first,
+                      then your email client will open with our support email pre-filled. Simply describe your issue and
+                      send.
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
 
-              <Collapsible
-                open={openItems.includes("response-times")}
-                onOpenChange={() => toggleItem("response-times")}
-              >
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-card border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all">
-                  <span className="text-foreground font-semibold text-lg">What are your response times?</span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("response-times") ? "rotate-180" : ""}`}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="bg-card/50 border-2 border-border border-t-0 rounded-b-xl p-6 mt-[-8px]">
-                  <div className="text-foreground/80 leading-relaxed">
-                    We aim to respond to all tickets within 2-3 working days. You'll receive an auto-acknowledgement
-                    immediately after submitting your ticket, and our AI system will begin analyzing your issue.
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+                <Collapsible
+                  open={openItems.includes("response-times")}
+                  onOpenChange={() => toggleItem("response-times")}
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-5 bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all duration-300">
+                    <span className="text-foreground font-semibold">What are your response times?</span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("response-times") ? "rotate-180" : ""}`}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="bg-card/60 border-2 border-border border-t-0 rounded-b-xl p-5">
+                    <div className="text-foreground/80">
+                      We aim to respond to all tickets within 2-3 working days. You'll receive an auto-acknowledgement
+                      immediately after submitting your ticket, and our AI system will begin analyzing your issue.
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
 
-              <Collapsible open={openItems.includes("ai-system")} onOpenChange={() => toggleItem("ai-system")}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-card border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all">
-                  <span className="text-foreground font-semibold text-lg">How does the AI system work?</span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("ai-system") ? "rotate-180" : ""}`}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="bg-card/50 border-2 border-border border-t-0 rounded-b-xl p-6 mt-[-8px]">
-                  <div className="text-foreground/80 leading-relaxed">
-                    Our AI system automatically analyzes incoming tickets, categorizes them by priority and type, and
-                    suggests potential solutions. This helps our support team provide faster, more accurate responses.
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+                <Collapsible open={openItems.includes("ai-system")} onOpenChange={() => toggleItem("ai-system")}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-5 bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all duration-300">
+                    <span className="text-foreground font-semibold">How does the AI system work?</span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("ai-system") ? "rotate-180" : ""}`}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="bg-card/60 border-2 border-border border-t-0 rounded-b-xl p-5">
+                    <div className="text-foreground/80">
+                      Our AI system automatically analyzes incoming tickets, categorizes them by priority and type, and
+                      suggests potential solutions. This helps our support team provide faster, more accurate responses.
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
 
-              <Collapsible open={openItems.includes("track-status")} onOpenChange={() => toggleItem("track-status")}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-card border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all">
-                  <span className="text-foreground font-semibold text-lg">Can I track my ticket status?</span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("track-status") ? "rotate-180" : ""}`}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="bg-card/50 border-2 border-border border-t-0 rounded-b-xl p-6 mt-[-8px]">
-                  <div className="text-foreground/80 leading-relaxed">
-                    Yes! After authenticating, use the "Review Tickets" button to see all your submitted tickets and
-                    their current status (In Progress, Resolved, Awaiting Reply, etc.).
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+                <Collapsible open={openItems.includes("track-status")} onOpenChange={() => toggleItem("track-status")}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-5 bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all duration-300">
+                    <span className="text-foreground font-semibold">Can I track my ticket status?</span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("track-status") ? "rotate-180" : ""}`}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="bg-card/60 border-2 border-border border-t-0 rounded-b-xl p-5">
+                    <div className="text-foreground/80">
+                      Yes! After authenticating, use the "Review Tickets" button to see all your submitted tickets and
+                      their current status (In Progress, Resolved, Awaiting Reply, etc.).
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
 
-              <Collapsible open={openItems.includes("ticket-info")} onOpenChange={() => toggleItem("ticket-info")}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-card border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all">
-                  <span className="text-foreground font-semibold text-lg">
-                    What information should I include in my ticket?
-                  </span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("ticket-info") ? "rotate-180" : ""}`}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="bg-card/50 border-2 border-border border-t-0 rounded-b-xl p-6 mt-[-8px]">
-                  <div className="text-foreground/80 space-y-3 leading-relaxed">
-                    <p>To help us resolve your issue quickly, please include:</p>
-                    <ul className="list-disc ml-6 space-y-2">
-                      <li>A clear description of the problem</li>
-                      <li>Steps to reproduce the issue</li>
-                      <li>Expected vs actual behavior</li>
-                      <li>Screenshots or error messages (if applicable)</li>
-                      <li>Your browser and operating system</li>
-                      <li>When the issue first occurred</li>
-                    </ul>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
+                <Collapsible open={openItems.includes("ticket-info")} onOpenChange={() => toggleItem("ticket-info")}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-5 bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 rounded-xl text-left transition-all duration-300">
+                    <span className="text-foreground font-semibold">
+                      What information should I include in my ticket?
+                    </span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-foreground/60 transition-transform ${openItems.includes("ticket-info") ? "rotate-180" : ""}`}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="bg-card/60 border-2 border-border border-t-0 rounded-b-xl p-5">
+                    <div className="text-foreground/80 space-y-3">
+                      <p>To help us resolve your issue quickly, please include:</p>
+                      <ul className="list-disc ml-6 space-y-1">
+                        <li>A clear description of the problem</li>
+                        <li>Steps to reproduce the issue</li>
+                        <li>Expected vs actual behavior</li>
+                        <li>Screenshots or error messages (if applicable)</li>
+                        <li>Your browser and operating system</li>
+                        <li>When the issue first occurred</li>
+                      </ul>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
 
-            <div className="mt-12 text-center">
               <Button
                 onClick={() => setCurrentView("home")}
                 variant="outline"
-                className="border-2 border-border text-foreground hover:text-accent hover:bg-secondary/80 px-8 py-6 text-lg font-semibold transition-all"
+                className="mt-10 border-2 border-border text-foreground hover:bg-secondary/80 transition-all duration-200"
               >
                 Back to Home
               </Button>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     )
   }
 
   const renderContact = () => (
     <div className="min-h-screen bg-background">
+      {/* Modern Navigation matching home page */}
       <nav className="flex items-center justify-between px-8 py-5 border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center space-x-12">
           <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
@@ -1110,23 +1402,25 @@ export default function IntegrumPortal() {
             <Button
               variant="ghost"
               onClick={() => setCurrentView("home")}
-              className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
+              className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200"
             >
               Home
             </Button>
             <Button
               variant="ghost"
               onClick={() => setCurrentView("faq")}
-              className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
+              className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
             >
               FAQ
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </Button>
             <Button
               variant="ghost"
               onClick={() => setCurrentView("contact")}
-              className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
+              className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
             >
               Contact
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </Button>
           </div>
         </div>
@@ -1138,7 +1432,7 @@ export default function IntegrumPortal() {
                 variant="outline"
                 size="sm"
                 onClick={handleLogoutClick}
-                className="border-border text-foreground hover:text-accent hover:bg-secondary/80 bg-transparent transition-colors"
+                className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
               >
                 Logout
               </Button>
@@ -1148,7 +1442,7 @@ export default function IntegrumPortal() {
               variant="outline"
               onClick={handleGoogleAuth}
               disabled={isLoading}
-              className="border-border text-foreground hover:text-accent hover:bg-secondary/80 bg-transparent transition-colors"
+              className="border-border text-foreground hover:bg-secondary/80 bg-transparent transition-all duration-200"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
             </Button>
@@ -1163,74 +1457,72 @@ export default function IntegrumPortal() {
         onCancel={handleLogoutCancel}
       />
 
-      <section className="py-16 px-8 relative z-10 bg-gradient-to-b from-background via-secondary/10 to-background">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">Contact Us</h2>
-            <p className="text-xl text-foreground/70">We're here to help with any questions or issues you may have</p>
-          </div>
+      {/* Background animation matching home page */}
+      <div className="relative overflow-hidden bg-gradient-to-b from-background via-secondary/10 to-background">
+        <AIBackgroundAnimation />
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="bg-card border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all">
-              <CardHeader className="pb-4">
-                <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mb-4">
-                  <Mail className="w-7 h-7 text-primary" />
-                </div>
-                <CardTitle className="text-foreground text-2xl">Get in Touch</CardTitle>
-                <CardDescription className="text-foreground/70 text-base">
-                  We're here to help with any questions or issues you may have.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3 p-3 bg-secondary/30 rounded-lg">
-                  <Mail className="w-5 h-5 text-primary" />
-                  <span className="text-foreground font-medium">heyroy23415@gmail.com</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-secondary/30 rounded-lg">
-                  <Phone className="w-5 h-5 text-primary" />
-                  <span className="text-foreground font-medium">Available via email support</span>
-                </div>
-              </CardContent>
-            </Card>
+        <section className="relative py-16 px-8">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-4xl font-bold mb-10 text-foreground">Contact Us</h2>
 
-            <Card className="bg-card border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/10 transition-all">
-              <CardHeader className="pb-4">
-                <div className="w-14 h-14 bg-accent/20 rounded-xl flex items-center justify-center mb-4">
-                  <Clock className="w-7 h-7 text-accent" />
-                </div>
-                <CardTitle className="text-foreground text-2xl">Business Hours</CardTitle>
-                <CardDescription className="text-foreground/70 text-base">
-                  Our support team is available during these hours.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between p-3 bg-secondary/30 rounded-lg">
-                  <span className="text-foreground font-medium">Monday - Friday</span>
-                  <span className="text-foreground/80">9:00 AM - 6:00 PM</span>
-                </div>
-                <div className="flex justify-between p-3 bg-secondary/30 rounded-lg">
-                  <span className="text-foreground font-medium">Saturday</span>
-                  <span className="text-foreground/80">10:00 AM - 4:00 PM</span>
-                </div>
-                <div className="flex justify-between p-3 bg-secondary/30 rounded-lg">
-                  <span className="text-foreground font-medium">Sunday</span>
-                  <span className="text-foreground/80">Closed</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            <div className="grid md:grid-cols-2 gap-8">
+              <Card className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-foreground text-xl">Get in Touch</CardTitle>
+                  <CardDescription className="text-foreground/70">
+                    We're here to help with any questions or issues you may have.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                      <Mail className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="text-foreground/90">heyroy23415@gmail.com</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="text-foreground/90">Available via email support</span>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <div className="mt-12 text-center">
+              <Card className="bg-card/80 border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-foreground text-xl">Business Hours</CardTitle>
+                  <CardDescription className="text-foreground/70">
+                    Our support team is available during these hours.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between p-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                    <span className="text-foreground/90 font-medium">Monday - Friday</span>
+                    <span className="text-foreground/80">9:00 AM - 6:00 PM</span>
+                  </div>
+                  <div className="flex justify-between p-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                    <span className="text-foreground/90 font-medium">Saturday</span>
+                    <span className="text-foreground/80">10:00 AM - 4:00 PM</span>
+                  </div>
+                  <div className="flex justify-between p-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                    <span className="text-foreground/90 font-medium">Sunday & Public holiday</span>
+                    <span className="text-foreground/80">Closed</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             <Button
               onClick={() => setCurrentView("home")}
               variant="outline"
-              className="border-2 border-border text-foreground hover:text-accent hover:bg-secondary/80 px-8 py-6 text-lg font-semibold transition-all"
+              className="mt-10 border-2 border-border text-foreground hover:bg-secondary/80 transition-all duration-200"
             >
               Back to Home
             </Button>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   )
 
@@ -1254,206 +1546,6 @@ export default function IntegrumPortal() {
   const handleLogoutCancel = () => {
     setShowLogoutConfirmation(false)
   }
-
-  const renderYourTickets = () => (
-    <div className="min-h-screen bg-background">
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center space-x-12">
-          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            INTEGRUM
-          </h1>
-          <div className="hidden md:flex space-x-1">
-            <Button
-              variant="ghost"
-              onClick={() => setCurrentView("home")}
-              className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
-            >
-              Home
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setCurrentView("faq")}
-              className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
-            >
-              FAQ
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setCurrentView("contact")}
-              className="text-foreground/80 hover:text-accent hover:bg-secondary font-medium px-4 transition-colors"
-            >
-              Contact
-            </Button>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          {isAuthenticated && session?.user ? (
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-foreground/70 hidden md:inline">{session.user.email}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogoutClick}
-                className="border-border text-foreground hover:text-accent hover:bg-secondary/80 bg-transparent transition-colors"
-              >
-                Logout
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="outline"
-              onClick={handleGoogleAuth}
-              disabled={isLoading}
-              className="border-border text-foreground hover:text-accent hover:bg-secondary/80 bg-transparent transition-colors"
-            >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
-            </Button>
-          )}
-        </div>
-      </nav>
-
-      <section className="py-16 px-8 relative z-10 bg-gradient-to-b from-background via-secondary/10 to-background">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">Your Tickets</h2>
-            <div className="flex items-center space-x-4">
-              <Button onClick={refreshTickets} disabled={isLoadingTickets} className="bg-primary hover:bg-primary/80">
-                {isLoadingTickets ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : (
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                )}
-                Refresh
-              </Button>
-              <select
-                className="p-2 border border-border rounded-md bg-card text-foreground"
-                value={ticketLimit}
-                onChange={(e) => setTicketLimit(Number(e.target.value))}
-              >
-                <option value={10}>Last 10</option>
-                <option value={50}>Last 50</option>
-                <option value={100}>Last 100</option>
-                <option value={200}>Last 200</option>
-              </select>
-            </div>
-          </div>
-
-          {ticketsError && (
-            <div className="text-red-500 font-semibold mb-4 p-4 border border-red-500/30 bg-red-500/10 rounded-lg">
-              <AlertCircle className="inline w-4 h-4 mr-2" /> Error: {ticketsError}
-            </div>
-          )}
-
-          {isLoadingTickets ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-10 h-10 animate-spin text-foreground/50" />
-            </div>
-          ) : tickets.length === 0 && !ticketsError ? (
-            <div className="text-center py-16 text-foreground/60">
-              <p>No tickets found. Submit a new ticket to get started!</p>
-              <Button onClick={handleSubmitTicket} className="mt-4">
-                Submit a Ticket
-              </Button>
-            </div>
-          ) : (
-            <Card className="bg-card border-2 border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground">Ticket List</CardTitle>
-                <CardDescription className="text-foreground/70">
-                  A list of your submitted support tickets.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-border">
-                    <thead className="bg-secondary/30">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider"
-                        >
-                          Ticket ID
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider"
-                        >
-                          Summary
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider"
-                        >
-                          Status
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider"
-                        >
-                          Created At
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-foreground/70 uppercase tracking-wider"
-                        >
-                          Last Updated
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-card divide-y divide-border">
-                      {tickets.map((ticket) => (
-                        <tr key={ticket.key} className="hover:bg-secondary/10 transition-colors duration-200">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                            <button
-                              onClick={() => {
-                                setCurrentTicketId(ticket.key)
-                                setShowGmailFlow(true)
-                              }}
-                              className="text-primary hover:underline"
-                            >
-                              {ticket.key}
-                            </button>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground/90 max-w-md truncate">
-                            {ticket.fields.summary}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-3 py-1 inline-flex text-xs font-semibold rounded-full ${getStatusColor(
-                                mapStatusToCategory(ticket.fields.status.name),
-                              )} text-white`}
-                            >
-                              {mapStatusToCategory(ticket.fields.status.name)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground/70">
-                            {new Date(ticket.fields.created).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground/70">
-                            {new Date(ticket.fields.updated).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </section>
-
-      <footer className="py-12 px-8 bg-card/30 border-t border-border">
-        <div className="max-w-7xl mx-auto text-center">
-          <span className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            INTEGRUM
-          </span>
-          <p className="text-foreground/70 text-sm mt-2">Enterprise AI-Powered Support Platform</p>
-          <p className="text-foreground/50 text-xs mt-2">© 2025 Integrum. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
-  )
 
   switch (currentView) {
     case "yourTickets":
