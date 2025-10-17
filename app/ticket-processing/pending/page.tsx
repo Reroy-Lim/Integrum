@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
-import { Loader2, Mail, Home } from "lucide-react"
+import { Loader2, Mail, Home, ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -98,7 +98,14 @@ export default function PendingTicketPage() {
           </div>
 
           {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 relative">
+            <button
+              onClick={() => router.push("/")}
+              className="absolute top-3 right-3 text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1"
+              aria-label="Back to home"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <p className="text-sm text-blue-700 mb-2 font-medium">What's happening?</p>
             <ul className="text-xs text-blue-600 space-y-1">
               <li>• Waiting for your email to arrive</li>
