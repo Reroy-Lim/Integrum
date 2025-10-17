@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
-import { Loader2, Mail, Home, ArrowLeft } from "lucide-react"
+import { Loader2, Mail } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export default function PendingTicketPage() {
   const router = useRouter()
@@ -30,9 +30,12 @@ export default function PendingTicketPage() {
 
     const checkForNewTicket = async () => {
       try {
+        console.log("[v0] Checking for new tickets for user:", userEmail)
+
         const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=1`)
 
         if (!response.ok) {
+          console.error("[v0] Failed to fetch tickets")
           return
         }
 
@@ -45,6 +48,7 @@ export default function PendingTicketPage() {
           const timeDifference = currentTime - ticketCreatedTime
 
           if (timeDifference < 2 * 60 * 1000) {
+            console.log("[v0] Found new ticket:", latestTicket.key)
             setFoundTicket(true)
 
             setTimeout(() => {
@@ -53,7 +57,7 @@ export default function PendingTicketPage() {
           }
         }
       } catch (error) {
-        console.error("Error checking for new tickets:", error)
+        console.error("[v0] Error checking for new tickets:", error)
       }
     }
 
@@ -67,7 +71,7 @@ export default function PendingTicketPage() {
       clearTimeout(initialTimeout)
       clearInterval(pollInterval)
     }
-  }, [userEmail, router, foundTicket])
+  }, [userEmail, router])
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
@@ -76,9 +80,27 @@ export default function PendingTicketPage() {
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
+  const handleReturnHome = () => {
+    router.push("/")
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center p-6">
-      <Card className="w-full max-w-md bg-white/95 backdrop-blur shadow-2xl">
+      <Card className="w-full max-w-md bg-white/95 backdrop-blur shadow-2xl relative">
+        <button
+          onClick={handleReturnHome}
+          className="absolute -top-8 -right-8 w-24 h-24 hover:scale-110 transition-transform duration-300 cursor-pointer z-10"
+          aria-label="Return to home"
+        >
+          <Image
+            src="/error-illustration.png"
+            alt="Return to home"
+            width={96}
+            height={96}
+            className="w-full h-full object-contain"
+          />
+        </button>
+
         <CardHeader className="text-center space-y-4 pb-6">
           <div className="flex justify-center">
             <div className="relative">
@@ -98,14 +120,7 @@ export default function PendingTicketPage() {
           </div>
 
           {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 relative">
-            <button
-              onClick={() => router.push("/")}
-              className="absolute top-3 right-3 text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1"
-              aria-label="Back to home"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-700 mb-2 font-medium">What's happening?</p>
             <ul className="text-xs text-blue-600 space-y-1">
               <li>• Waiting for your email to arrive</li>
@@ -122,16 +137,6 @@ export default function PendingTicketPage() {
                 This usually takes 5-10 minutes (Including the time of writing the emails).
               </p>
             </div>
-          </div>
-
-          <div className="pt-4">
-            <Button
-              onClick={() => router.push("/")}
-              className="w-full bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] px-6 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl cursor-pointer hover:scale-105 flex items-center justify-center gap-2"
-            >
-              <Home className="w-5 h-5" />
-              Back to Home
-            </Button>
           </div>
         </CardContent>
       </Card>
