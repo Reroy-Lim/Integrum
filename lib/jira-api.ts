@@ -232,6 +232,61 @@ export class JiraApiClient {
     }
   }
 
+  async resolveTicket(ticketKey: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      // First, get available transitions for this ticket
+      const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!transitionsResponse.ok) {
+        throw new Error(`Failed to fetch transitions: ${transitionsResponse.statusText}`)
+      }
+
+      const transitionsData = await transitionsResponse.json()
+
+      // Look for "Done", "Resolved", or "Closed" transition
+      const resolveTransition = transitionsData.transitions.find((t: any) => {
+        const name = t.name.toLowerCase()
+        return name.includes("done") || name.includes("resolved") || name.includes("close")
+      })
+
+      if (!resolveTransition) {
+        console.error(
+          "[v0] Available transitions:",
+          transitionsData.transitions.map((t: any) => t.name),
+        )
+        throw new Error("No resolve/done/close transition available for this ticket")
+      }
+
+      // Perform the transition
+      const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          transition: {
+            id: resolveTransition.id,
+          },
+        }),
+      })
+
+      if (!transitionResponse.ok) {
+        const errorText = await transitionResponse.text()
+        throw new Error(`Failed to transition ticket: ${transitionResponse.statusText} - ${errorText}`)
+      }
+
+      console.log(`[v0] Ticket ${ticketKey} successfully transitioned to ${resolveTransition.name}`)
+      return { success: true }
+    } catch (error) {
+      console.error("[v0] Error resolving ticket:", error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+      }
+    }
+  }
+
   private transformJiraIssue(issue: any): JiraTicket {
     let description = ""
 

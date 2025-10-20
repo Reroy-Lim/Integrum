@@ -2,8 +2,18 @@
 
 import type React from "react"
 import { Button } from "@/components/ui/button"
-import { Send, Bot, User, Headset, Paperclip, X } from "lucide-react"
+import { Send, Bot, User, Headset, Paperclip, X, TicketCheck } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface ChatMessage {
   id: string
@@ -37,6 +47,9 @@ export function TicketChatbot({
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
+  const [isResolved, setIsResolved] = useState(false)
+  const [showResolveDialog, setShowResolveDialog] = useState(false)
+  const [isResolving, setIsResolving] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -142,6 +155,32 @@ export function TicketChatbot({
     }
   }
 
+  const handleResolveTicket = async () => {
+    setIsResolving(true)
+    try {
+      console.log("[v0] Resolving ticket:", ticketKey)
+      const response = await fetch("/api/jira/resolve-ticket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketKey }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to resolve ticket")
+      }
+
+      console.log("[v0] Ticket resolved successfully")
+      setIsResolved(true)
+      setShowResolveDialog(false)
+    } catch (error) {
+      console.error("[v0] Error resolving ticket:", error)
+      alert(error instanceof Error ? error.message : "Failed to resolve ticket. Please try again.")
+    } finally {
+      setIsResolving(false)
+    }
+  }
+
   const formatSolutions = (solutions: string) => {
     if (!solutions) return null
 
@@ -241,7 +280,22 @@ export function TicketChatbot({
       <div className="flex items-center gap-2 p-4 border-b border-gray-700">
         <Bot className="w-5 h-5 text-blue-400" />
         <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
-        <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
+        <div className="ml-auto flex items-center gap-2">
+          {!isMasterAccount && !isResolved && (
+            <Button
+              onClick={() => setShowResolveDialog(true)}
+              size="sm"
+              variant="outline"
+              className="bg-green-900/30 border-green-500/50 text-green-400 hover:bg-green-900/50 hover:text-green-300"
+            >
+              <TicketCheck className="w-4 h-4 mr-2" />
+              Resolved
+            </Button>
+          )}
+          <span className="text-xs text-blue-500">
+            {isResolved ? "Resolved Mode" : isMasterAccount ? "Support Mode" : "User Mode"}
+          </span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -361,69 +415,108 @@ export function TicketChatbot({
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
-        {attachedFiles.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
-            {attachedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-blue-300"
-              >
-                <Paperclip className="w-3 h-3" />
-                <span className="max-w-[150px] truncate">{file.name}</span>
-                <button
-                  type="button"
-                  onClick={() => removeFile(index)}
-                  className="hover:text-red-400 transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+      {isResolved ? (
+        <div className="p-4 border-t border-gray-700 bg-gray-800">
+          <div className="text-center py-4">
+            <TicketCheck className="w-8 h-8 text-green-400 mx-auto mb-3" />
+            <p className="text-sm text-gray-300 leading-relaxed">
+              This ticket has been Resolved. If you wish to continue, Please resubmit another ticket and provide the
+              ticket number inside the chat. Our live agent will get back to you asap!
+            </p>
           </div>
-        )}
-        <div className="flex gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-            accept="image/*,.pdf,.doc,.docx,.txt"
-          />
-          <Button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isSending}
-            variant="outline"
-            className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700 hover:text-blue-300"
-          >
-            <Paperclip className="w-4 h-4" />
-          </Button>
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              isMasterAccount
-                ? "Type your response... (Shift+Enter for new line)"
-                : "Type your message... (Shift+Enter for new line)"
-            }
-            disabled={isSending}
-            rows={1}
-            className="flex-1 bg-gray-800 border border-gray-700 text-blue-300 placeholder:text-blue-500/50 rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            style={{ minHeight: "40px", maxHeight: "120px" }}
-          />
-          <Button
-            type="submit"
-            disabled={!input.trim() || isSending}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
         </div>
-      </form>
+      ) : (
+        <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+          {attachedFiles.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {attachedFiles.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-blue-300"
+                >
+                  <Paperclip className="w-3 h-3" />
+                  <span className="max-w-[150px] truncate">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="hover:text-red-400 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              accept="image/*,.pdf,.doc,.docx,.txt"
+            />
+            <Button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isSending}
+              variant="outline"
+              className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700 hover:text-blue-300"
+            >
+              <Paperclip className="w-4 h-4" />
+            </Button>
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                isMasterAccount
+                  ? "Type your response... (Shift+Enter for new line)"
+                  : "Type your message... (Shift+Enter for new line)"
+              }
+              disabled={isSending}
+              rows={1}
+              className="flex-1 bg-gray-800 border border-gray-700 text-blue-300 placeholder:text-blue-500/50 rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{ minHeight: "40px", maxHeight: "120px" }}
+            />
+            <Button
+              type="submit"
+              disabled={!input.trim() || isSending}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        </form>
+      )}
+
+      <AlertDialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
+        <AlertDialogContent className="bg-gray-900 border-gray-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Confirm to Resolved?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Are you sure you want to mark this ticket as resolved? This action will close the ticket and disable
+              further chat messages.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
+              disabled={isResolving}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResolveTicket}
+              disabled={isResolving}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isResolving ? "Resolving..." : "Resolved"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
