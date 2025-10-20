@@ -9,7 +9,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -425,23 +424,21 @@ export function TicketChatbot({
                   Resolve Ticket
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="bg-gray-900 border-gray-700">
+              <AlertDialogContent className="bg-gray-100 border-gray-300 max-w-sm">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-blue-400">Resolve Ticket?</AlertDialogTitle>
-                  <AlertDialogDescription className="text-blue-300">
-                    Are you sure you want to resolve this ticket? This will mark the ticket as complete and disable
-                    further messages. The conversation will be saved as history.
-                  </AlertDialogDescription>
+                  <AlertDialogTitle className="text-gray-800 text-center text-base">
+                    Resolve this ticket?
+                  </AlertDialogTitle>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700">
+                <AlertDialogFooter className="flex-row gap-3 justify-center sm:justify-center">
+                  <AlertDialogCancel className="bg-gray-200 border-gray-300 text-gray-700 hover:bg-gray-300 m-0 px-8">
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleResolveTicket}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-gray-200 border border-gray-300 text-gray-700 hover:bg-gray-300 m-0 px-8"
                   >
-                    Resolve Ticket
+                    Resolved
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
