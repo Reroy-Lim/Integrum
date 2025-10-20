@@ -282,38 +282,6 @@ export function TicketChatbot({
         <Bot className="w-5 h-5 text-blue-400" />
         <h3 className="font-semibold text-blue-400">{isResolved ? "Conversation History" : "Ticket Chat"}</h3>
         <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
-        {!isResolved && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-2 bg-green-900/30 border-green-500/30 text-green-400 hover:bg-green-900/50 hover:text-green-300"
-                disabled={isResolving}
-              >
-                <CheckCircle2 className="w-4 h-4 mr-1" />
-                Resolve
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="bg-gray-900 border-gray-700">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-blue-400">Resolve Ticket?</AlertDialogTitle>
-                <AlertDialogDescription className="text-blue-300">
-                  Are you sure you want to resolve this ticket? This will mark the ticket as complete and disable
-                  further messages. The conversation will be saved as history.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700">
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction onClick={handleResolveTicket} className="bg-green-600 hover:bg-green-700 text-white">
-                  Resolve Ticket
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
         {isResolved && (
           <span className="ml-2 text-xs text-green-400 flex items-center gap-1">
             <CheckCircle2 className="w-3 h-3" />
@@ -443,6 +411,43 @@ export function TicketChatbot({
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+        {!isResolved && (
+          <div className="mb-3 flex justify-center">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-green-900/30 border-green-500/30 text-green-400 hover:bg-green-900/50 hover:text-green-300"
+                  disabled={isResolving}
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-1" />
+                  Resolve Ticket
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-gray-900 border-gray-700">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-blue-400">Resolve Ticket?</AlertDialogTitle>
+                  <AlertDialogDescription className="text-blue-300">
+                    Are you sure you want to resolve this ticket? This will mark the ticket as complete and disable
+                    further messages. The conversation will be saved as history.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700">
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleResolveTicket}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Resolve Ticket
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
         {isResolved && (
           <div className="mb-2 text-center text-sm text-green-400 bg-green-900/20 border border-green-500/30 rounded p-2">
             This ticket has been resolved. No further messages can be sent.
