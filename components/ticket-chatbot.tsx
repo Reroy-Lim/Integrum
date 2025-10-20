@@ -22,8 +22,6 @@ interface TicketChatbotProps {
   solutionsSections?: string
   currentUserEmail: string
   isMasterAccount: boolean
-  ticketStatus?: string
-  onTicketResolved?: () => void
 }
 
 export function TicketChatbot({
@@ -33,16 +31,12 @@ export function TicketChatbot({
   solutionsSections,
   currentUserEmail,
   isMasterAccount,
-  ticketStatus,
-  onTicketResolved,
 }: TicketChatbotProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
-  const [showResolveDialog, setShowResolveDialog] = useState(false)
-  const [isResolving, setIsResolving] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -74,6 +68,7 @@ export function TicketChatbot({
   useEffect(() => {
     loadMessages()
 
+    // Poll for new messages every 5 seconds
     pollingIntervalRef.current = setInterval(() => {
       loadMessages()
     }, 5000)
@@ -157,7 +152,7 @@ export function TicketChatbot({
       // Handle cases where closing paren is on next line: "(Confidence: 88\n)"
       .replace(/$$Confidence:\s*(\d+(?:\.\d+)?)\s*\n\s*$$/gi, "(Confidence: $1)")
       // Handle cases where number is on next line: "(Confidence:\n88"
-      .replace(/$$Confidence:\s*\n\s*(\d+(?:\.\d+)?)$$/gi, "(Confidence: $1)")
+      .replace(/\(Confidence:\s*\n\s*(\d+(?:\.\d+)?)/gi, "(Confidence: $1")
       // Ensure all confidence patterns have parentheses
       .replace(/Confidence:\s*(\d+(?:\.\d+)?)\s*/gi, "(Confidence: $1)")
       // Remove double parentheses if any
@@ -239,62 +234,7 @@ export function TicketChatbot({
     return sections
   }
 
-  const handleResolveTicket = async () => {
-    setIsResolving(true)
-    try {
-      const response = await fetch(`/api/jira/ticket/${ticketKey}/resolve`, {
-        method: "POST",
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to resolve ticket")
-      }
-
-      console.log("[v0] Ticket resolved successfully")
-      setShowResolveDialog(false)
-
-      // Notify parent component
-      if (onTicketResolved) {
-        onTicketResolved()
-      }
-    } catch (error) {
-      console.error("[v0] Error resolving ticket:", error)
-      alert("Failed to resolve ticket. Please try again.")
-    } finally {
-      setIsResolving(false)
-    }
-  }
-
   const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
-
-  const isResolved = ticketStatus?.toLowerCase().includes("done") || ticketStatus?.toLowerCase().includes("resolved")
-
-  if (isResolved) {
-    return (
-      <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
-        <div className="flex items-center gap-2 p-4 border-b border-gray-700">
-          <Bot className="w-5 h-5 text-green-400" />
-          <h3 className="font-semibold text-green-400">Ticket Chat</h3>
-          <span className="text-xs text-green-500 ml-auto">Resolved Mode</span>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-green-400">Ticket Resolved</h3>
-            <p className="text-gray-300 max-w-md leading-relaxed">
-              This ticket has been Resolved. If you wish to continue, Please resend the email and ask for our live
-              assisted for assistance.
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
@@ -421,25 +361,6 @@ export function TicketChatbot({
         <div ref={messagesEndRef} />
       </div>
 
-      {isMasterAccount && (
-        <div className="px-4 pb-2">
-          <Button
-            onClick={() => setShowResolveDialog(true)}
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            Resolve Ticket
-          </Button>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
         {attachedFiles.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
@@ -503,35 +424,6 @@ export function TicketChatbot({
           </Button>
         </div>
       </form>
-
-      {showResolveDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-semibold text-white mb-4">Resolve Ticket?</h3>
-            <p className="text-gray-300 mb-6">
-              Are you sure you want to mark this ticket as resolved? This action will close the ticket and notify the
-              user.
-            </p>
-            <div className="flex gap-3">
-              <Button
-                onClick={() => setShowResolveDialog(false)}
-                disabled={isResolving}
-                variant="outline"
-                className="flex-1 bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleResolveTicket}
-                disabled={isResolving}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              >
-                {isResolving ? "Resolving..." : "Resolved"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
