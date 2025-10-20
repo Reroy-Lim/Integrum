@@ -2,8 +2,19 @@
 
 import type React from "react"
 import { Button } from "@/components/ui/button"
-import { Send, Bot, User, Headset, Paperclip, X } from "lucide-react"
+import { Send, Bot, User, Headset, Paperclip, X, CheckCircle2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface ChatMessage {
   id: string
@@ -22,6 +33,7 @@ interface TicketChatbotProps {
   solutionsSections?: string
   currentUserEmail: string
   isMasterAccount: boolean
+  ticketStatus?: string
 }
 
 export function TicketChatbot({
@@ -31,12 +43,17 @@ export function TicketChatbot({
   solutionsSections,
   currentUserEmail,
   isMasterAccount,
+  ticketStatus,
 }: TicketChatbotProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
+  const [isResolved, setIsResolved] = useState(
+    ticketStatus?.toLowerCase().includes("resolved") || ticketStatus?.toLowerCase().includes("done"),
+  )
+  const [isResolving, setIsResolving] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -68,7 +85,6 @@ export function TicketChatbot({
   useEffect(() => {
     loadMessages()
 
-    // Poll for new messages every 5 seconds
     pollingIntervalRef.current = setInterval(() => {
       loadMessages()
     }, 5000)
@@ -94,12 +110,36 @@ export function TicketChatbot({
       e.preventDefault()
       handleSubmit(e as any)
     }
-    // Shift+Enter will naturally create a line break
+  }
+
+  const handleResolveTicket = async () => {
+    setIsResolving(true)
+    try {
+      console.log("[v0] Resolving ticket:", ticketKey)
+      const response = await fetch(`/api/jira/ticket/${ticketKey}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "Done" }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to resolve ticket")
+      }
+
+      console.log("[v0] Ticket resolved successfully")
+      setIsResolved(true)
+      alert("Ticket has been resolved successfully!")
+    } catch (error) {
+      console.error("[v0] Error resolving ticket:", error)
+      alert("Failed to resolve ticket. Please try again.")
+    } finally {
+      setIsResolving(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isSending) return
+    if (!input.trim() || isSending || isResolved) return
 
     const messageText = input.trim()
     setInput("")
@@ -131,12 +171,28 @@ export function TicketChatbot({
 
       console.log("[v0] Message sent successfully")
 
-      // Reload messages immediately after sending
+      if (!isMasterAccount) {
+        console.log("[v0] User sent message, updating ticket status to 'In Progress'")
+        try {
+          const statusResponse = await fetch(`/api/jira/ticket/${ticketKey}/status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "In Progress" }),
+          })
+
+          if (statusResponse.ok) {
+            console.log("[v0] Ticket status updated to 'In Progress'")
+          }
+        } catch (statusError) {
+          console.error("[v0] Error updating ticket status:", statusError)
+        }
+      }
+
       await loadMessages()
     } catch (error) {
       console.error("[v0] Error sending message:", error)
       alert("Failed to send message. Please try again.")
-      setInput(messageText) // Restore the message
+      setInput(messageText)
     } finally {
       setIsSending(false)
     }
@@ -145,24 +201,17 @@ export function TicketChatbot({
   const formatSolutions = (solutions: string) => {
     if (!solutions) return null
 
-    // First, normalize and fix split confidence patterns
     const normalizedSolutions = solutions
-      // Join split confidence patterns like "(Confidence:\n88)" or "(Confidence:\n88) .5"
       .replace(/$$Confidence:\s*\n\s*(\d+(?:\.\d+)?)\s*$$/gi, "(Confidence: $1)")
-      // Handle cases where closing paren is on next line: "(Confidence: 88\n)"
       .replace(/$$Confidence:\s*(\d+(?:\.\d+)?)\s*\n\s*$$/gi, "(Confidence: $1)")
-      // Handle cases where number is on next line: "(Confidence:\n88"
       .replace(/\(Confidence:\s*\n\s*(\d+(?:\.\d+)?)/gi, "(Confidence: $1")
-      // Ensure all confidence patterns have parentheses
       .replace(/Confidence:\s*(\d+(?:\.\d+)?)\s*/gi, "(Confidence: $1)")
-      // Remove double parentheses if any
       .replace(/\(\(Confidence:/gi, "(Confidence:")
       .replace(/\)\)/g, ")")
 
-    // Preprocess: Add line breaks before numbered items and bullet points
     const preprocessed = normalizedSolutions
-      .replace(/(\d+\))/g, "\n$1") // Add line break before numbered items
-      .replace(/•/g, "\n•\n") // Add line breaks before and after bullets
+      .replace(/(\d+\))/g, "\n$1")
+      .replace(/•/g, "\n•\n")
       .trim()
 
     const lines = preprocessed.split("\n")
@@ -175,19 +224,15 @@ export function TicketChatbot({
       const trimmedLine = line.trim()
       if (!trimmedLine) continue
 
-      // Check if line is a section header
       if (
         trimmedLine.toLowerCase().startsWith("possible solutions:") ||
         trimmedLine.toLowerCase().startsWith("explanation for solution")
       ) {
-        // Save previous section if it has content
         if (currentSection.header || currentSection.items.length > 0) {
           sections.push(currentSection)
         }
-        // Start new section
         currentSection = { header: trimmedLine, items: [] }
       } else {
-        // Check for numbered item (1), 2), 3), etc.)
         const numberedMatch = trimmedLine.match(/^(\d+)\)\s*(.+)/)
         if (numberedMatch) {
           currentSection.items.push({
@@ -195,9 +240,7 @@ export function TicketChatbot({
             number: numberedMatch[1],
             text: numberedMatch[2],
           })
-        }
-        // Check for bullet point
-        else if (trimmedLine.startsWith("•")) {
+        } else if (trimmedLine.startsWith("•")) {
           const bulletText = trimmedLine.substring(1).trim()
           if (bulletText) {
             currentSection.items.push({
@@ -206,13 +249,11 @@ export function TicketChatbot({
             })
           }
         } else if (trimmedLine.match(/$$Confidence:\s*\d+(?:\.\d+)?$$/i)) {
-          // Append to the last item if it exists
           if (currentSection.items.length > 0) {
             const lastItem = currentSection.items[currentSection.items.length - 1]
             lastItem.text += `\n${trimmedLine}`
           }
         } else {
-          // Append to the last item if it exists, otherwise add as new item
           if (currentSection.items.length > 0) {
             const lastItem = currentSection.items[currentSection.items.length - 1]
             lastItem.text += ` ${trimmedLine}`
@@ -226,7 +267,6 @@ export function TicketChatbot({
       }
     }
 
-    // Add the last section
     if (currentSection.header || currentSection.items.length > 0) {
       sections.push(currentSection)
     }
@@ -240,8 +280,46 @@ export function TicketChatbot({
     <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
       <div className="flex items-center gap-2 p-4 border-b border-gray-700">
         <Bot className="w-5 h-5 text-blue-400" />
-        <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
+        <h3 className="font-semibold text-blue-400">{isResolved ? "Conversation History" : "Ticket Chat"}</h3>
         <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
+        {!isResolved && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-2 bg-green-900/30 border-green-500/30 text-green-400 hover:bg-green-900/50 hover:text-green-300"
+                disabled={isResolving}
+              >
+                <CheckCircle2 className="w-4 h-4 mr-1" />
+                Resolve
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-gray-900 border-gray-700">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-blue-400">Resolve Ticket?</AlertDialogTitle>
+                <AlertDialogDescription className="text-blue-300">
+                  Are you sure you want to resolve this ticket? This will mark the ticket as complete and disable
+                  further messages. The conversation will be saved as history.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleResolveTicket} className="bg-green-600 hover:bg-green-700 text-white">
+                  Resolve Ticket
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+        {isResolved && (
+          <span className="ml-2 text-xs text-green-400 flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            Resolved
+          </span>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -290,12 +368,16 @@ export function TicketChatbot({
         {messages.length === 0 && !solutionSections && (
           <div className="flex flex-col items-center justify-center h-full text-center text-blue-400">
             <Bot className="w-12 h-12 mb-4 text-blue-500" />
-            <p className="text-sm">Start a conversation about this ticket.</p>
-            <p className="text-xs mt-2">
-              {isMasterAccount
-                ? "You can respond to the user's questions here."
-                : "Ask questions or provide updates about your issue."}
+            <p className="text-sm">
+              {isResolved ? "This ticket has been resolved." : "Start a conversation about this ticket."}
             </p>
+            {!isResolved && (
+              <p className="text-xs mt-2">
+                {isMasterAccount
+                  ? "You can respond to the user's questions here."
+                  : "Ask questions or provide updates about your issue."}
+              </p>
+            )}
           </div>
         )}
 
@@ -303,7 +385,6 @@ export function TicketChatbot({
           const isCurrentUser = message.user_email === currentUserEmail
           const isSupport = message.role === "support"
 
-          // Determine display name
           const displayName = message.author_name || message.user_email.split("@")[0]
 
           return (
@@ -362,6 +443,11 @@ export function TicketChatbot({
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+        {isResolved && (
+          <div className="mb-2 text-center text-sm text-green-400 bg-green-900/20 border border-green-500/30 rounded p-2">
+            This ticket has been resolved. No further messages can be sent.
+          </div>
+        )}
         {attachedFiles.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {attachedFiles.map((file, index) => (
@@ -375,6 +461,7 @@ export function TicketChatbot({
                   type="button"
                   onClick={() => removeFile(index)}
                   className="hover:text-red-400 transition-colors"
+                  disabled={isResolved}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -394,9 +481,9 @@ export function TicketChatbot({
           <Button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isSending}
+            disabled={isSending || isResolved}
             variant="outline"
-            className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700 hover:text-blue-300"
+            className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700 hover:text-blue-300 disabled:opacity-50"
           >
             <Paperclip className="w-4 h-4" />
           </Button>
@@ -406,19 +493,21 @@ export function TicketChatbot({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              isMasterAccount
-                ? "Type your response... (Shift+Enter for new line)"
-                : "Type your message... (Shift+Enter for new line)"
+              isResolved
+                ? "Ticket is resolved"
+                : isMasterAccount
+                  ? "Type your response... (Shift+Enter for new line)"
+                  : "Type your message... (Shift+Enter for new line)"
             }
-            disabled={isSending}
+            disabled={isSending || isResolved}
             rows={1}
-            className="flex-1 bg-gray-800 border border-gray-700 text-blue-300 placeholder:text-blue-500/50 rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 bg-gray-800 border border-gray-700 text-blue-300 placeholder:text-blue-500/50 rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ minHeight: "40px", maxHeight: "120px" }}
           />
           <Button
             type="submit"
-            disabled={!input.trim() || isSending}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            disabled={!input.trim() || isSending || isResolved}
+            className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
           >
             <Send className="w-4 h-4" />
           </Button>

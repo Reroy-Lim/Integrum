@@ -569,6 +569,7 @@ export default function JiraTicketDetailPage() {
               solutionsSections={solutionsSections}
               currentUserEmail={userEmail}
               isMasterAccount={isMasterAccount}
+              ticketStatus={ticket.status.name}
             />
           </div>
         </div>
