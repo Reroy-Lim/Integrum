@@ -53,7 +53,7 @@ export default function PendingTicketPage() {
             setFoundTicket(true)
 
             setTimeout(() => {
-              router.push(`/ticket-processing/${latestTicket.key}`)
+              router.push(`/ticket-processing/${latestTicket.key}?startTime=${elapsedTime}`)
             }, 1000)
           }
         }
