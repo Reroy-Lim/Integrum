@@ -22,30 +22,30 @@ export default function JiraTicketDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchTicket = async () => {
-      if (!ticketKey) return
+  const fetchTicket = async () => {
+    if (!ticketKey) return
 
-      setIsLoading(true)
-      setError(null)
+    setIsLoading(true)
+    setError(null)
 
-      try {
-        const response = await fetch(`/api/jira/ticket/${ticketKey}`)
+    try {
+      const response = await fetch(`/api/jira/ticket/${ticketKey}`)
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ticket: ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        setTicket(data.ticket)
-      } catch (error) {
-        console.error("Error fetching ticket:", error)
-        setError(error instanceof Error ? error.message : "Failed to fetch ticket")
-      } finally {
-        setIsLoading(false)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ticket: ${response.statusText}`)
       }
-    }
 
+      const data = await response.json()
+      setTicket(data.ticket)
+    } catch (error) {
+      console.error("Error fetching ticket:", error)
+      setError(error instanceof Error ? error.message : "Failed to fetch ticket")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchTicket()
   }, [ticketKey])
 
@@ -373,6 +373,11 @@ export default function JiraTicketDetailPage() {
     }
   }
 
+  const handleTicketResolved = async () => {
+    // Refetch ticket to get updated status
+    await fetchTicket()
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -570,6 +575,7 @@ export default function JiraTicketDetailPage() {
               currentUserEmail={userEmail}
               isMasterAccount={isMasterAccount}
               ticketStatus={ticket.status.name}
+              onTicketResolved={handleTicketResolved}
             />
           </div>
         </div>
