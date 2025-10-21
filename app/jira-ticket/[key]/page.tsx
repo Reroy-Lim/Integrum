@@ -246,54 +246,59 @@ export default function JiraTicketDetailPage() {
 
     return (
       <div className="space-y-6 text-gray-100">
-        {sections.map((section, idx) => (
-          <div key={idx}>
-            {section.header && (
-              <h4 className="font-bold text-white text-base leading-relaxed mb-3">{section.header}</h4>
-            )}
-            {section.content.length > 0 && (
-              <div className="space-y-3">
-                {section.content.map((line, lineIdx) => {
-                  const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
-                  const numberedMatch = line.match(/^(\d+)[.)]\s*(.+)/)
+        {sections.map((section, idx) => {
+          let numberCounter = 0
 
-                  if (bulletMatch) {
-                    return (
-                      <div key={lineIdx} className="flex items-start space-x-3 ml-4">
-                        <span className="text-gray-400 mt-1 select-none">•</span>
-                        <p className="text-gray-300 flex-1 leading-relaxed">{bulletMatch[1]}</p>
-                      </div>
-                    )
-                  }
+          return (
+            <div key={idx}>
+              {section.header && (
+                <h4 className="font-bold text-white text-base leading-relaxed mb-3">{section.header}</h4>
+              )}
+              {section.content.length > 0 && (
+                <div className="space-y-3">
+                  {section.content.map((line, lineIdx) => {
+                    const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
+                    const numberedMatch = line.match(/^(\d+)[.)]\s*(.+)/)
 
-                  if (numberedMatch) {
-                    return (
-                      <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
-                        <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]}.</span>
-                        <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
-                      </div>
-                    )
-                  }
+                    if (bulletMatch) {
+                      return (
+                        <div key={lineIdx} className="flex items-start space-x-3 ml-4">
+                          <span className="text-gray-400 mt-1 select-none">•</span>
+                          <p className="text-gray-300 flex-1 leading-relaxed">{bulletMatch[1]}</p>
+                        </div>
+                      )
+                    }
 
-                  const keyValueMatch = line.match(/^([^:]+):\s*(.+)/)
-                  if (keyValueMatch && section.header?.toLowerCase().includes("additional details")) {
+                    if (numberedMatch) {
+                      numberCounter++
+                      return (
+                        <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
+                          <span className="text-gray-400 mt-1 select-none font-medium">{numberCounter}.</span>
+                          <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
+                        </div>
+                      )
+                    }
+
+                    const keyValueMatch = line.match(/^([^:]+):\s*(.+)/)
+                    if (keyValueMatch && section.header?.toLowerCase().includes("additional details")) {
+                      return (
+                        <p key={lineIdx} className="text-gray-300 leading-relaxed">
+                          <span className="font-medium text-gray-200">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
+                        </p>
+                      )
+                    }
+
                     return (
                       <p key={lineIdx} className="text-gray-300 leading-relaxed">
-                        <span className="font-medium text-gray-200">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
+                        {line}
                       </p>
                     )
-                  }
-
-                  return (
-                    <p key={lineIdx} className="text-gray-300 leading-relaxed">
-                      {line}
-                    </p>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     )
   }
