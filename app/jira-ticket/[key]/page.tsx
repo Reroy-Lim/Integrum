@@ -215,13 +215,16 @@ export default function JiraTicketDetailPage() {
             splitItems.forEach((item) => {
               const trimmedItem = item.trim()
               // Only add items that have content after the number (not just "1." or "4")
-              if (trimmedItem && /\d+[.)]\s+\S+/.test(trimmedItem)) {
+              // Must have at least: number + period/paren + space + at least one non-whitespace character
+              if (trimmedItem && /^\d+[.)]\s+\S+/.test(trimmedItem)) {
                 currentSection.content.push(trimmedItem)
               }
             })
           } else {
-            // Single item or no numbered items - add as-is
-            currentSection.content.push(contentAfterHeader)
+            // Single item or no numbered items - add as-is if it has content
+            if (contentAfterHeader.trim()) {
+              currentSection.content.push(contentAfterHeader)
+            }
           }
         }
       } else {
@@ -232,13 +235,18 @@ export default function JiraTicketDetailPage() {
           splitItems.forEach((item) => {
             const trimmedItem = item.trim()
             // Only add items that have content after the number (not just "1." or "4")
-            if (trimmedItem && /\d+[.)]\s+\S+/.test(trimmedItem)) {
+            if (trimmedItem && /^\d+[.)]\s+\S+/.test(trimmedItem)) {
               currentSection.content.push(trimmedItem)
             }
           })
-        } else {
+        } else if (trimmedLine && /^\d+[.)]\s+\S+/.test(trimmedLine)) {
+          // Single numbered item with content - add it
+          currentSection.content.push(trimmedLine)
+        } else if (trimmedLine && !/^\d+[.)]$/.test(trimmedLine)) {
+          // Not a standalone number - add it
           currentSection.content.push(trimmedLine)
         }
+        // If it's just a standalone number like "1" or "4.", skip it
       }
     }
 
@@ -272,7 +280,9 @@ export default function JiraTicketDetailPage() {
                   if (numberedMatch) {
                     return (
                       <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
-                        <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]}.</span>
+                        <span className="text-gray-400 mt-1 select-none font-medium min-w-[1.5rem]">
+                          {numberedMatch[1]}.
+                        </span>
                         <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
                       </div>
                     )

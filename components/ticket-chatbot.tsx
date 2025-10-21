@@ -254,9 +254,9 @@ export function TicketChatbot({
             <Button
               onClick={() => setShowResolveDialog(true)}
               size="sm"
-              className="ml-2 bg-green-600 hover:bg-green-700 text-white"
+              className="ml-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
             >
-              <Image src="/checkmark-icon.png" alt="Checkmark" width={16} height={16} className="mr-2" />
+              <Image src="/checkmark-icon.png" alt="Checkmark" width={20} height={20} className="w-5 h-5" />
               Resolve Ticket
             </Button>
           )}
