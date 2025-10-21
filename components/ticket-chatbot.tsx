@@ -3,7 +3,7 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Headset } from "lucide-react"
+import { Send, Bot, User, Headset, CheckCircle2, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface ChatMessage {
@@ -37,6 +37,10 @@ export function TicketChatbot({
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [showResolveDialog, setShowResolveDialog] = useState(false)
+  const [isResolving, setIsResolving] = useState(false)
+  const [isResolved, setIsResolved] = useState(false)
+  const [showSuccessIcon, setShowSuccessIcon] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -118,6 +122,31 @@ export function TicketChatbot({
       setInput(messageText) // Restore the message
     } finally {
       setIsSending(false)
+    }
+  }
+
+  const handleResolveTicket = async () => {
+    setIsResolving(true)
+    try {
+      // TODO: Add API call to mark ticket as resolved in Jira
+      console.log("[v0] Resolving ticket:", ticketKey)
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      setIsResolved(true)
+      setShowResolveDialog(false)
+      setShowSuccessIcon(true)
+
+      // Hide success icon after 3 seconds
+      setTimeout(() => {
+        setShowSuccessIcon(false)
+      }, 3000)
+    } catch (error) {
+      console.error("[v0] Error resolving ticket:", error)
+      alert("Failed to resolve ticket. Please try again.")
+    } finally {
+      setIsResolving(false)
     }
   }
 
@@ -221,9 +250,75 @@ export function TicketChatbot({
         <Bot className="w-5 h-5 text-blue-400" />
         <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
         <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
+        {isMasterAccount && !isResolved && (
+          <Button
+            onClick={() => setShowResolveDialog(true)}
+            className="bg-cyan-500 hover:bg-cyan-600 text-white flex items-center gap-2"
+            size="sm"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Resolve Ticket
+          </Button>
+        )}
       </div>
 
+      {showSuccessIcon && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg z-50">
+          <div className="bg-white rounded-full p-4 animate-scale-in">
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-fjKtaLEjrn1jXl6Y72C96YjMYCJwQn.png"
+              alt="Success"
+              className="w-32 h-32"
+            />
+          </div>
+        </div>
+      )}
+
+      {showResolveDialog && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 rounded-lg z-40">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white">Confirm to Resolve the Tickets?</h3>
+              <button
+                onClick={() => setShowResolveDialog(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-gray-300 mb-6 leading-relaxed">
+              This will mark the ticket as resolved and disable further chat messages. This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                onClick={() => setShowResolveDialog(false)}
+                variant="outline"
+                className="bg-transparent border-gray-600 text-white hover:bg-gray-700"
+                disabled={isResolving}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleResolveTicket}
+                className="bg-cyan-500 hover:bg-cyan-600 text-white"
+                disabled={isResolving}
+              >
+                {isResolving ? "Resolving..." : "Confirmed"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {isResolved && (
+          <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4 text-center">
+            <CheckCircle2 className="w-8 h-8 text-green-400 mx-auto mb-2" />
+            <p className="text-green-300 font-medium">Ticket has been resolved</p>
+            <p className="text-green-400/70 text-sm mt-1">No further messages can be sent</p>
+          </div>
+        )}
+
         {solutionSections && solutionSections.length > 0 && (
           <div className="flex gap-3 justify-start">
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
@@ -346,12 +441,12 @@ export function TicketChatbot({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
-            disabled={isSending}
+            disabled={isSending || isResolved}
             className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
           />
           <Button
             type="submit"
-            disabled={!input.trim() || isSending}
+            disabled={!input.trim() || isSending || isResolved}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Send className="w-4 h-4" />

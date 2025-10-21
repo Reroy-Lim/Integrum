@@ -151,4 +151,23 @@
     scrollbar-width: thin;
     scrollbar-color: oklch(0.85 0.01 240) oklch(0.2 0.05 240);
   }
+
+  /* Adding scale-in animation for success icon */
+  @keyframes scale-in {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.5s ease-out;
+  }
 }
