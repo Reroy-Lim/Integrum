@@ -243,9 +243,9 @@ export function TicketChatbot({
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
           {isResolved ? (
-            <Badge className="ml-auto bg-cyan-500 text-white flex items-center gap-1.5 px-3 py-1">
-              <Image src="/checkmark-blue.png" alt="Resolved" width={16} height={16} className="flex-shrink-0" />
-              <span>Resolved</span>
+            <Badge className="ml-auto bg-green-600 text-white">
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Resolved
             </Badge>
           ) : (
             <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
@@ -256,7 +256,7 @@ export function TicketChatbot({
               size="sm"
               className="ml-2 bg-green-600 hover:bg-green-700 text-white"
             >
-              <Image src="/checkmark-icon.png" alt="Checkmark" width={24} height={24} className="mr-2" />
+              <Image src="/checkmark-icon.png" alt="Checkmark" width={16} height={16} className="mr-2" />
               Resolve Ticket
             </Button>
           )}
@@ -384,11 +384,11 @@ export function TicketChatbot({
 
         {isResolved ? (
           <div className="p-4 border-t border-gray-700 bg-gray-800">
-            <div className="flex items-start gap-3 p-4 bg-green-900/20 border-2 border-green-500 rounded-lg">
-              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 p-4 bg-green-900/30 border border-green-500/30 rounded-lg">
+              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-green-400 text-base font-bold mb-2">This ticket has been Resolved</p>
-                <p className="text-green-400/90 text-sm leading-relaxed">
+                <p className="text-green-300 text-sm font-medium mb-1">This ticket has been Resolved</p>
+                <p className="text-green-400/80 text-xs leading-relaxed">
                   If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
                   Our live agent will get back to you asap!
                 </p>
