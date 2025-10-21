@@ -272,7 +272,7 @@ export default function JiraTicketDetailPage() {
 
                   if (numberedMatch) {
                     return (
-                      <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
+                      <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4 list-decimal">
                         <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]}.</span>
                         <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
                       </div>
