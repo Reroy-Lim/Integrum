@@ -215,48 +215,19 @@ export function TicketChatbot({
 
   const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
 
-  const handleResolveTicket = async () => {
-    if (!confirm("Are you sure you want to resolve this ticket?")) {
-      return
-    }
-
-    try {
-      console.log("[v0] Resolving ticket:", ticketKey)
-      const response = await fetch(`/api/jira/resolve-ticket`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticketKey }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to resolve ticket")
-      }
-
-      alert("Ticket resolved successfully!")
-      // Optionally reload the page or update the UI
-      window.location.reload()
-    } catch (error) {
-      console.error("[v0] Error resolving ticket:", error)
-      alert("Failed to resolve ticket. Please try again or resolve it manually in Jira.")
-    }
-  }
-
   return (
     <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
       <div className="flex items-center gap-2 p-4 border-b border-gray-700">
         <Bot className="w-5 h-5 text-blue-400" />
         <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
         <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
-        {isMasterAccount && (
-          <Button
-            onClick={handleResolveTicket}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm flex items-center gap-2"
-            size="sm"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Resolve Ticket
-          </Button>
-        )}
+        <Button
+          size="sm"
+          className="ml-2 bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 flex items-center gap-2"
+        >
+          <CheckCircle className="w-4 h-4 text-green-400" />
+          <span>Resolve Ticket</span>
+        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
