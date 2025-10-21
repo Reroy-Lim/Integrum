@@ -3,7 +3,7 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Headset } from "lucide-react"
+import { Send, Bot, User, Headset, Badge } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import {
   AlertDialog,
@@ -229,19 +229,32 @@ export function TicketChatbot({
 
   const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
 
-  const isResolved =
+  console.log("[v0] Ticket status:", ticketStatus)
+  console.log("[v0] Ticket status lowercase:", ticketStatus?.toLowerCase())
+
+  const isTicketResolved =
     ticketStatus &&
     (ticketStatus.toLowerCase().includes("resolved") ||
       ticketStatus.toLowerCase().includes("done") ||
       ticketStatus.toLowerCase().includes("closed"))
 
-  const showResolveButton = ticketStatus && !isResolved
+  console.log("[v0] Is ticket resolved:", isTicketResolved)
+
+  const showResolveButton =
+    ticketStatus &&
+    !ticketStatus.toLowerCase().includes("resolved") &&
+    !ticketStatus.toLowerCase().includes("done") &&
+    !ticketStatus.toLowerCase().includes("closed")
+
+  console.log("[v0] Show resolve button:", showResolveButton)
 
   const handleResolveTicket = async () => {
     setIsResolving(true)
     setShowResolveDialog(false)
 
     try {
+      console.log("[v0] Resolving ticket:", ticketKey)
+
       const response = await fetch(`/api/jira/ticket/${ticketKey}/resolve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -251,12 +264,14 @@ export function TicketChatbot({
         throw new Error("Failed to resolve ticket")
       }
 
+      console.log("[v0] Ticket resolved successfully")
+
       // Call the parent callback to refresh ticket data
       onResolveTicket?.()
 
       alert("Ticket has been resolved successfully!")
     } catch (error) {
-      console.error("Error resolving ticket:", error)
+      console.error("[v0] Error resolving ticket:", error)
       alert("Failed to resolve ticket. Please try again.")
     } finally {
       setIsResolving(false)
@@ -269,17 +284,18 @@ export function TicketChatbot({
         <div className="flex items-center gap-2 p-4 border-b border-gray-700">
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
-          <span className="text-xs ml-auto">
-            {isResolved ? (
-              <span className="px-3 py-1 bg-cyan-500 text-white rounded font-semibold">Resolved</span>
-            ) : (
-              <span className="text-blue-500">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
-            )}
-          </span>
+          {isTicketResolved ? (
+            <Badge className="ml-auto bg-cyan-500 text-white text-xs px-3 py-1">Resolved</Badge>
+          ) : (
+            <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
+          )}
 
           {showResolveButton && (
             <Button
-              onClick={() => setShowResolveDialog(true)}
+              onClick={() => {
+                console.log("[v0] Resolve button clicked")
+                setShowResolveDialog(true)
+              }}
               disabled={isResolving}
               className="ml-2 bg-transparent hover:bg-green-500/10 border border-green-500 text-white hover:text-green-400 hover:border-green-400 text-sm px-3 py-1.5 h-auto flex items-center gap-1.5 transition-colors"
             >
@@ -420,34 +436,26 @@ export function TicketChatbot({
           <div ref={messagesEndRef} />
         </div>
 
-        {isResolved ? (
-          <div className="p-4 border-t border-gray-700">
-            <div className="bg-green-900/30 border-2 border-green-500/50 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="flex-shrink-0 mt-0.5"
-                >
-                  <circle cx="12" cy="12" r="10" fill="#22c55e" />
-                  <path
-                    d="M9 12l2 2 4-4"
-                    stroke="#000000"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <div className="flex-1">
-                  <h4 className="text-green-400 font-bold text-base mb-2">This ticket has been Resolved</h4>
-                  <p className="text-green-400 text-sm leading-relaxed">
-                    If you wish to continue, Please resubmit another ticket and provide the ticket number inside the
-                    chat. Our live agent will get back to you asap!
-                  </p>
-                </div>
+        {isTicketResolved ? (
+          <div className="p-4 bg-green-900/30 border-t-2 border-green-600">
+            <div className="flex items-start gap-3">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="flex-shrink-0 mt-0.5"
+              >
+                <circle cx="12" cy="12" r="10" fill="#22c55e" />
+                <path d="M9 12l2 2 4-4" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-green-400 font-semibold text-sm mb-1">This ticket has been Resolved</p>
+                <p className="text-green-500 text-xs leading-relaxed">
+                  If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
+                  Our live agent will get back to you asap!
+                </p>
               </div>
             </div>
           </div>

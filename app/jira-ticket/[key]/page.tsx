@@ -457,6 +457,11 @@ export default function JiraTicketDetailPage() {
     <div className="min-h-screen bg-black">
       <nav className="flex items-center justify-between p-6 border-b border-gray-800">
         <h1 className="text-2xl font-bold text-white">INTEGRUM</h1>
+        {ticket.status.name.toLowerCase().includes("resolved") ||
+        ticket.status.name.toLowerCase().includes("done") ||
+        ticket.status.name.toLowerCase().includes("closed") ? (
+          <Badge className="bg-cyan-500 text-white text-sm px-4 py-1.5">Resolved</Badge>
+        ) : null}
         <Button variant="outline" onClick={() => router.push("/?view=yourTickets")}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Your Tickets
