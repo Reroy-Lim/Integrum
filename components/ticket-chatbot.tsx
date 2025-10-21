@@ -238,6 +238,12 @@ export function TicketChatbot({
     !ticketStatus.toLowerCase().includes("done") &&
     !ticketStatus.toLowerCase().includes("closed")
 
+  const isResolved =
+    ticketStatus &&
+    (ticketStatus.toLowerCase().includes("resolved") ||
+      ticketStatus.toLowerCase().includes("done") ||
+      ticketStatus.toLowerCase().includes("closed"))
+
   console.log("[v0] Show resolve button:", showResolveButton)
 
   const handleResolveTicket = async () => {
@@ -276,7 +282,13 @@ export function TicketChatbot({
         <div className="flex items-center gap-2 p-4 border-b border-gray-700">
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
-          <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
+          <span className="text-xs ml-auto">
+            {isResolved ? (
+              <span className="px-3 py-1 bg-cyan-500 text-white rounded font-semibold">Resolved</span>
+            ) : (
+              <span className="text-blue-500">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
+            )}
+          </span>
 
           {showResolveButton && (
             <Button
@@ -424,24 +436,57 @@ export function TicketChatbot({
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
-              disabled={isSending}
-              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
-            />
-            <Button
-              type="submit"
-              disabled={!input.trim() || isSending}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
+        {isResolved ? (
+          <div className="p-4 border-t border-gray-700">
+            <div className="bg-green-900/30 border-2 border-green-500/50 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="flex-shrink-0 mt-0.5"
+                >
+                  <circle cx="12" cy="12" r="10" fill="#22c55e" />
+                  <path
+                    d="M9 12l2 2 4-4"
+                    stroke="#000000"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <h4 className="text-green-400 font-bold text-base mb-2">This ticket has been Resolved</h4>
+                  <p className="text-green-400 text-sm leading-relaxed">
+                    If you wish to continue, Please resubmit another ticket and provide the ticket number inside the
+                    chat. Our live agent will get back to you asap!
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+            <div className="flex gap-2">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
+                disabled={isSending}
+                className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
+              />
+              <Button
+                type="submit"
+                disabled={!input.trim() || isSending}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
 
       <AlertDialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>

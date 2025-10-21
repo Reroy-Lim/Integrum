@@ -1129,9 +1129,34 @@ export default function IntegrumPortal() {
                                   className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300"
                                 >
                                   <CardHeader className="pb-3">
-                                    <CardTitle className="text-sm text-foreground line-clamp-2">
-                                      {ticket.summary}
-                                    </CardTitle>
+                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                      <CardTitle className="text-sm text-foreground line-clamp-2 flex-1">
+                                        {ticket.summary}
+                                      </CardTitle>
+                                      {category.name === "Resolved" && (
+                                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                                          <svg
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                          >
+                                            <circle cx="12" cy="12" r="10" fill="#22c55e" />
+                                            <path
+                                              d="M9 12l2 2 4-4"
+                                              stroke="#000000"
+                                              strokeWidth="2"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                          </svg>
+                                          <span className="text-xs font-semibold px-2 py-0.5 bg-blue-600 text-white rounded">
+                                            Resolved
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                     <CardDescription className="text-xs text-foreground/60">
                                       {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
                                     </CardDescription>
@@ -1141,7 +1166,7 @@ export default function IntegrumPortal() {
                                       variant="outline"
                                       size="sm"
                                       onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
-                                      className="w-full bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] text-xs transition-all duration-300 hover:scale-105"
+                                      className="w-full bg-transparent border-2 border-cyan-500 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-400 text-xs transition-all duration-300"
                                     >
                                       View Ticket Info
                                     </Button>
