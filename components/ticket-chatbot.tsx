@@ -250,7 +250,7 @@ export function TicketChatbot({
           <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
           <button
             onClick={() => setShowResolveDialog(true)}
-            className="ml-2 px-3 py-1.5 bg-transparent hover:bg-green-500/10 rounded-md border-2 border-green-500 flex items-center gap-2 transition-colors"
+            className="ml-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-md border border-green-500/30 flex items-center gap-2 transition-colors"
           >
             <div className="relative w-4 h-4">
               <CheckCircle className="w-4 h-4 text-green-500 absolute inset-0" strokeWidth={2.5} />
@@ -420,7 +420,7 @@ export function TicketChatbot({
           <DialogHeader>
             <DialogTitle className="text-white text-xl text-center">Confirm to Resolve the Tickets?</DialogTitle>
             <DialogDescription className="text-gray-400 text-center pt-2">
-              This will mark the ticket as resolved and disable further chat messages. This action cannot be undone.
+              This will mark the ticket as resolved and disable further chat messages. This action cannot be undo.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-3 sm:justify-center pt-4">
@@ -432,7 +432,7 @@ export function TicketChatbot({
               Cancel
             </Button>
             <Button onClick={handleResolveTicket} className="bg-cyan-500 hover:bg-cyan-600 text-white px-6">
-              Confirmed
+              Confirm
             </Button>
           </DialogFooter>
         </DialogContent>
