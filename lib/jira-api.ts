@@ -232,60 +232,59 @@ export class JiraApiClient {
     }
   }
 
-  async transitionTicketToResolved(ticketKey: string): Promise<boolean> {
+  async transitionIssue(issueKey: string, transitionName = "Done"): Promise<boolean> {
     try {
-      console.log("[v0] JIRA API: Getting transitions for ticket:", ticketKey)
-
-      // First, get available transitions for the ticket
-      const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+      // First, get available transitions for this issue
+      const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${issueKey}/transitions`, {
         method: "GET",
         headers: this.getAuthHeaders(),
       })
 
       if (!transitionsResponse.ok) {
-        throw new Error(`Failed to get transitions: ${transitionsResponse.statusText}`)
+        throw new Error(`Failed to fetch transitions: ${transitionsResponse.statusText}`)
       }
 
       const transitionsData = await transitionsResponse.json()
-      console.log("[v0] JIRA API: Available transitions:", transitionsData.transitions)
+      const transitions = transitionsData.transitions || []
 
-      // Find the "Done" or "Resolved" transition
-      const resolvedTransition = transitionsData.transitions.find(
+      // Find the transition that matches "Done", "Resolved", or the provided name
+      const targetTransition = transitions.find(
         (t: any) =>
+          t.name.toLowerCase() === transitionName.toLowerCase() ||
           t.name.toLowerCase() === "done" ||
-          t.name.toLowerCase() === "resolved" ||
-          t.to.name.toLowerCase() === "done" ||
-          t.to.name.toLowerCase() === "resolved",
+          t.name.toLowerCase() === "resolved",
       )
 
-      if (!resolvedTransition) {
-        console.error("[v0] JIRA API: No 'Done' or 'Resolved' transition found")
-        throw new Error("No 'Done' or 'Resolved' transition available for this ticket")
+      if (!targetTransition) {
+        console.error(
+          "[v0] Available transitions:",
+          transitions.map((t: any) => t.name),
+        )
+        throw new Error(`Transition "${transitionName}" not found for issue ${issueKey}`)
       }
 
-      console.log("[v0] JIRA API: Using transition:", resolvedTransition.name, "ID:", resolvedTransition.id)
+      console.log("[v0] Transitioning issue", issueKey, "to", targetTransition.name, "with ID", targetTransition.id)
 
       // Execute the transition
-      const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+      const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${issueKey}/transitions`, {
         method: "POST",
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
           transition: {
-            id: resolvedTransition.id,
+            id: targetTransition.id,
           },
         }),
       })
 
       if (!transitionResponse.ok) {
         const errorText = await transitionResponse.text()
-        console.error("[v0] JIRA API: Transition error:", errorText)
-        throw new Error(`Failed to transition ticket: ${transitionResponse.statusText}`)
+        throw new Error(`Failed to transition issue: ${transitionResponse.statusText} - ${errorText}`)
       }
 
-      console.log("[v0] JIRA API: Successfully transitioned ticket to resolved")
+      console.log("[v0] Successfully transitioned issue", issueKey, "to", targetTransition.name)
       return true
     } catch (error) {
-      console.error("[v0] JIRA API: Error transitioning ticket:", error)
+      console.error("[v0] Error transitioning issue:", error)
       return false
     }
   }
