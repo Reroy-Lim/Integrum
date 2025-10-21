@@ -22,30 +22,30 @@ export default function JiraTicketDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchTicket = async () => {
-      if (!ticketKey) return
+  const fetchTicket = async () => {
+    if (!ticketKey) return
 
-      setIsLoading(true)
-      setError(null)
+    setIsLoading(true)
+    setError(null)
 
-      try {
-        const response = await fetch(`/api/jira/ticket/${ticketKey}`)
+    try {
+      const response = await fetch(`/api/jira/ticket/${ticketKey}`)
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ticket: ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        setTicket(data.ticket)
-      } catch (error) {
-        console.error("Error fetching ticket:", error)
-        setError(error instanceof Error ? error.message : "Failed to fetch ticket")
-      } finally {
-        setIsLoading(false)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ticket: ${response.statusText}`)
       }
-    }
 
+      const data = await response.json()
+      setTicket(data.ticket)
+    } catch (error) {
+      console.error("Error fetching ticket:", error)
+      setError(error instanceof Error ? error.message : "Failed to fetch ticket")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchTicket()
   }, [ticketKey])
 
@@ -403,10 +403,13 @@ export default function JiraTicketDetailPage() {
     }
   }
 
-  const handleResolveTicket = () => {
-    console.log("[v0] Resolve Ticket button clicked for ticket:", ticketKey)
-    // TODO: Implement Jira API call to update ticket status to "Resolved"
-    alert("Resolve Ticket functionality will be implemented next. Ticket: " + ticketKey)
+  const handleResolveTicket = async () => {
+    console.log("[v0] Refreshing ticket data after resolve")
+    await fetchTicket()
+    // Optionally redirect to Your Tickets page
+    setTimeout(() => {
+      router.push("/?view=yourTickets")
+    }, 1500)
   }
 
   if (isLoading) {

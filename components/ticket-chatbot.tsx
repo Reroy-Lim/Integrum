@@ -3,9 +3,8 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Headset } from "lucide-react"
+import { Send, Bot, User, Headset, CheckCircle2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -51,6 +50,7 @@ export function TicketChatbot({
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [showResolveDialog, setShowResolveDialog] = useState(false)
+  const [isResolving, setIsResolving] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -240,6 +240,36 @@ export function TicketChatbot({
 
   console.log("[v0] Show resolve button:", showResolveButton)
 
+  const handleResolveTicket = async () => {
+    setIsResolving(true)
+    setShowResolveDialog(false)
+
+    try {
+      console.log("[v0] Resolving ticket:", ticketKey)
+
+      const response = await fetch(`/api/jira/ticket/${ticketKey}/resolve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to resolve ticket")
+      }
+
+      console.log("[v0] Ticket resolved successfully")
+
+      // Call the parent callback to refresh ticket data
+      onResolveTicket?.()
+
+      alert("Ticket has been resolved successfully!")
+    } catch (error) {
+      console.error("[v0] Error resolving ticket:", error)
+      alert("Failed to resolve ticket. Please try again.")
+    } finally {
+      setIsResolving(false)
+    }
+  }
+
   return (
     <>
       <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
@@ -254,16 +284,11 @@ export function TicketChatbot({
                 console.log("[v0] Resolve button clicked")
                 setShowResolveDialog(true)
               }}
+              disabled={isResolving}
               className="ml-2 bg-transparent hover:bg-green-500/10 border border-green-500 text-white hover:text-green-400 hover:border-green-400 text-sm px-3 py-1.5 h-auto flex items-center gap-1.5 transition-colors"
             >
-              <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-nAOJreBEw7hcsmXmowJ7UghISqtje3.png"
-                alt="Resolve"
-                width={16}
-                height={16}
-                className="w-4 h-4"
-              />
-              Resolve Ticket
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+              {isResolving ? "Resolving..." : "Resolve Ticket"}
             </Button>
           )}
         </div>
@@ -423,19 +448,17 @@ export function TicketChatbot({
             <Button
               variant="outline"
               onClick={() => setShowResolveDialog(false)}
+              disabled={isResolving}
               className="flex-1 bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
             >
               Cancel
             </Button>
             <Button
-              onClick={() => {
-                console.log("[v0] Confirm resolve ticket")
-                setShowResolveDialog(false)
-                onResolveTicket?.()
-              }}
+              onClick={handleResolveTicket}
+              disabled={isResolving}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             >
-              Confirm
+              {isResolving ? "Resolving..." : "Confirm"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
