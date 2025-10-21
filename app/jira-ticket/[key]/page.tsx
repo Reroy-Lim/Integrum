@@ -257,17 +257,7 @@ export default function JiraTicketDetailPage() {
                   const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
                   const numberedMatch = line.match(/^(\d+)[.)]\s*(.+)/)
 
-                  const isStepsToReproduce = section.header?.toLowerCase().includes("steps to reproduce")
-
                   if (bulletMatch) {
-                    if (isStepsToReproduce) {
-                      return (
-                        <div key={lineIdx} className="flex items-start space-x-3 mb-3">
-                          <span className="text-gray-300 select-none font-medium min-w-[24px]">{lineIdx + 1}.</span>
-                          <p className="text-gray-300 flex-1 leading-relaxed">{bulletMatch[1]}</p>
-                        </div>
-                      )
-                    }
                     return (
                       <div key={lineIdx} className="flex items-start space-x-3 ml-4">
                         <span className="text-gray-400 mt-1 select-none">•</span>
@@ -278,8 +268,8 @@ export default function JiraTicketDetailPage() {
 
                   if (numberedMatch) {
                     return (
-                      <div key={lineIdx} className="flex items-start space-x-3 mb-3">
-                        <span className="text-gray-300 select-none font-medium min-w-[24px]">{numberedMatch[1]}.</span>
+                      <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
+                        <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]}.</span>
                         <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
                       </div>
                     )
@@ -291,15 +281,6 @@ export default function JiraTicketDetailPage() {
                       <p key={lineIdx} className="text-gray-300 leading-relaxed">
                         <span className="font-medium text-gray-200">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
                       </p>
-                    )
-                  }
-
-                  if (isStepsToReproduce) {
-                    return (
-                      <div key={lineIdx} className="flex items-start space-x-3 mb-3">
-                        <span className="text-gray-300 select-none font-medium min-w-[24px]">{lineIdx + 1}.</span>
-                        <p className="text-gray-300 flex-1 leading-relaxed">{line}</p>
-                      </div>
                     )
                   }
 
