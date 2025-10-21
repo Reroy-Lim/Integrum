@@ -229,8 +229,15 @@ export function TicketChatbot({
 
   const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
 
-  console.log("[v0] Ticket status:", ticketStatus)
+  console.log("[v0] ===== TICKET STATUS DEBUG =====")
+  console.log("[v0] Ticket key:", ticketKey)
+  console.log("[v0] Ticket status (raw):", ticketStatus)
+  console.log("[v0] Ticket status type:", typeof ticketStatus)
   console.log("[v0] Ticket status lowercase:", ticketStatus?.toLowerCase())
+  console.log("[v0] Includes 'resolved':", ticketStatus?.toLowerCase().includes("resolved"))
+  console.log("[v0] Includes 'done':", ticketStatus?.toLowerCase().includes("done"))
+  console.log("[v0] Includes 'closed':", ticketStatus?.toLowerCase().includes("closed"))
+  console.log("[v0] ================================")
 
   const showResolveButton =
     ticketStatus &&
@@ -245,6 +252,7 @@ export function TicketChatbot({
       ticketStatus.toLowerCase().includes("closed"))
 
   console.log("[v0] Show resolve button:", showResolveButton)
+  console.log("[v0] Is resolved:", isResolved)
 
   const handleResolveTicket = async () => {
     setIsResolving(true)
