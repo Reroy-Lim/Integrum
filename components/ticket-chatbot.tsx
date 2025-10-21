@@ -5,14 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Send, Bot, User, Headset, CheckCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 
 interface ChatMessage {
@@ -262,6 +255,7 @@ export function TicketChatbot({
               size="sm"
               className="ml-2 bg-green-600 hover:bg-green-700 text-white"
             >
+              <CheckCircle className="w-4 h-4 mr-2" />
               Resolve Ticket
             </Button>
           )}
@@ -426,9 +420,6 @@ export function TicketChatbot({
         <DialogContent className="bg-gray-900 border-gray-700 text-white">
           <DialogHeader>
             <DialogTitle className="text-white">Confirm to Resolve the Tickets?</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              This will mark the ticket as resolved and disable further chat messages. This action cannot be undone.
-            </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button

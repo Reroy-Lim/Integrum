@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function POST(request: NextRequest, { params }: { params: { key: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ key: string }> }) {
   try {
-    const ticketKey = params.key
+    const { key: ticketKey } = await params
 
     if (!ticketKey) {
       return NextResponse.json({ error: "Ticket key is required" }, { status: 400 })
