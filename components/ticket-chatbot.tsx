@@ -3,7 +3,7 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Headset, CheckCircle } from "lucide-react"
+import { Send, Bot, User, Headset } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import {
   AlertDialog,
@@ -287,7 +287,17 @@ export function TicketChatbot({
               disabled={isResolving}
               className="ml-2 bg-transparent hover:bg-green-500/10 border border-green-500 text-white hover:text-green-400 hover:border-green-400 text-sm px-3 py-1.5 h-auto flex items-center gap-1.5 transition-colors"
             >
-              <CheckCircle className="w-3.5 h-3.5 text-green-500 fill-green-500" />
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="flex-shrink-0"
+              >
+                <circle cx="12" cy="12" r="10" fill="#22c55e" />
+                <path d="M9 12l2 2 4-4" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
               {isResolving ? "Resolving..." : "Resolve Ticket"}
             </Button>
           )}
