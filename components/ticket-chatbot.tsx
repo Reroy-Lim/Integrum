@@ -7,6 +7,7 @@ import { Send, Bot, User, Headset, CheckCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import Image from "next/image"
 
 interface ChatMessage {
   id: string
@@ -253,9 +254,9 @@ export function TicketChatbot({
             <Button
               onClick={() => setShowResolveDialog(true)}
               size="sm"
-              className="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="ml-2 bg-green-600 hover:bg-green-700 text-white"
             >
-              <CheckCircle className="w-4 h-4 mr-2" />
+              <Image src="/checkmark-icon.png" alt="Checkmark" width={16} height={16} className="mr-2" />
               Resolve Ticket
             </Button>
           )}
