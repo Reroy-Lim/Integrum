@@ -31,6 +31,7 @@ interface TicketChatbotProps {
   solutionsSections?: string
   currentUserEmail: string
   isMasterAccount: boolean
+  ticketStatus?: string
 }
 
 export function TicketChatbot({
@@ -40,6 +41,7 @@ export function TicketChatbot({
   solutionsSections,
   currentUserEmail,
   isMasterAccount,
+  ticketStatus,
 }: TicketChatbotProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -47,9 +49,9 @@ export function TicketChatbot({
   const [isSending, setIsSending] = useState(false)
   const [showResolveDialog, setShowResolveDialog] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -77,6 +79,7 @@ export function TicketChatbot({
   useEffect(() => {
     loadMessages()
 
+    // Poll for new messages every 5 seconds
     pollingIntervalRef.current = setInterval(() => {
       loadMessages()
     }, 5000)
@@ -88,22 +91,13 @@ export function TicketChatbot({
     }
   }, [ticketKey])
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    setSelectedFiles((prev) => [...prev, ...files])
-  }
-
-  const handleRemoveFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if ((!input.trim() && selectedFiles.length === 0) || isSending) return
+    if ((!input.trim() && selectedFiles.length === 0) || isSending || isResolved) return
 
     const messageText = input.trim()
+    const filesToSend = [...selectedFiles]
     setInput("")
-    const filesToSend = selectedFiles
     setSelectedFiles([])
     setIsSending(true)
 
@@ -115,15 +109,20 @@ export function TicketChatbot({
         filesCount: filesToSend.length,
       })
 
+      const formData = new FormData()
+      formData.append("ticketKey", ticketKey)
+      formData.append("userEmail", currentUserEmail)
+      formData.append("message", messageText)
+      formData.append("role", isMasterAccount ? "support" : "user")
+
+      filesToSend.forEach((file, index) => {
+        formData.append(`file_${index}`, file)
+      })
+      formData.append("fileCount", filesToSend.length.toString())
+
       const response = await fetch("/api/chat-messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ticketKey,
-          userEmail: currentUserEmail,
-          message: messageText || `[${filesToSend.length} file(s) attached]`,
-          role: isMasterAccount ? "support" : "user",
-        }),
+        body: formData,
       })
 
       if (!response.ok) {
@@ -141,6 +140,24 @@ export function TicketChatbot({
     } finally {
       setIsSending(false)
     }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...files])
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click()
   }
 
   const formatSolutions = (solutions: string) => {
@@ -224,6 +241,7 @@ export function TicketChatbot({
   const handleResolveTicket = async () => {
     try {
       console.log("[v0] Resolving ticket:", ticketKey)
+      // TODO: Implement actual resolve ticket API call
       // const response = await fetch(`/api/tickets/${ticketKey}/resolve`, {
       //   method: 'POST',
       // })
@@ -237,6 +255,8 @@ export function TicketChatbot({
     }
   }
 
+  const isResolved = ticketStatus?.toLowerCase().includes("resolved") || ticketStatus?.toLowerCase().includes("done")
+
   return (
     <>
       <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
@@ -244,29 +264,51 @@ export function TicketChatbot({
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
           <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
-          <button
-            onClick={() => setShowResolveDialog(true)}
-            className="ml-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-md border border-green-500/30 flex items-center gap-2 transition-colors"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4"
+          {isResolved ? (
+            <div className="ml-2 px-3 py-1.5 bg-cyan-500 rounded-md flex items-center gap-2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+              >
+                <path
+                  d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="text-white text-sm font-medium">Resolved</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowResolveDialog(true)}
+              className="ml-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-md border border-green-500/30 flex items-center gap-2 transition-colors"
             >
-              <circle cx="12" cy="12" r="10" fill="#22C55E" />
-              <path
-                d="M7 12L10.5 15.5L17 9"
-                stroke="#000000"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span className="text-white text-sm">Resolve Ticket</span>
-          </button>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+              >
+                <circle cx="12" cy="12" r="10" fill="#22C55E" />
+                <path
+                  d="M7 12L10.5 15.5L17 9"
+                  stroke="#000000"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="text-white text-sm">Resolve Ticket</span>
+            </button>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -389,19 +431,49 @@ export function TicketChatbot({
           <div ref={messagesEndRef} />
         </div>
 
+        {isResolved && (
+          <div className="mx-4 mb-4 p-4 bg-green-900/30 border border-green-500/50 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6 flex-shrink-0 mt-0.5"
+              >
+                <path
+                  d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                  stroke="#22C55E"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <div className="flex-1">
+                <h4 className="text-green-400 font-semibold mb-1">This ticket has been Resolved</h4>
+                <p className="text-green-300 text-sm leading-relaxed">
+                  If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
+                  Our live agent will get back to you asap!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
           {selectedFiles.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
               {selectedFiles.map((file, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm"
+                  className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm"
                 >
                   <File className="w-4 h-4 text-blue-400" />
                   <span className="text-blue-300 max-w-[150px] truncate">{file.name}</span>
                   <button
                     type="button"
-                    onClick={() => handleRemoveFile(index)}
+                    onClick={() => removeFile(index)}
                     className="text-gray-400 hover:text-red-400 transition-colors"
                   >
                     <X className="w-4 h-4" />
@@ -418,15 +490,15 @@ export function TicketChatbot({
               multiple
               onChange={handleFileSelect}
               className="hidden"
-              accept="image/*,.pdf,.doc,.docx,.txt"
+              accept="*/*"
             />
 
             <Button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isSending}
-              className="bg-gray-800 hover:bg-gray-700 text-blue-400 border border-gray-700"
-              size="icon"
+              onClick={handleAttachClick}
+              disabled={isSending || isResolved}
+              variant="outline"
+              className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Paperclip className="w-4 h-4" />
             </Button>
@@ -434,14 +506,26 @@ export function TicketChatbot({
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
-              disabled={isSending}
-              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
+              placeholder={
+                isResolved
+                  ? "This ticket has been resolved"
+                  : isMasterAccount
+                    ? "Type your response... (Shift+Enter for new line)"
+                    : "Type your message... (Shift+Enter for new line)"
+              }
+              disabled={isSending || isResolved}
+              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && !isResolved) {
+                  e.preventDefault()
+                  handleSubmit(e)
+                }
+              }}
             />
             <Button
               type="submit"
-              disabled={(!input.trim() && selectedFiles.length === 0) || isSending}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={(!input.trim() && selectedFiles.length === 0) || isSending || isResolved}
+              className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
             </Button>

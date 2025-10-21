@@ -1118,29 +1118,7 @@ export default function IntegrumPortal() {
                           <div
                             className={`flex items-center justify-between text-xl font-semibold text-white border-b-2 border-border pb-2 px-4 py-3 rounded-t-xl ${category.color} shadow-lg`}
                           >
-                            {category.name === "Resolved" ? (
-                              <div className="flex items-center gap-2">
-                                <svg
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <circle cx="12" cy="12" r="10" fill="#22C55E" />
-                                  <path
-                                    d="M7 12L10.5 15.5L17 9"
-                                    stroke="#FFFFFF"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <h3>{category.name}</h3>
-                              </div>
-                            ) : (
-                              <h3>{category.name}</h3>
-                            )}
+                            <h3>{category.name}</h3>
                           </div>
 
                           <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">

@@ -93,18 +93,7 @@ export default function TicketDetailPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "Resolved":
-        return (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="#22C55E" />
-            <path
-              d="M7 12L10.5 15.5L17 9"
-              stroke="#FFFFFF"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )
+        return <CheckCircle className="w-4 h-4 text-green-500" />
       case "In Progress":
         return <Clock className="w-4 h-4 text-blue-500" />
       case "Awaiting Reply":
