@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Loader2, Mail, AlertCircle } from "@/components/icons"
+import Image from "next/image"
 import {
   Zap,
   Home,
@@ -1129,9 +1130,20 @@ export default function IntegrumPortal() {
                                   className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300"
                                 >
                                   <CardHeader className="pb-3">
-                                    <CardTitle className="text-sm text-foreground line-clamp-2">
-                                      {ticket.summary}
-                                    </CardTitle>
+                                    <div className="flex items-start justify-between gap-2">
+                                      <CardTitle className="text-sm text-foreground line-clamp-2 flex-1">
+                                        {ticket.summary}
+                                      </CardTitle>
+                                      {(category.name === "Pending Reply" || category.name === "In Progress") && (
+                                        <Image
+                                          src="/checkmark-icon.png"
+                                          alt="Status indicator"
+                                          width={24}
+                                          height={24}
+                                          className="flex-shrink-0"
+                                        />
+                                      )}
+                                    </div>
                                     <CardDescription className="text-xs text-foreground/60">
                                       {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
                                     </CardDescription>
