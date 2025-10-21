@@ -222,7 +222,7 @@ export function TicketChatbot({
         <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
         <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
         <button className="ml-2 px-3 py-1.5 bg-transparent hover:bg-green-500/10 rounded-md border-2 border-green-500 flex items-center gap-2 transition-colors">
-          <CheckCircle className="w-4 h-4 text-green-500" />
+          <CheckCircle className="w-4 h-4 text-green-500 fill-green-500" />
           <span className="text-white text-sm">Resolve Ticket</span>
         </button>
       </div>
