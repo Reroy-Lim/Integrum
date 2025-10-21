@@ -405,12 +405,11 @@ export default function JiraTicketDetailPage() {
 
   const handleResolveTicket = async () => {
     console.log("[v0] Refreshing ticket data after resolve")
-    await new Promise((resolve) => setTimeout(resolve, 2000))
     await fetchTicket()
-    // Redirect to Your Tickets page after refresh
+    // Optionally redirect to Your Tickets page
     setTimeout(() => {
       router.push("/?view=yourTickets")
-    }, 1000)
+    }, 1500)
   }
 
   if (isLoading) {

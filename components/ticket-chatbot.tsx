@@ -51,7 +51,6 @@ export function TicketChatbot({
   const [isSending, setIsSending] = useState(false)
   const [showResolveDialog, setShowResolveDialog] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
-  const [localIsResolved, setLocalIsResolved] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -92,15 +91,6 @@ export function TicketChatbot({
       }
     }
   }, [ticketKey])
-
-  useEffect(() => {
-    const resolved =
-      ticketStatus &&
-      (ticketStatus.toLowerCase().includes("resolved") ||
-        ticketStatus.toLowerCase().includes("done") ||
-        ticketStatus.toLowerCase().includes("closed"))
-    setLocalIsResolved(!!resolved)
-  }, [ticketStatus])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -239,32 +229,19 @@ export function TicketChatbot({
 
   const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
 
-  console.log("[v0] ===== TICKET STATUS DEBUG =====")
-  console.log("[v0] Ticket key:", ticketKey)
-  console.log("[v0] Ticket status (raw):", ticketStatus)
-  console.log("[v0] Ticket status type:", typeof ticketStatus)
-  console.log("[v0] Ticket status lowercase:", ticketStatus?.toLowerCase())
-  console.log("[v0] Includes 'resolved':", ticketStatus?.toLowerCase().includes("resolved"))
-  console.log("[v0] Includes 'done':", ticketStatus?.toLowerCase().includes("done"))
-  console.log("[v0] Includes 'closed':", ticketStatus?.toLowerCase().includes("closed"))
-  console.log("[v0] ================================")
-
-  const showResolveButton =
-    !localIsResolved &&
+  const isResolved =
     ticketStatus &&
-    !ticketStatus.toLowerCase().includes("resolved") &&
-    !ticketStatus.toLowerCase().includes("done") &&
-    !ticketStatus.toLowerCase().includes("closed")
+    (ticketStatus.toLowerCase().includes("resolved") ||
+      ticketStatus.toLowerCase().includes("done") ||
+      ticketStatus.toLowerCase().includes("closed"))
 
-  const isResolved = localIsResolved
+  const showResolveButton = ticketStatus && !isResolved
 
   const handleResolveTicket = async () => {
     setIsResolving(true)
     setShowResolveDialog(false)
 
     try {
-      console.log("[v0] Resolving ticket:", ticketKey)
-
       const response = await fetch(`/api/jira/ticket/${ticketKey}/resolve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -274,13 +251,12 @@ export function TicketChatbot({
         throw new Error("Failed to resolve ticket")
       }
 
-      console.log("[v0] Ticket resolved successfully")
-
-      setLocalIsResolved(true)
-
+      // Call the parent callback to refresh ticket data
       onResolveTicket?.()
+
+      alert("Ticket has been resolved successfully!")
     } catch (error) {
-      console.error("[v0] Error resolving ticket:", error)
+      console.error("Error resolving ticket:", error)
       alert("Failed to resolve ticket. Please try again.")
     } finally {
       setIsResolving(false)
@@ -303,10 +279,7 @@ export function TicketChatbot({
 
           {showResolveButton && (
             <Button
-              onClick={() => {
-                console.log("[v0] Resolve button clicked")
-                setShowResolveDialog(true)
-              }}
+              onClick={() => setShowResolveDialog(true)}
               disabled={isResolving}
               className="ml-2 bg-transparent hover:bg-green-500/10 border border-green-500 text-white hover:text-green-400 hover:border-green-400 text-sm px-3 py-1.5 h-auto flex items-center gap-1.5 transition-colors"
             >
