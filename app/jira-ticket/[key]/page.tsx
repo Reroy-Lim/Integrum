@@ -22,30 +22,30 @@ export default function JiraTicketDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchTicket = async () => {
-    if (!ticketKey) return
-
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch(`/api/jira/ticket/${ticketKey}`)
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ticket: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      setTicket(data.ticket)
-    } catch (error) {
-      console.error("Error fetching ticket:", error)
-      setError(error instanceof Error ? error.message : "Failed to fetch ticket")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   useEffect(() => {
+    const fetchTicket = async () => {
+      if (!ticketKey) return
+
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const response = await fetch(`/api/jira/ticket/${ticketKey}`)
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ticket: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        setTicket(data.ticket)
+      } catch (error) {
+        console.error("Error fetching ticket:", error)
+        setError(error instanceof Error ? error.message : "Failed to fetch ticket")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     fetchTicket()
   }, [ticketKey])
 
@@ -403,14 +403,6 @@ export default function JiraTicketDetailPage() {
     }
   }
 
-  const handleResolveTicket = async () => {
-    console.log("[v0] Refreshing ticket data after resolve")
-    await fetchTicket()
-    setTimeout(() => {
-      router.push("/?view=yourTickets")
-    }, 1500)
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -451,11 +443,6 @@ export default function JiraTicketDetailPage() {
   const cleanedDescription = cleanDescription(ticket.description || "", isMasterAccount)
   const solutionsSections = extractSolutionsSections(cleanedDescription)
   const displayDescription = removeSolutionsSections(cleanedDescription)
-  const isTicketResolved =
-    ticket.status &&
-    (ticket.status.name.toLowerCase().includes("resolved") ||
-      ticket.status.name.toLowerCase().includes("done") ||
-      ticket.status.name.toLowerCase().includes("closed"))
 
   return (
     <div className="min-h-screen bg-black">
@@ -477,8 +464,7 @@ export default function JiraTicketDetailPage() {
                     <Badge variant="outline" className="text-blue-400 border-blue-400">
                       {ticket.key}
                     </Badge>
-                    {isTicketResolved && <Badge className="bg-blue-500 text-white ml-auto">Resolved</Badge>}
-                    {isMasterAccount && !isTicketResolved && (
+                    {isMasterAccount && (
                       <Badge className={`${getStatusColor(ticket.status.name)} text-white`}>{ticket.status.name}</Badge>
                     )}
                     {isMasterAccount && (
@@ -601,16 +587,11 @@ export default function JiraTicketDetailPage() {
                     View in Jira
                   </Button>
                 )}
-                {isMasterAccount && (
-                  <Button onClick={handleResolveTicket} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
-                    Resolve Ticket
-                  </Button>
-                )}
               </div>
             </CardContent>
           </Card>
 
-          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+          <div className="lg:sticky lg:top-6 lg:self-start">
             <TicketChatbot
               ticketKey={ticket.key}
               ticketTitle={ticket.summary}
@@ -618,40 +599,7 @@ export default function JiraTicketDetailPage() {
               solutionsSections={solutionsSections}
               currentUserEmail={userEmail}
               isMasterAccount={isMasterAccount}
-              ticketStatus={ticket.status.name}
-              onResolveTicket={handleResolveTicket}
             />
-
-            {isTicketResolved && (
-              <div className="bg-green-900/30 border-2 border-green-500/50 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="flex-shrink-0 mt-0.5"
-                  >
-                    <circle cx="12" cy="12" r="10" fill="#22c55e" />
-                    <path
-                      d="M9 12l2 2 4-4"
-                      stroke="#000000"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <div className="flex-1">
-                    <h4 className="text-green-400 font-bold text-base mb-2">This ticket has been Resolved</h4>
-                    <p className="text-green-300 text-sm leading-relaxed">
-                      If you wish to continue, Please resubmit another ticket and provide the ticket number inside the
-                      chat. Our live agent will get back to you asap!
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </section>

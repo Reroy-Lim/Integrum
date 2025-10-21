@@ -28,7 +28,6 @@ import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialo
 import { useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import type { JiraTicket } from "@/lib/jira-api"
-import { Badge } from "@/components/ui/badge"
 
 const SnowAnimation = () => {
   const snowflakes = Array.from({ length: 50 }, (_, i) => (
@@ -1130,33 +1129,9 @@ export default function IntegrumPortal() {
                                   className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300"
                                 >
                                   <CardHeader className="pb-3">
-                                    <div className="flex items-start justify-between mb-2">
-                                      <CardTitle className="text-sm text-foreground line-clamp-2 flex-1">
-                                        Ticket No: {ticket.key} - Title: {ticket.summary}
-                                      </CardTitle>
-                                      {category.name === "Resolved" && (
-                                        <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                                          <svg
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="flex-shrink-0"
-                                          >
-                                            <circle cx="12" cy="12" r="10" fill="#22c55e" />
-                                            <path
-                                              d="M9 12l2 2 4-4"
-                                              stroke="#000000"
-                                              strokeWidth="2"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                            />
-                                          </svg>
-                                          <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Resolved</Badge>
-                                        </div>
-                                      )}
-                                    </div>
+                                    <CardTitle className="text-sm text-foreground line-clamp-2">
+                                      {ticket.summary}
+                                    </CardTitle>
                                     <CardDescription className="text-xs text-foreground/60">
                                       {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
                                     </CardDescription>
