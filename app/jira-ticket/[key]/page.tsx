@@ -207,13 +207,15 @@ export default function JiraTicketDetailPage() {
             }
           })
         } else if (contentAfterHeader) {
-          const numberedItemsMatch = contentAfterHeader.match(/\d+[.)]/g)
+          // Check if there are multiple complete numbered items (number followed by text)
+          const numberedItemsMatch = contentAfterHeader.match(/\d+[.)]\s+\S+/g)
           if (numberedItemsMatch && numberedItemsMatch.length > 1) {
             // Multiple numbered items on the same line - split them
             const splitItems = contentAfterHeader.split(/(?=\d+[.)])/)
             splitItems.forEach((item) => {
               const trimmedItem = item.trim()
-              if (trimmedItem) {
+              // Only add items that have content after the number (not just "1." or "4")
+              if (trimmedItem && /\d+[.)]\s+\S+/.test(trimmedItem)) {
                 currentSection.content.push(trimmedItem)
               }
             })
@@ -223,13 +225,14 @@ export default function JiraTicketDetailPage() {
           }
         }
       } else {
-        const numberedItemsMatch = trimmedLine.match(/\d+[.)]/g)
+        const numberedItemsMatch = trimmedLine.match(/\d+[.)]\s+\S+/g)
         if (numberedItemsMatch && numberedItemsMatch.length > 1) {
           // Multiple numbered items on the same line - split them
           const splitItems = trimmedLine.split(/(?=\d+[.)])/)
           splitItems.forEach((item) => {
             const trimmedItem = item.trim()
-            if (trimmedItem) {
+            // Only add items that have content after the number (not just "1." or "4")
+            if (trimmedItem && /\d+[.)]\s+\S+/.test(trimmedItem)) {
               currentSection.content.push(trimmedItem)
             }
           })
