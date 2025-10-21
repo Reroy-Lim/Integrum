@@ -47,6 +47,7 @@ export function TicketChatbot({
   const [isSending, setIsSending] = useState(false)
   const [showResolveDialog, setShowResolveDialog] = useState(false)
   const [isResolved, setIsResolved] = useState(false)
+  const [isResolving, setIsResolving] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -73,25 +74,39 @@ export function TicketChatbot({
     }
   }
 
+  const checkTicketStatus = async () => {
+    try {
+      const response = await fetch(`/api/jira/ticket/${ticketKey}`)
+      if (response.ok) {
+        const data = await response.json()
+        const status = data.ticket?.status?.name?.toLowerCase() || ""
+        const isTicketResolved = status.includes("done") || status.includes("resolved") || status.includes("closed")
+        setIsResolved(isTicketResolved)
+      }
+    } catch (error) {
+      console.error("[v0] Error checking ticket status:", error)
+    }
+  }
+
   useEffect(() => {
     loadMessages()
+    checkTicketStatus()
 
-    if (!isResolved) {
-      pollingIntervalRef.current = setInterval(() => {
-        loadMessages()
-      }, 5000)
-    }
+    pollingIntervalRef.current = setInterval(() => {
+      loadMessages()
+      checkTicketStatus()
+    }, 5000)
 
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current)
       }
     }
-  }, [ticketKey, isResolved])
+  }, [ticketKey])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isSending) return
+    if (!input.trim() || isSending || isResolved) return
 
     const messageText = input.trim()
     setInput("")
@@ -211,27 +226,28 @@ export function TicketChatbot({
 
   const handleResolveTicket = async () => {
     try {
+      setIsResolving(true)
       console.log("[v0] Resolving ticket:", ticketKey)
-      const response = await fetch(`/api/jira/ticket/${ticketKey}/transition`, {
+
+      const response = await fetch(`/api/jira/ticket/${ticketKey}/resolve`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transitionName: "Done" }),
       })
 
       if (!response.ok) {
-        throw new Error("Failed to resolve ticket")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to resolve ticket")
       }
 
       console.log("[v0] Ticket resolved successfully")
       setShowResolveDialog(false)
       setIsResolved(true)
 
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-      }
+      await checkTicketStatus()
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
-      alert("Failed to resolve ticket. Please try again.")
+      alert(error instanceof Error ? error.message : "Failed to resolve ticket. Please try again.")
+    } finally {
+      setIsResolving(false)
     }
   }
 
@@ -244,7 +260,6 @@ export function TicketChatbot({
           <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
           {isResolved ? (
             <div className="ml-2 px-3 py-1.5 bg-cyan-500 rounded-md flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-white" />
               <span className="text-white text-sm font-medium">Resolved</span>
             </div>
           ) : (
@@ -394,39 +409,43 @@ export function TicketChatbot({
           <div ref={messagesEndRef} />
         </div>
 
-        {isResolved ? (
-          <div className="p-4 border-t border-gray-700">
-            <div className="bg-green-900/30 border border-green-500/50 rounded-lg p-4 flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-green-400 font-semibold mb-1">This ticket has been Resolved</h4>
-                <p className="text-green-300/80 text-sm leading-relaxed">
-                  If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
-                  Our live agent will get back to you asap!
-                </p>
-              </div>
+        {isResolved && (
+          <div className="mx-4 mb-4 p-4 bg-green-900/30 border border-green-500 rounded-lg flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-green-400 font-semibold mb-1">This ticket has been Resolved</p>
+              <p className="text-green-300 text-sm leading-relaxed">
+                If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
+                Our live agent will get back to you asap!
+              </p>
             </div>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
-            <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
-                disabled={isSending}
-                className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
-              />
-              <Button
-                type="submit"
-                disabled={!input.trim() || isSending}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-          </form>
         )}
+
+        <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                isResolved
+                  ? "This ticket is resolved"
+                  : isMasterAccount
+                    ? "Type your response..."
+                    : "Type your message..."
+              }
+              disabled={isSending || isResolved}
+              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50 disabled:opacity-50"
+            />
+            <Button
+              type="submit"
+              disabled={!input.trim() || isSending || isResolved}
+              className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        </form>
       </div>
 
       <Dialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
@@ -448,12 +467,17 @@ export function TicketChatbot({
             <Button
               variant="outline"
               onClick={() => setShowResolveDialog(false)}
+              disabled={isResolving}
               className="bg-transparent border-gray-600 text-white hover:bg-gray-700 px-6"
             >
               Cancel
             </Button>
-            <Button onClick={handleResolveTicket} className="bg-cyan-500 hover:bg-cyan-600 text-white px-6">
-              Confirm
+            <Button
+              onClick={handleResolveTicket}
+              disabled={isResolving}
+              className="bg-cyan-500 hover:bg-cyan-600 text-white px-6"
+            >
+              {isResolving ? "Resolving..." : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>

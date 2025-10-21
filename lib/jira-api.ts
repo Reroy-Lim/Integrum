@@ -232,59 +232,77 @@ export class JiraApiClient {
     }
   }
 
-  async transitionIssue(issueKey: string, transitionName = "Done"): Promise<boolean> {
+  async getTransitions(ticketKey: string): Promise<any[]> {
     try {
-      // First, get available transitions for this issue
-      const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${issueKey}/transitions`, {
+      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
         method: "GET",
         headers: this.getAuthHeaders(),
       })
 
-      if (!transitionsResponse.ok) {
-        throw new Error(`Failed to fetch transitions: ${transitionsResponse.statusText}`)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch transitions: ${response.statusText}`)
       }
 
-      const transitionsData = await transitionsResponse.json()
-      const transitions = transitionsData.transitions || []
+      const data = await response.json()
+      return data.transitions || []
+    } catch (error) {
+      console.error("Error fetching transitions:", error)
+      return []
+    }
+  }
 
-      // Find the transition that matches "Done", "Resolved", or the provided name
-      const targetTransition = transitions.find(
-        (t: any) =>
-          t.name.toLowerCase() === transitionName.toLowerCase() ||
-          t.name.toLowerCase() === "done" ||
-          t.name.toLowerCase() === "resolved",
-      )
-
-      if (!targetTransition) {
-        console.error(
-          "[v0] Available transitions:",
-          transitions.map((t: any) => t.name),
-        )
-        throw new Error(`Transition "${transitionName}" not found for issue ${issueKey}`)
-      }
-
-      console.log("[v0] Transitioning issue", issueKey, "to", targetTransition.name, "with ID", targetTransition.id)
-
-      // Execute the transition
-      const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${issueKey}/transitions`, {
+  async transitionTicket(ticketKey: string, transitionId: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
         method: "POST",
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
           transition: {
-            id: targetTransition.id,
+            id: transitionId,
           },
         }),
       })
 
-      if (!transitionResponse.ok) {
-        const errorText = await transitionResponse.text()
-        throw new Error(`Failed to transition issue: ${transitionResponse.statusText} - ${errorText}`)
+      if (!response.ok) {
+        throw new Error(`Failed to transition ticket: ${response.statusText}`)
       }
 
-      console.log("[v0] Successfully transitioned issue", issueKey, "to", targetTransition.name)
       return true
     } catch (error) {
-      console.error("[v0] Error transitioning issue:", error)
+      console.error("Error transitioning ticket:", error)
+      return false
+    }
+  }
+
+  async resolveTicket(ticketKey: string): Promise<boolean> {
+    try {
+      // First, get available transitions
+      const transitions = await this.getTransitions(ticketKey)
+      console.log("[v0] Available transitions:", transitions)
+
+      // Find the "Done" transition (common names: "Done", "Resolve", "Close")
+      const doneTransition = transitions.find(
+        (t) =>
+          t.name.toLowerCase() === "done" ||
+          t.name.toLowerCase() === "resolve" ||
+          t.name.toLowerCase() === "close" ||
+          t.name.toLowerCase() === "resolved",
+      )
+
+      if (!doneTransition) {
+        console.error(
+          "[v0] No 'Done' transition found. Available transitions:",
+          transitions.map((t) => t.name),
+        )
+        throw new Error("No 'Done' transition available for this ticket")
+      }
+
+      console.log("[v0] Using transition:", doneTransition.name, "ID:", doneTransition.id)
+
+      // Transition the ticket
+      return await this.transitionTicket(ticketKey, doneTransition.id)
+    } catch (error) {
+      console.error("Error resolving ticket:", error)
       return false
     }
   }
