@@ -246,59 +246,84 @@ export default function JiraTicketDetailPage() {
 
     return (
       <div className="space-y-6 text-gray-100">
-        {sections.map((section, idx) => (
-          <div key={idx}>
-            {section.header && (
-              <h4 className="font-bold text-white text-base leading-relaxed mb-3">{section.header}</h4>
-            )}
-            {section.content.length > 0 && (
-              <div className="space-y-3">
-                {section.content.map((line, lineIdx) => {
-                  const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
-                  const numberedMatch = line.match(/^(\d+)[.)]\s*(.+?)(?=\s*\d+[.)]|$)/)
+        {sections.map((section, idx) => {
+          const isStepsToReproduce = section.header?.toLowerCase().includes("steps to reproduce")
 
-                  if (bulletMatch) {
-                    return (
-                      <div key={lineIdx} className="flex items-start space-x-3 ml-4">
-                        <span className="text-gray-400 mt-1 select-none">•</span>
-                        <p className="text-gray-300 flex-1 leading-relaxed">{bulletMatch[1]}</p>
-                      </div>
-                    )
-                  }
+          const sequentialItems: string[] = []
+          if (isStepsToReproduce) {
+            section.content.forEach((line) => {
+              const numberedMatch = line.match(/^(\d+)[.)]\s*(.+)/)
+              if (numberedMatch) {
+                const content = numberedMatch[2].trim()
+                // Only include items with meaningful content
+                if (content && !/^[\d\s.,;:!?()-]*$/.test(content)) {
+                  sequentialItems.push(content)
+                }
+              }
+            })
+          }
 
-                  if (numberedMatch) {
-                    const content = numberedMatch[2].trim()
-                    if (!content || /^[\d\s.,;:!?()-]*$/.test(content)) {
-                      return null
-                    }
+          return (
+            <div key={idx}>
+              {section.header && (
+                <h4 className="font-bold text-white text-base leading-relaxed mb-3">{section.header}</h4>
+              )}
+              {section.content.length > 0 && (
+                <div className="space-y-3">
+                  {isStepsToReproduce
+                    ? sequentialItems.map((content, itemIdx) => (
+                        <div key={itemIdx} className="flex items-start space-x-3 ml-4 mb-3">
+                          <span className="text-gray-400 mt-1 select-none font-medium">{itemIdx + 1}.</span>
+                          <p className="text-gray-300 flex-1 leading-relaxed">{content}</p>
+                        </div>
+                      ))
+                    : section.content.map((line, lineIdx) => {
+                        const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
+                        const numberedMatch = line.match(/^(\d+)[.)]\s*(.+?)(?=\s*\d+[.)]|$)/)
 
-                    return (
-                      <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-3">
-                        <span className="text-gray-400 mt-1 select-none">•</span>
-                        <p className="text-gray-300 flex-1 leading-relaxed">{content}</p>
-                      </div>
-                    )
-                  }
+                        if (bulletMatch) {
+                          return (
+                            <div key={lineIdx} className="flex items-start space-x-3 ml-4">
+                              <span className="text-gray-400 mt-1 select-none">•</span>
+                              <p className="text-gray-300 flex-1 leading-relaxed">{bulletMatch[1]}</p>
+                            </div>
+                          )
+                        }
 
-                  const keyValueMatch = line.match(/^([^:]+):\s*(.+)/)
-                  if (keyValueMatch && section.header?.toLowerCase().includes("additional details")) {
-                    return (
-                      <p key={lineIdx} className="text-gray-300 leading-relaxed">
-                        <span className="font-medium text-gray-200">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
-                      </p>
-                    )
-                  }
+                        if (numberedMatch) {
+                          const content = numberedMatch[2].trim()
+                          if (!content || /^[\d\s.,;:!?()-]*$/.test(content)) {
+                            return null
+                          }
 
-                  return (
-                    <p key={lineIdx} className="text-gray-300 leading-relaxed">
-                      {line}
-                    </p>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+                          return (
+                            <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-3">
+                              <span className="text-gray-400 mt-1 select-none">•</span>
+                              <p className="text-gray-300 flex-1 leading-relaxed">{content}</p>
+                            </div>
+                          )
+                        }
+
+                        const keyValueMatch = line.match(/^([^:]+):\s*(.+)/)
+                        if (keyValueMatch && section.header?.toLowerCase().includes("additional details")) {
+                          return (
+                            <p key={lineIdx} className="text-gray-300 leading-relaxed">
+                              <span className="font-medium text-gray-200">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
+                            </p>
+                          )
+                        }
+
+                        return (
+                          <p key={lineIdx} className="text-gray-300 leading-relaxed">
+                            {line}
+                          </p>
+                        )
+                      })}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     )
   }
