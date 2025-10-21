@@ -267,10 +267,16 @@ export default function JiraTicketDetailPage() {
                   }
 
                   if (numberedMatch) {
+                    const content = numberedMatch[2].trim()
+                    // Skip if content is empty or only contains numbers and punctuation
+                    if (!content || /^[\d\s.,;:!?()-]*$/.test(content)) {
+                      return null
+                    }
+
                     return (
                       <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
                         <span className="text-gray-400 mt-1 select-none text-lg">•</span>
-                        <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
+                        <p className="text-gray-300 flex-1 leading-relaxed">{content}</p>
                       </div>
                     )
                   }
