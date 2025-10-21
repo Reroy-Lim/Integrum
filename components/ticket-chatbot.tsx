@@ -243,7 +243,7 @@ export function TicketChatbot({
               console.log("[v0] Resolve button clicked")
               onResolveTicket?.()
             }}
-            className="ml-2 bg-cyan-500 hover:bg-cyan-600 text-white text-sm px-3 py-1.5 h-auto flex items-center gap-1.5"
+            className="ml-2 bg-transparent hover:bg-green-500/10 border border-green-500 text-green-500 hover:text-green-400 hover:border-green-400 text-sm px-3 py-1.5 h-auto flex items-center gap-1.5 transition-colors"
           >
             <CheckCircle2 className="w-4 h-4" />
             Resolve Ticket
