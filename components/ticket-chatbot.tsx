@@ -219,11 +219,16 @@ export function TicketChatbot({
 
   const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
 
+  console.log("[v0] Ticket status:", ticketStatus)
+  console.log("[v0] Ticket status lowercase:", ticketStatus?.toLowerCase())
+
   const showResolveButton =
     ticketStatus &&
-    (ticketStatus.toLowerCase().includes("progress") ||
-      ticketStatus.toLowerCase().includes("pending") ||
-      ticketStatus.toLowerCase().includes("waiting"))
+    !ticketStatus.toLowerCase().includes("resolved") &&
+    !ticketStatus.toLowerCase().includes("done") &&
+    !ticketStatus.toLowerCase().includes("closed")
+
+  console.log("[v0] Show resolve button:", showResolveButton)
 
   return (
     <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
@@ -234,10 +239,13 @@ export function TicketChatbot({
 
         {showResolveButton && (
           <Button
-            onClick={onResolveTicket}
-            className="ml-2 bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 h-auto"
+            onClick={() => {
+              console.log("[v0] Resolve button clicked")
+              onResolveTicket?.()
+            }}
+            className="ml-2 bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 h-auto flex items-center gap-1.5"
           >
-            <CheckCircle2 className="w-4 h-4 mr-1.5" />
+            <CheckCircle2 className="w-4 h-4" />
             Resolve Ticket
           </Button>
         )}
