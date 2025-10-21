@@ -308,7 +308,7 @@ export default function JiraTicketDetailPage() {
     if (statusLower.includes("progress") || statusLower.includes("development")) {
       return "bg-yellow-500"
     }
-    if (statusLower.includes("done") || statusLower.includes("resolved") || statusLower === "closed") {
+    if (statusLower.includes("done") || statusLower.includes("resolved")) {
       return "bg-green-500"
     }
     if (statusLower.includes("waiting") || statusLower.includes("pending")) {

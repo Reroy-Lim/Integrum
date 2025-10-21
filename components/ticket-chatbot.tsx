@@ -42,15 +42,31 @@ export function TicketChatbot({
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [isResolved, setIsResolved] = useState(() => {
-    if (!initialTicketStatus) return false
-    const statusLower = initialTicketStatus.toLowerCase()
-    return statusLower.includes("done") || statusLower.includes("resolved") || statusLower === "closed"
-  })
+
+  const checkIfResolved = (status?: string): boolean => {
+    if (!status) return false
+    const statusLower = status.toLowerCase().trim()
+    console.log("[v0] Checking ticket status:", status, "-> normalized:", statusLower)
+
+    // Check for common resolved status names
+    const resolvedStatuses = ["done", "resolved", "closed", "complete", "completed", "finished"]
+    const isResolved = resolvedStatuses.some((s) => statusLower.includes(s))
+
+    console.log("[v0] Is ticket resolved?", isResolved)
+    return isResolved
+  }
+
+  const [isResolved, setIsResolved] = useState(checkIfResolved(initialTicketStatus))
   const [showResolveDialog, setShowResolveDialog] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    const resolved = checkIfResolved(initialTicketStatus)
+    console.log("[v0] Ticket status updated, setting isResolved to:", resolved)
+    setIsResolved(resolved)
+  }, [initialTicketStatus])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -89,19 +105,6 @@ export function TicketChatbot({
     }
   }, [ticketKey])
 
-  useEffect(() => {
-    if (initialTicketStatus) {
-      const statusLower = initialTicketStatus.toLowerCase()
-      const resolved = statusLower.includes("done") || statusLower.includes("resolved") || statusLower === "closed"
-      console.log("[v0] Ticket status check:", {
-        initialTicketStatus,
-        statusLower,
-        resolved,
-      })
-      setIsResolved(resolved)
-    }
-  }, [initialTicketStatus])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || isSending) return
@@ -138,7 +141,7 @@ export function TicketChatbot({
     } catch (error) {
       console.error("[v0] Error sending message:", error)
       alert("Failed to send message. Please try again.")
-      setInput(messageText) // Restore the message
+      setInput(messageText)
     } finally {
       setIsSending(false)
     }
@@ -256,7 +259,7 @@ export function TicketChatbot({
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
           {isResolved ? (
-            <Badge className="ml-auto bg-green-600 text-white">
+            <Badge className="ml-auto bg-cyan-600 text-white">
               <CheckCircle className="w-3 h-3 mr-1" />
               Resolved
             </Badge>
@@ -414,7 +417,9 @@ export function TicketChatbot({
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
+                placeholder={
+                  isMasterAccount ? "Type your response..." : "Type your message... (Shift+Enter for new line)"
+                }
                 disabled={isSending}
                 className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
               />
