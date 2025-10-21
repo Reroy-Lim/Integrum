@@ -3,7 +3,7 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Headset, CheckCircle } from "lucide-react"
+import { Send, Bot, User, Headset, CheckCircle, Check } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
@@ -255,7 +255,7 @@ export function TicketChatbot({
               size="sm"
               className="ml-2 bg-green-600 hover:bg-green-700 text-white"
             >
-              <CheckCircle className="w-4 h-4 mr-2" />
+              <Check className="w-4 h-4 mr-1" />
               Resolve Ticket
             </Button>
           )}
