@@ -260,7 +260,7 @@ export function TicketChatbot({
               xmlns="http://www.w3.org/2000/svg"
               className="w-4 h-4"
             >
-              <circle cx="12" cy="12" r="10" fill="#5CB85C" />
+              <circle cx="12" cy="12" r="10" fill="#22C55E" />
               <path
                 d="M7 12L10.5 15.5L17 9"
                 stroke="#000000"
