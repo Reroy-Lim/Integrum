@@ -11,8 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Send, Bot, User, Headset, CheckCircle, X } from "lucide-react"
+import { Send, Bot, User, Headset, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
 
 interface ChatMessage {
   id: string
@@ -253,15 +254,17 @@ export function TicketChatbot({
             className="ml-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-md border border-green-500/30 flex items-center gap-2 transition-colors"
           >
             <div className="relative w-4 h-4">
-              <CheckCircle className="w-4 h-4 text-green-500 absolute inset-0" strokeWidth={2.5} />
-              <svg
-                className="w-4 h-4 absolute inset-0"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M9 12l2 2 4-4" stroke="black" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <Image
+                src="/resolve-ticket-icon.png"
+                alt="Resolve"
+                width={16}
+                height={16}
+                className="w-4 h-4"
+                style={{
+                  filter:
+                    "brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(100deg) brightness(95%) contrast(97%)",
+                }}
+              />
             </div>
             <span className="text-white text-sm">Resolve Ticket</span>
           </button>
