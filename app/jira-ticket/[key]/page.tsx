@@ -255,7 +255,7 @@ export default function JiraTicketDetailPage() {
               <div className="space-y-3">
                 {section.content.map((line, lineIdx) => {
                   const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
-                  const numberedMatch = line.match(/^(\d+)[.)]\s*(.+)/)
+                  const numberedMatch = line.match(/^(\d+)[.)]\s*(.+?)(?=\s*\d+[.)]|$)/)
 
                   if (bulletMatch) {
                     return (
