@@ -243,9 +243,9 @@ export function TicketChatbot({
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
           {isResolved ? (
-            <Badge className="ml-auto bg-cyan-500 text-white flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" />
-              Resolved
+            <Badge className="ml-auto bg-cyan-500 text-white flex items-center gap-1.5 px-3 py-1">
+              <Image src="/checkmark-blue.png" alt="Resolved" width={16} height={16} className="flex-shrink-0" />
+              <span>Resolved</span>
             </Badge>
           ) : (
             <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
