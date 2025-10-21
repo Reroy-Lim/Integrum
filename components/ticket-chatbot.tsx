@@ -229,7 +229,8 @@ export function TicketChatbot({
 
   const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
 
-  console.log("[v0] Ticket status:", ticketStatus)
+  console.log("[v0] Ticket status received:", ticketStatus)
+  console.log("[v0] Ticket status type:", typeof ticketStatus)
   console.log("[v0] Ticket status lowercase:", ticketStatus?.toLowerCase())
 
   const isTicketResolved =
@@ -239,6 +240,12 @@ export function TicketChatbot({
       ticketStatus.toLowerCase().includes("closed"))
 
   console.log("[v0] Is ticket resolved:", isTicketResolved)
+  console.log("[v0] Status check breakdown:", {
+    hasStatus: !!ticketStatus,
+    includesResolved: ticketStatus?.toLowerCase().includes("resolved"),
+    includesDone: ticketStatus?.toLowerCase().includes("done"),
+    includesClosed: ticketStatus?.toLowerCase().includes("closed"),
+  })
 
   const showResolveButton =
     ticketStatus &&
