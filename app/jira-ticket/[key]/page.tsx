@@ -406,21 +406,10 @@ export default function JiraTicketDetailPage() {
   const handleResolveTicket = async () => {
     console.log("[v0] Refreshing ticket data after resolve")
     await fetchTicket()
-    // Optionally redirect to Your Tickets page
     setTimeout(() => {
       router.push("/?view=yourTickets")
     }, 1500)
   }
-
-  useEffect(() => {
-    if (ticket) {
-      console.log("[v0] Ticket status from Jira:", ticket.status.name)
-      console.log("[v0] Ticket status type:", typeof ticket.status.name)
-      console.log("[v0] Ticket status lowercase:", ticket.status.name.toLowerCase())
-      console.log("[v0] Includes 'done':", ticket.status.name.toLowerCase().includes("done"))
-      console.log("[v0] Includes 'resolved':", ticket.status.name.toLowerCase().includes("resolved"))
-    }
-  }, [ticket])
 
   if (isLoading) {
     return (
@@ -462,16 +451,16 @@ export default function JiraTicketDetailPage() {
   const cleanedDescription = cleanDescription(ticket.description || "", isMasterAccount)
   const solutionsSections = extractSolutionsSections(cleanedDescription)
   const displayDescription = removeSolutionsSections(cleanedDescription)
+  const isTicketResolved =
+    ticket.status &&
+    (ticket.status.name.toLowerCase().includes("resolved") ||
+      ticket.status.name.toLowerCase().includes("done") ||
+      ticket.status.name.toLowerCase().includes("closed"))
 
   return (
     <div className="min-h-screen bg-black">
       <nav className="flex items-center justify-between p-6 border-b border-gray-800">
         <h1 className="text-2xl font-bold text-white">INTEGRUM</h1>
-        {ticket.status.name.toLowerCase().includes("resolved") ||
-        ticket.status.name.toLowerCase().includes("done") ||
-        ticket.status.name.toLowerCase().includes("closed") ? (
-          <Badge className="bg-cyan-500 text-white text-sm px-4 py-1.5">Resolved</Badge>
-        ) : null}
         <Button variant="outline" onClick={() => router.push("/?view=yourTickets")}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Your Tickets
@@ -488,7 +477,8 @@ export default function JiraTicketDetailPage() {
                     <Badge variant="outline" className="text-blue-400 border-blue-400">
                       {ticket.key}
                     </Badge>
-                    {isMasterAccount && (
+                    {isTicketResolved && <Badge className="bg-blue-500 text-white ml-auto">Resolved</Badge>}
+                    {isMasterAccount && !isTicketResolved && (
                       <Badge className={`${getStatusColor(ticket.status.name)} text-white`}>{ticket.status.name}</Badge>
                     )}
                     {isMasterAccount && (
@@ -620,7 +610,7 @@ export default function JiraTicketDetailPage() {
             </CardContent>
           </Card>
 
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
             <TicketChatbot
               ticketKey={ticket.key}
               ticketTitle={ticket.summary}
@@ -631,6 +621,37 @@ export default function JiraTicketDetailPage() {
               ticketStatus={ticket.status.name}
               onResolveTicket={handleResolveTicket}
             />
+
+            {isTicketResolved && (
+              <div className="bg-green-900/30 border-2 border-green-500/50 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="flex-shrink-0 mt-0.5"
+                  >
+                    <circle cx="12" cy="12" r="10" fill="#22c55e" />
+                    <path
+                      d="M9 12l2 2 4-4"
+                      stroke="#000000"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <div className="flex-1">
+                    <h4 className="text-green-400 font-bold text-base mb-2">This ticket has been Resolved</h4>
+                    <p className="text-green-300 text-sm leading-relaxed">
+                      If you wish to continue, Please resubmit another ticket and provide the ticket number inside the
+                      chat. Our live agent will get back to you asap!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

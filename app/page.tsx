@@ -1124,61 +1124,55 @@ export default function IntegrumPortal() {
 
                           <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
                             {categoryTickets.length > 0 ? (
-                              categoryTickets.map((ticket) => {
-                                const isResolved = category.name === "Resolved"
-
-                                return (
-                                  <Card
-                                    key={ticket.key}
-                                    className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300"
-                                  >
-                                    <CardHeader className="pb-3">
-                                      <div className="flex items-start justify-between gap-2">
-                                        <CardTitle className="text-sm text-foreground line-clamp-2 flex-1">
-                                          {ticket.summary}
-                                        </CardTitle>
-                                        {isResolved && (
-                                          <div className="flex items-center gap-1.5 flex-shrink-0">
-                                            <svg
-                                              width="16"
-                                              height="16"
-                                              viewBox="0 0 24 24"
-                                              fill="none"
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="flex-shrink-0"
-                                            >
-                                              <circle cx="12" cy="12" r="10" fill="#22c55e" />
-                                              <path
-                                                d="M9 12l2 2 4-4"
-                                                stroke="#000000"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                              />
-                                            </svg>
-                                            <Badge className="bg-blue-600 text-white text-xs px-2 py-0.5">
-                                              Resolved
-                                            </Badge>
-                                          </div>
-                                        )}
-                                      </div>
-                                      <CardDescription className="text-xs text-foreground/60">
-                                        {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
-                                      </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="pt-0">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
-                                        className="w-full bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] text-xs transition-all duration-300 hover:scale-105"
-                                      >
-                                        View Ticket Info
-                                      </Button>
-                                    </CardContent>
-                                  </Card>
-                                )
-                              })
+                              categoryTickets.map((ticket) => (
+                                <Card
+                                  key={ticket.key}
+                                  className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300"
+                                >
+                                  <CardHeader className="pb-3">
+                                    <div className="flex items-start justify-between mb-2">
+                                      <CardTitle className="text-sm text-foreground line-clamp-2 flex-1">
+                                        Ticket No: {ticket.key} - Title: {ticket.summary}
+                                      </CardTitle>
+                                      {category.name === "Resolved" && (
+                                        <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                                          <svg
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="flex-shrink-0"
+                                          >
+                                            <circle cx="12" cy="12" r="10" fill="#22c55e" />
+                                            <path
+                                              d="M9 12l2 2 4-4"
+                                              stroke="#000000"
+                                              strokeWidth="2"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                          </svg>
+                                          <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Resolved</Badge>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <CardDescription className="text-xs text-foreground/60">
+                                      {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
+                                    </CardDescription>
+                                  </CardHeader>
+                                  <CardContent className="pt-0">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => (window.location.href = `/jira-ticket/${ticket.key}`)}
+                                      className="w-full bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] text-xs transition-all duration-300 hover:scale-105"
+                                    >
+                                      View Ticket Info
+                                    </Button>
+                                  </CardContent>
+                                </Card>
+                              ))
                             ) : (
                               <Card className="bg-card/50 border-2 border-border">
                                 <CardContent className="p-4 text-center">

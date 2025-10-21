@@ -3,7 +3,7 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Headset, Badge } from "lucide-react"
+import { Send, Bot, User, Headset } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import {
   AlertDialog,
@@ -229,17 +229,16 @@ export function TicketChatbot({
 
   const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
 
-  const isTicketResolved =
-    ticketStatus &&
-    (ticketStatus.toLowerCase().includes("resolved") ||
-      ticketStatus.toLowerCase().includes("done") ||
-      ticketStatus.toLowerCase().includes("closed"))
+  console.log("[v0] Ticket status:", ticketStatus)
+  console.log("[v0] Ticket status lowercase:", ticketStatus?.toLowerCase())
 
   const showResolveButton =
     ticketStatus &&
     !ticketStatus.toLowerCase().includes("resolved") &&
     !ticketStatus.toLowerCase().includes("done") &&
     !ticketStatus.toLowerCase().includes("closed")
+
+  console.log("[v0] Show resolve button:", showResolveButton)
 
   const handleResolveTicket = async () => {
     setIsResolving(true)
@@ -271,30 +270,13 @@ export function TicketChatbot({
     }
   }
 
-  useEffect(() => {
-    console.log("[v0] TicketChatbot - Ticket status prop:", ticketStatus)
-    console.log("[v0] TicketChatbot - Ticket status type:", typeof ticketStatus)
-    if (ticketStatus) {
-      console.log("[v0] TicketChatbot - Ticket status lowercase:", ticketStatus.toLowerCase())
-      console.log("[v0] TicketChatbot - Includes 'done':", ticketStatus.toLowerCase().includes("done"))
-      console.log("[v0] TicketChatbot - Includes 'resolved':", ticketStatus.toLowerCase().includes("resolved"))
-      console.log("[v0] TicketChatbot - Includes 'closed':", ticketStatus.toLowerCase().includes("closed"))
-    }
-  }, [ticketStatus])
-
-  console.log("[v0] TicketChatbot - Is ticket resolved:", isTicketResolved)
-
   return (
     <>
       <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
         <div className="flex items-center gap-2 p-4 border-b border-gray-700">
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
-          {isTicketResolved ? (
-            <Badge className="ml-auto bg-cyan-500 text-white text-xs px-3 py-1">Resolved</Badge>
-          ) : (
-            <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
-          )}
+          <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
 
           {showResolveButton && (
             <Button
@@ -442,49 +424,24 @@ export function TicketChatbot({
           <div ref={messagesEndRef} />
         </div>
 
-        {isTicketResolved ? (
-          <div className="p-4 bg-green-900/30 border-t-2 border-green-600">
-            <div className="flex items-start gap-3">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="flex-shrink-0 mt-0.5"
-              >
-                <circle cx="12" cy="12" r="10" fill="#22c55e" />
-                <path d="M9 12l2 2 4-4" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <div className="flex-1">
-                <p className="text-green-400 font-semibold text-sm mb-1">This ticket has been Resolved</p>
-                <p className="text-green-500 text-xs leading-relaxed">
-                  If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
-                  Our live agent will get back to you asap!
-                </p>
-              </div>
-            </div>
+        <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
+              disabled={isSending}
+              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
+            />
+            <Button
+              type="submit"
+              disabled={!input.trim() || isSending}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
-            <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
-                disabled={isSending}
-                className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
-              />
-              <Button
-                type="submit"
-                disabled={!input.trim() || isSending}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-          </form>
-        )}
+        </form>
       </div>
 
       <AlertDialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
