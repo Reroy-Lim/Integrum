@@ -287,9 +287,10 @@ export function TicketChatbot({
               <Image
                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-nAOJreBEw7hcsmXmowJ7UghISqtje3.png"
                 alt="Resolve"
-                width={16}
-                height={16}
-                className="w-4 h-4"
+                width={20}
+                height={20}
+                className="w-5 h-5"
+                style={{ mixBlendMode: "screen" }}
               />
               Resolve Ticket
             </Button>
