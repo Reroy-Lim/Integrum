@@ -30,7 +30,6 @@ export default function JiraTicketDetailPage() {
       setError(null)
 
       try {
-        console.log("[v0] Fetching ticket:", ticketKey)
         const response = await fetch(`/api/jira/ticket/${ticketKey}`)
 
         if (!response.ok) {
@@ -38,15 +37,9 @@ export default function JiraTicketDetailPage() {
         }
 
         const data = await response.json()
-        console.log("[v0] Ticket fetched successfully:", {
-          key: data.ticket.key,
-          status: data.ticket.status.name,
-          statusId: data.ticket.status.id,
-          summary: data.ticket.summary,
-        })
         setTicket(data.ticket)
       } catch (error) {
-        console.error("[v0] Error fetching ticket:", error)
+        console.error("Error fetching ticket:", error)
         setError(error instanceof Error ? error.message : "Failed to fetch ticket")
       } finally {
         setIsLoading(false)
@@ -157,11 +150,7 @@ export default function JiraTicketDetailPage() {
   const formatDescription = (description: string) => {
     if (!description) return <p className="text-gray-300">No description provided</p>
 
-    const preprocessed = description
-      .replace(/(\d+\.\s+[^0-9]+?)(?=\d+\.)/g, "$1\n")
-      .replace(/^\s*\d+\s*$/gm, "") // Remove lines with only numbers
-      .replace(/\n\s*\d+\s*\n/g, "\n") // Remove standalone numbers between lines
-
+    const preprocessed = description.replace(/(\d+\.\s+[^0-9]+?)(?=\d+\.)/g, "$1\n")
     const lines = preprocessed.split("\n")
 
     const sections: { header?: string; content: string[] }[] = []
@@ -189,8 +178,6 @@ export default function JiraTicketDetailPage() {
       const trimmedLine = line.trim()
       if (!trimmedLine) continue
 
-      if (/^\d+$/.test(trimmedLine)) continue
-
       // Check if line is a section header
       const matchedHeader = sectionHeaders.find((header) => trimmedLine.toLowerCase().startsWith(header.toLowerCase()))
 
@@ -210,6 +197,7 @@ export default function JiraTicketDetailPage() {
 
         if (header.toLowerCase().includes("additional details") && contentAfterHeader) {
           // Split by looking ahead for patterns like "Key:" where Key starts with uppercase
+          // This handles cases where all details are on one line
           const keyValuePairs = contentAfterHeader.split(/(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+$$[^)]+$$)?:)/)
 
           keyValuePairs.forEach((pair) => {
@@ -225,7 +213,7 @@ export default function JiraTicketDetailPage() {
             const splitItems = contentAfterHeader.split(/(?=\d+[.)])/)
             splitItems.forEach((item) => {
               const trimmedItem = item.trim()
-              if (trimmedItem && !/^\d+$/.test(trimmedItem)) {
+              if (trimmedItem) {
                 currentSection.content.push(trimmedItem)
               }
             })
@@ -241,7 +229,7 @@ export default function JiraTicketDetailPage() {
           const splitItems = trimmedLine.split(/(?=\d+[.)])/)
           splitItems.forEach((item) => {
             const trimmedItem = item.trim()
-            if (trimmedItem && !/^\d+$/.test(trimmedItem)) {
+            if (trimmedItem) {
               currentSection.content.push(trimmedItem)
             }
           })
@@ -574,10 +562,6 @@ export default function JiraTicketDetailPage() {
           </Card>
 
           <div className="lg:sticky lg:top-6 lg:self-start">
-            {(() => {
-              console.log("[v0] Rendering TicketChatbot with status:", ticket.status.name)
-              return null
-            })()}
             <TicketChatbot
               ticketKey={ticket.key}
               ticketTitle={ticket.summary}
@@ -585,7 +569,6 @@ export default function JiraTicketDetailPage() {
               solutionsSections={solutionsSections}
               currentUserEmail={userEmail}
               isMasterAccount={isMasterAccount}
-              initialTicketStatus={ticket.status.name}
             />
           </div>
         </div>
