@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, ArrowLeft, Calendar, User, AlertCircle, Mail, Download } from "@/components/icons"
+import { Loader2, ArrowLeft, Calendar, User, AlertCircle, Mail, Download, RefreshCw } from "@/components/icons"
 import { Badge } from "@/components/ui/badge"
 import type { JiraTicket } from "@/lib/jira-api"
 import { TicketChatbot } from "@/components/ticket-chatbot"
@@ -20,32 +20,39 @@ export default function JiraTicketDetailPage() {
 
   const [ticket, setTicket] = useState<JiraTicket | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchTicket = async () => {
-      if (!ticketKey) return
+  const fetchTicket = async () => {
+    if (!ticketKey) return
 
-      setIsLoading(true)
-      setError(null)
+    setIsLoading(true)
+    setError(null)
 
-      try {
-        const response = await fetch(`/api/jira/ticket/${ticketKey}`)
+    try {
+      const response = await fetch(`/api/jira/ticket/${ticketKey}`)
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ticket: ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        setTicket(data.ticket)
-      } catch (error) {
-        console.error("Error fetching ticket:", error)
-        setError(error instanceof Error ? error.message : "Failed to fetch ticket")
-      } finally {
-        setIsLoading(false)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ticket: ${response.statusText}`)
       }
-    }
 
+      const data = await response.json()
+      setTicket(data.ticket)
+    } catch (error) {
+      console.error("Error fetching ticket:", error)
+      setError(error instanceof Error ? error.message : "Failed to fetch ticket")
+    } finally {
+      setIsLoading(false)
+      setIsRefreshing(false)
+    }
+  }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    await fetchTicket()
+  }
+
+  useEffect(() => {
     fetchTicket()
   }, [ticketKey])
 
@@ -448,10 +455,21 @@ export default function JiraTicketDetailPage() {
     <div className="min-h-screen bg-black">
       <nav className="flex items-center justify-between p-6 border-b border-gray-800">
         <h1 className="text-2xl font-bold text-white">INTEGRUM</h1>
-        <Button variant="outline" onClick={() => router.push("/?view=yourTickets")}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Your Tickets
-        </Button>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center space-x-2 bg-transparent"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
+          </Button>
+          <Button variant="outline" onClick={() => router.push("/?view=yourTickets")}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Your Tickets
+          </Button>
+        </div>
       </nav>
 
       <section className="py-12 px-6">
