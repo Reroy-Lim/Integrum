@@ -42,12 +42,11 @@ export function TicketChatbot({
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [isResolved, setIsResolved] = useState(
-    initialTicketStatus?.toLowerCase().includes("done") ||
-      initialTicketStatus?.toLowerCase().includes("resolved") ||
-      initialTicketStatus?.toLowerCase().includes("closed") ||
-      false,
-  )
+  const [isResolved, setIsResolved] = useState(() => {
+    if (!initialTicketStatus) return false
+    const statusLower = initialTicketStatus.toLowerCase()
+    return statusLower.includes("done") || statusLower.includes("resolved") || statusLower === "closed"
+  })
   const [showResolveDialog, setShowResolveDialog] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -89,6 +88,19 @@ export function TicketChatbot({
       }
     }
   }, [ticketKey])
+
+  useEffect(() => {
+    if (initialTicketStatus) {
+      const statusLower = initialTicketStatus.toLowerCase()
+      const resolved = statusLower.includes("done") || statusLower.includes("resolved") || statusLower === "closed"
+      console.log("[v0] Ticket status check:", {
+        initialTicketStatus,
+        statusLower,
+        resolved,
+      })
+      setIsResolved(resolved)
+    }
+  }, [initialTicketStatus])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

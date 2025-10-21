@@ -35,36 +35,22 @@ export async function POST(request: NextRequest, { params }: { params: { key: st
     const transitionsData = await transitionsResponse.json()
     console.log("[v0] Available transitions:", transitionsData.transitions)
 
-    // First try to find "Closed" transition (highest priority)
-    let resolveTransition = transitionsData.transitions.find(
+    // Find the "Done" or "Resolved" transition
+    const resolveTransition = transitionsData.transitions.find(
       (t: any) =>
-        t.name.toLowerCase() === "closed" ||
-        t.name.toLowerCase() === "close" ||
-        t.to.name.toLowerCase() === "closed" ||
-        t.to.name.toLowerCase() === "close",
+        t.name.toLowerCase() === "done" ||
+        t.name.toLowerCase() === "resolved" ||
+        t.to.name.toLowerCase() === "done" ||
+        t.to.name.toLowerCase() === "resolved",
     )
-
-    // If no "Closed" transition, try "Done"
-    if (!resolveTransition) {
-      resolveTransition = transitionsData.transitions.find(
-        (t: any) => t.name.toLowerCase() === "done" || t.to.name.toLowerCase() === "done",
-      )
-    }
-
-    // If no "Done" transition, try "Resolved"
-    if (!resolveTransition) {
-      resolveTransition = transitionsData.transitions.find(
-        (t: any) => t.name.toLowerCase() === "resolved" || t.to.name.toLowerCase() === "resolved",
-      )
-    }
 
     if (!resolveTransition) {
       console.error(
-        "[v0] No close/resolve transition found. Available:",
+        "[v0] No resolve transition found. Available:",
         transitionsData.transitions.map((t: any) => t.name),
       )
       return NextResponse.json(
-        { error: "No close/resolve transition available for this ticket", transitions: transitionsData.transitions },
+        { error: "No resolve transition available for this ticket", transitions: transitionsData.transitions },
         { status: 400 },
       )
     }
@@ -92,11 +78,11 @@ export async function POST(request: NextRequest, { params }: { params: { key: st
       throw new Error(`Failed to resolve ticket: ${transitionResponse.statusText}`)
     }
 
-    console.log("[v0] Ticket closed/resolved successfully:", ticketKey)
+    console.log("[v0] Ticket resolved successfully:", ticketKey)
 
     return NextResponse.json({
       success: true,
-      message: "Ticket closed successfully",
+      message: "Ticket resolved successfully",
       ticketKey,
       transition: resolveTransition.name,
     })
