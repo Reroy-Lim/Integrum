@@ -232,6 +232,64 @@ export class JiraApiClient {
     }
   }
 
+  async transitionTicketToResolved(ticketKey: string): Promise<boolean> {
+    try {
+      console.log("[v0] JIRA API: Getting transitions for ticket:", ticketKey)
+
+      // First, get available transitions for the ticket
+      const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!transitionsResponse.ok) {
+        throw new Error(`Failed to get transitions: ${transitionsResponse.statusText}`)
+      }
+
+      const transitionsData = await transitionsResponse.json()
+      console.log("[v0] JIRA API: Available transitions:", transitionsData.transitions)
+
+      // Find the "Done" or "Resolved" transition
+      const resolvedTransition = transitionsData.transitions.find(
+        (t: any) =>
+          t.name.toLowerCase() === "done" ||
+          t.name.toLowerCase() === "resolved" ||
+          t.to.name.toLowerCase() === "done" ||
+          t.to.name.toLowerCase() === "resolved",
+      )
+
+      if (!resolvedTransition) {
+        console.error("[v0] JIRA API: No 'Done' or 'Resolved' transition found")
+        throw new Error("No 'Done' or 'Resolved' transition available for this ticket")
+      }
+
+      console.log("[v0] JIRA API: Using transition:", resolvedTransition.name, "ID:", resolvedTransition.id)
+
+      // Execute the transition
+      const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          transition: {
+            id: resolvedTransition.id,
+          },
+        }),
+      })
+
+      if (!transitionResponse.ok) {
+        const errorText = await transitionResponse.text()
+        console.error("[v0] JIRA API: Transition error:", errorText)
+        throw new Error(`Failed to transition ticket: ${transitionResponse.statusText}`)
+      }
+
+      console.log("[v0] JIRA API: Successfully transitioned ticket to resolved")
+      return true
+    } catch (error) {
+      console.error("[v0] JIRA API: Error transitioning ticket:", error)
+      return false
+    }
+  }
+
   private transformJiraIssue(issue: any): JiraTicket {
     let description = ""
 

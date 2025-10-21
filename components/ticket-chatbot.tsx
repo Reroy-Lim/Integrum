@@ -227,17 +227,31 @@ export function TicketChatbot({
   const handleResolveTicket = async () => {
     try {
       console.log("[v0] Resolving ticket:", ticketKey)
-      // TODO: Implement actual resolve ticket API call
-      // const response = await fetch(`/api/tickets/${ticketKey}/resolve`, {
-      //   method: 'POST',
-      // })
-      // if (!response.ok) throw new Error('Failed to resolve ticket')
 
+      const response = await fetch(`/api/jira/ticket/${ticketKey}/resolve`, {
+        method: "POST",
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to resolve ticket")
+      }
+
+      console.log("[v0] Ticket resolved successfully")
       setShowResolveDialog(false)
-      alert("Ticket resolved successfully!")
+
+      // Show success message
+      alert("Ticket resolved successfully! Redirecting to tickets page...")
+
+      // Redirect to tickets page after a short delay
+      setTimeout(() => {
+        window.location.href = "/"
+      }, 1000)
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
-      alert("Failed to resolve ticket. Please try again.")
+      setShowResolveDialog(false)
+      alert(`Failed to resolve ticket: ${error instanceof Error ? error.message : "Unknown error"}. Please try again.`)
     }
   }
 
