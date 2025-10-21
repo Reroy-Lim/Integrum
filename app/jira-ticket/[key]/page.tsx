@@ -412,6 +412,16 @@ export default function JiraTicketDetailPage() {
     }, 1500)
   }
 
+  useEffect(() => {
+    if (ticket) {
+      console.log("[v0] Ticket status from Jira:", ticket.status.name)
+      console.log("[v0] Ticket status type:", typeof ticket.status.name)
+      console.log("[v0] Ticket status lowercase:", ticket.status.name.toLowerCase())
+      console.log("[v0] Includes 'done':", ticket.status.name.toLowerCase().includes("done"))
+      console.log("[v0] Includes 'resolved':", ticket.status.name.toLowerCase().includes("resolved"))
+    }
+  }, [ticket])
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">

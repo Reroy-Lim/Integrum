@@ -229,31 +229,17 @@ export function TicketChatbot({
 
   const solutionSections = solutionsSections ? formatSolutions(solutionsSections) : null
 
-  console.log("[v0] Ticket status received:", ticketStatus)
-  console.log("[v0] Ticket status type:", typeof ticketStatus)
-  console.log("[v0] Ticket status lowercase:", ticketStatus?.toLowerCase())
-
   const isTicketResolved =
     ticketStatus &&
     (ticketStatus.toLowerCase().includes("resolved") ||
       ticketStatus.toLowerCase().includes("done") ||
       ticketStatus.toLowerCase().includes("closed"))
 
-  console.log("[v0] Is ticket resolved:", isTicketResolved)
-  console.log("[v0] Status check breakdown:", {
-    hasStatus: !!ticketStatus,
-    includesResolved: ticketStatus?.toLowerCase().includes("resolved"),
-    includesDone: ticketStatus?.toLowerCase().includes("done"),
-    includesClosed: ticketStatus?.toLowerCase().includes("closed"),
-  })
-
   const showResolveButton =
     ticketStatus &&
     !ticketStatus.toLowerCase().includes("resolved") &&
     !ticketStatus.toLowerCase().includes("done") &&
     !ticketStatus.toLowerCase().includes("closed")
-
-  console.log("[v0] Show resolve button:", showResolveButton)
 
   const handleResolveTicket = async () => {
     setIsResolving(true)
@@ -284,6 +270,19 @@ export function TicketChatbot({
       setIsResolving(false)
     }
   }
+
+  useEffect(() => {
+    console.log("[v0] TicketChatbot - Ticket status prop:", ticketStatus)
+    console.log("[v0] TicketChatbot - Ticket status type:", typeof ticketStatus)
+    if (ticketStatus) {
+      console.log("[v0] TicketChatbot - Ticket status lowercase:", ticketStatus.toLowerCase())
+      console.log("[v0] TicketChatbot - Includes 'done':", ticketStatus.toLowerCase().includes("done"))
+      console.log("[v0] TicketChatbot - Includes 'resolved':", ticketStatus.toLowerCase().includes("resolved"))
+      console.log("[v0] TicketChatbot - Includes 'closed':", ticketStatus.toLowerCase().includes("closed"))
+    }
+  }, [ticketStatus])
+
+  console.log("[v0] TicketChatbot - Is ticket resolved:", isTicketResolved)
 
   return (
     <>
