@@ -53,7 +53,7 @@ export default function PendingTicketPage() {
             setFoundTicket(true)
 
             setTimeout(() => {
-              router.push(`/ticket-processing/${latestTicket.key}?startTime=${elapsedTime}`)
+              router.push(`/ticket-processing/${latestTicket.key}`)
             }, 1000)
           }
         }
@@ -126,7 +126,7 @@ export default function PendingTicketPage() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Error Icon?</p>
+                  <p>error icon</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

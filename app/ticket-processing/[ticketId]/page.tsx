@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Loader2, CheckCircle2, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,22 +9,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 export default function TicketProcessingPage() {
   const params = useParams()
   const router = useRouter()
-  const searchParams = useSearchParams()
   const ticketId = params.ticketId as string
 
-  const startTime = Number.parseInt(searchParams.get("startTime") || "0", 10)
-
   const [status, setStatus] = useState<"processing" | "done" | "error">("processing")
-  const [elapsedTime, setElapsedTime] = useState(startTime)
+  const [elapsedTime, setElapsedTime] = useState(0)
   const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
+    if (status !== "processing") return
+
     const timer = setInterval(() => {
       setElapsedTime((prev) => prev + 1)
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [status])
 
   useEffect(() => {
     const checkStatus = async () => {
