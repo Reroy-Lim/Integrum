@@ -150,10 +150,7 @@ export default function JiraTicketDetailPage() {
   const formatDescription = (description: string) => {
     if (!description) return <p className="text-gray-300">No description provided</p>
 
-    const preprocessed = description
-      .replace(/(\d+\.\s+[^0-9]+?)(?=\d+\.)/g, "$1\n")
-      .replace(/(\d+\)\s+[^0-9]+?)(?=\d+\))/g, "$1\n") // Also handle numbered lists with parentheses
-
+    const preprocessed = description.replace(/(\d+\.\s+[^0-9]+?)(?=\d+\.)/g, "$1\n")
     const lines = preprocessed.split("\n")
 
     const sections: { header?: string; content: string[] }[] = []
@@ -200,6 +197,7 @@ export default function JiraTicketDetailPage() {
 
         if (header.toLowerCase().includes("additional details") && contentAfterHeader) {
           // Split by looking ahead for patterns like "Key:" where Key starts with uppercase
+          // This handles cases where all details are on one line
           const keyValuePairs = contentAfterHeader.split(/(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+$$[^)]+$$)?:)/)
 
           keyValuePairs.forEach((pair) => {
@@ -211,7 +209,7 @@ export default function JiraTicketDetailPage() {
         } else if (contentAfterHeader) {
           const numberedItemsMatch = contentAfterHeader.match(/\d+[.)]/g)
           if (numberedItemsMatch && numberedItemsMatch.length > 1) {
-            // Multiple numbered items on the same line - split them properly
+            // Multiple numbered items on the same line - split them
             const splitItems = contentAfterHeader.split(/(?=\d+[.)])/)
             splitItems.forEach((item) => {
               const trimmedItem = item.trim()
@@ -227,7 +225,7 @@ export default function JiraTicketDetailPage() {
       } else {
         const numberedItemsMatch = trimmedLine.match(/\d+[.)]/g)
         if (numberedItemsMatch && numberedItemsMatch.length > 1) {
-          // Multiple numbered items on the same line - split them properly
+          // Multiple numbered items on the same line - split them
           const splitItems = trimmedLine.split(/(?=\d+[.)])/)
           splitItems.forEach((item) => {
             const trimmedItem = item.trim()
@@ -270,20 +268,9 @@ export default function JiraTicketDetailPage() {
 
                   if (numberedMatch) {
                     return (
-                      <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
-                        <span className="text-gray-400 mt-1 select-none font-medium">{numberedMatch[1]}.</span>
+                      <div key={lineIdx} className="flex items-start space-x-3 mb-3">
+                        <span className="text-gray-300 select-none font-medium min-w-[24px]">{numberedMatch[1]}.</span>
                         <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
-                      </div>
-                    )
-                  }
-
-                  if (section.header?.toLowerCase().includes("steps to reproduce")) {
-                    // If line doesn't start with a number, add one based on position
-                    const stepNumber = lineIdx + 1
-                    return (
-                      <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
-                        <span className="text-gray-400 mt-1 select-none font-medium">{stepNumber}.</span>
-                        <p className="text-gray-300 flex-1 leading-relaxed">{line}</p>
                       </div>
                     )
                   }
