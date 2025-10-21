@@ -378,6 +378,25 @@ export default function JiraTicketDetailPage() {
     }
   }
 
+  const refetchTicket = async () => {
+    if (!ticketKey) return
+
+    console.log("[v0] Refetching ticket data after resolve:", ticketKey)
+    try {
+      const response = await fetch(`/api/jira/ticket/${ticketKey}`)
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ticket: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      console.log("[v0] Ticket data refetched, new status:", data.ticket.status.name)
+      setTicket(data.ticket)
+    } catch (error) {
+      console.error("[v0] Error refetching ticket:", error)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -575,6 +594,7 @@ export default function JiraTicketDetailPage() {
               currentUserEmail={userEmail}
               isMasterAccount={isMasterAccount}
               initialTicketStatus={ticket.status.name}
+              onTicketResolved={refetchTicket}
             />
           </div>
         </div>

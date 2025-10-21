@@ -27,6 +27,7 @@ interface TicketChatbotProps {
   currentUserEmail: string
   isMasterAccount: boolean
   initialTicketStatus?: string
+  onTicketResolved?: () => void
 }
 
 export function TicketChatbot({
@@ -37,6 +38,7 @@ export function TicketChatbot({
   currentUserEmail,
   isMasterAccount,
   initialTicketStatus,
+  onTicketResolved,
 }: TicketChatbotProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -218,7 +220,9 @@ export function TicketChatbot({
       })
 
       if (!response.ok) {
-        throw new Error("Failed to resolve ticket")
+        const errorData = await response.json()
+        console.error("[v0] Failed to resolve ticket:", errorData)
+        throw new Error(errorData.error || "Failed to resolve ticket")
       }
 
       const data = await response.json()
@@ -227,10 +231,14 @@ export function TicketChatbot({
       setIsResolved(true)
       setShowResolveDialog(false)
 
+      if (onTicketResolved) {
+        onTicketResolved()
+      }
+
       await loadMessages()
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
-      alert("Failed to resolve ticket. Please try again.")
+      alert(`Failed to resolve ticket: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setIsResolving(false)
     }
