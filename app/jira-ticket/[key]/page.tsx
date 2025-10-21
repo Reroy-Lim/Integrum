@@ -270,13 +270,19 @@ export default function JiraTicketDetailPage() {
                     }
 
                     if (numberedMatch) {
-                      numberCounter++
-                      return (
-                        <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
-                          <span className="text-gray-400 mt-1 select-none font-medium">{numberCounter}.</span>
-                          <p className="text-gray-300 flex-1 leading-relaxed">{numberedMatch[2]}</p>
-                        </div>
-                      )
+                      const textContent = numberedMatch[2].trim()
+                      // Skip if content is empty, too short, or just punctuation
+                      if (textContent && textContent.length > 1 && !/^[.,;:!?]+$/.test(textContent)) {
+                        numberCounter++
+                        return (
+                          <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
+                            <span className="text-gray-400 mt-1 select-none font-medium">{numberCounter}.</span>
+                            <p className="text-gray-300 flex-1 leading-relaxed">{textContent}</p>
+                          </div>
+                        )
+                      }
+                      // Skip rendering this invalid item
+                      return null
                     }
 
                     const keyValueMatch = line.match(/^([^:]+):\s*(.+)/)
