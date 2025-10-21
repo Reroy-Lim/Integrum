@@ -51,6 +51,7 @@ export function TicketChatbot({
   const [isSending, setIsSending] = useState(false)
   const [showResolveDialog, setShowResolveDialog] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
+  const [localIsResolved, setLocalIsResolved] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -91,6 +92,15 @@ export function TicketChatbot({
       }
     }
   }, [ticketKey])
+
+  useEffect(() => {
+    const resolved =
+      ticketStatus &&
+      (ticketStatus.toLowerCase().includes("resolved") ||
+        ticketStatus.toLowerCase().includes("done") ||
+        ticketStatus.toLowerCase().includes("closed"))
+    setLocalIsResolved(!!resolved)
+  }, [ticketStatus])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -240,19 +250,13 @@ export function TicketChatbot({
   console.log("[v0] ================================")
 
   const showResolveButton =
+    !localIsResolved &&
     ticketStatus &&
     !ticketStatus.toLowerCase().includes("resolved") &&
     !ticketStatus.toLowerCase().includes("done") &&
     !ticketStatus.toLowerCase().includes("closed")
 
-  const isResolved =
-    ticketStatus &&
-    (ticketStatus.toLowerCase().includes("resolved") ||
-      ticketStatus.toLowerCase().includes("done") ||
-      ticketStatus.toLowerCase().includes("closed"))
-
-  console.log("[v0] Show resolve button:", showResolveButton)
-  console.log("[v0] Is resolved:", isResolved)
+  const isResolved = localIsResolved
 
   const handleResolveTicket = async () => {
     setIsResolving(true)
@@ -272,10 +276,9 @@ export function TicketChatbot({
 
       console.log("[v0] Ticket resolved successfully")
 
-      // Call the parent callback to refresh ticket data
-      onResolveTicket?.()
+      setLocalIsResolved(true)
 
-      alert("Ticket has been resolved successfully!")
+      onResolveTicket?.()
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
       alert("Failed to resolve ticket. Please try again.")
