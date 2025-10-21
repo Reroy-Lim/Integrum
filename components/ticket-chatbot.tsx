@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Send, Bot, User, Headset, X, CheckCircle } from "lucide-react"
+import { Send, Bot, User, Headset, X, Paperclip, File } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface ChatMessage {
@@ -46,8 +46,8 @@ export function TicketChatbot({
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [showResolveDialog, setShowResolveDialog] = useState(false)
-  const [isResolved, setIsResolved] = useState(false)
-  const [isResolving, setIsResolving] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -74,27 +74,11 @@ export function TicketChatbot({
     }
   }
 
-  const checkTicketStatus = async () => {
-    try {
-      const response = await fetch(`/api/jira/ticket/${ticketKey}`)
-      if (response.ok) {
-        const data = await response.json()
-        const status = data.ticket?.status?.name?.toLowerCase() || ""
-        const isTicketResolved = status.includes("done") || status.includes("resolved") || status.includes("closed")
-        setIsResolved(isTicketResolved)
-      }
-    } catch (error) {
-      console.error("[v0] Error checking ticket status:", error)
-    }
-  }
-
   useEffect(() => {
     loadMessages()
-    checkTicketStatus()
 
     pollingIntervalRef.current = setInterval(() => {
       loadMessages()
-      checkTicketStatus()
     }, 5000)
 
     return () => {
@@ -104,12 +88,23 @@ export function TicketChatbot({
     }
   }, [ticketKey])
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    setSelectedFiles((prev) => [...prev, ...files])
+  }
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isSending || isResolved) return
+    if ((!input.trim() && selectedFiles.length === 0) || isSending) return
 
     const messageText = input.trim()
     setInput("")
+    const filesToSend = selectedFiles
+    setSelectedFiles([])
     setIsSending(true)
 
     try {
@@ -117,6 +112,7 @@ export function TicketChatbot({
         ticketKey,
         userEmail: currentUserEmail,
         role: isMasterAccount ? "support" : "user",
+        filesCount: filesToSend.length,
       })
 
       const response = await fetch("/api/chat-messages", {
@@ -125,7 +121,7 @@ export function TicketChatbot({
         body: JSON.stringify({
           ticketKey,
           userEmail: currentUserEmail,
-          message: messageText,
+          message: messageText || `[${filesToSend.length} file(s) attached]`,
           role: isMasterAccount ? "support" : "user",
         }),
       })
@@ -140,7 +136,8 @@ export function TicketChatbot({
     } catch (error) {
       console.error("[v0] Error sending message:", error)
       alert("Failed to send message. Please try again.")
-      setInput(messageText) // Restore the message
+      setInput(messageText)
+      setSelectedFiles(filesToSend)
     } finally {
       setIsSending(false)
     }
@@ -152,7 +149,7 @@ export function TicketChatbot({
     const normalizedSolutions = solutions
       .replace(/$$Confidence:\s*\n\s*(\d+(?:\.\d+)?)\s*$$/gi, "(Confidence: $1)")
       .replace(/$$Confidence:\s*(\d+(?:\.\d+)?)\s*\n\s*$$/gi, "(Confidence: $1)")
-      .replace(/$$Confidence:\s*\n\s*(\d+(?:\.\d+)?)$$/gi, "(Confidence: $1)")
+      .replace(/\(Confidence:\s*\n\s*(\d+(?:\.\d+)?)/gi, "(Confidence: $1")
       .replace(/Confidence:\s*(\d+(?:\.\d+)?)\s*/gi, "(Confidence: $1)")
       .replace(/\(\(Confidence:/gi, "(Confidence:")
       .replace(/\)\)/g, ")")
@@ -226,28 +223,17 @@ export function TicketChatbot({
 
   const handleResolveTicket = async () => {
     try {
-      setIsResolving(true)
       console.log("[v0] Resolving ticket:", ticketKey)
+      // const response = await fetch(`/api/tickets/${ticketKey}/resolve`, {
+      //   method: 'POST',
+      // })
+      // if (!response.ok) throw new Error('Failed to resolve ticket')
 
-      const response = await fetch(`/api/jira/ticket/${ticketKey}/resolve`, {
-        method: "POST",
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to resolve ticket")
-      }
-
-      console.log("[v0] Ticket resolved successfully")
       setShowResolveDialog(false)
-      setIsResolved(true)
-
-      await checkTicketStatus()
+      alert("Ticket resolved successfully!")
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
-      alert(error instanceof Error ? error.message : "Failed to resolve ticket. Please try again.")
-    } finally {
-      setIsResolving(false)
+      alert("Failed to resolve ticket. Please try again.")
     }
   }
 
@@ -258,35 +244,29 @@ export function TicketChatbot({
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
           <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
-          {isResolved ? (
-            <div className="ml-2 px-3 py-1.5 bg-cyan-500 rounded-md flex items-center gap-2">
-              <span className="text-white text-sm font-medium">Resolved</span>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowResolveDialog(true)}
-              className="ml-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-md border border-green-500/30 flex items-center gap-2 transition-colors"
+          <button
+            onClick={() => setShowResolveDialog(true)}
+            className="ml-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-md border border-green-500/30 flex items-center gap-2 transition-colors"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4"
-              >
-                <circle cx="12" cy="12" r="10" fill="#22C55E" />
-                <path
-                  d="M7 12L10.5 15.5L17 9"
-                  stroke="#000000"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="text-white text-sm">Resolve Ticket</span>
-            </button>
-          )}
+              <circle cx="12" cy="12" r="10" fill="#22C55E" />
+              <path
+                d="M7 12L10.5 15.5L17 9"
+                stroke="#000000"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="text-white text-sm">Resolve Ticket</span>
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -409,38 +389,59 @@ export function TicketChatbot({
           <div ref={messagesEndRef} />
         </div>
 
-        {isResolved && (
-          <div className="mx-4 mb-4 p-4 bg-green-900/30 border border-green-500 rounded-lg flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-green-400 font-semibold mb-1">This ticket has been Resolved</p>
-              <p className="text-green-300 text-sm leading-relaxed">
-                If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
-                Our live agent will get back to you asap!
-              </p>
-            </div>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+          {selectedFiles.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {selectedFiles.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm"
+                >
+                  <File className="w-4 h-4 text-blue-400" />
+                  <span className="text-blue-300 max-w-[150px] truncate">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFile(index)}
+                    className="text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              accept="image/*,.pdf,.doc,.docx,.txt"
+            />
+
+            <Button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isSending}
+              className="bg-gray-800 hover:bg-gray-700 text-blue-400 border border-gray-700"
+              size="icon"
+            >
+              <Paperclip className="w-4 h-4" />
+            </Button>
+
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                isResolved
-                  ? "This ticket is resolved"
-                  : isMasterAccount
-                    ? "Type your response..."
-                    : "Type your message..."
-              }
-              disabled={isSending || isResolved}
-              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50 disabled:opacity-50"
+              placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
+              disabled={isSending}
+              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
             />
             <Button
               type="submit"
-              disabled={!input.trim() || isSending || isResolved}
-              className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+              disabled={(!input.trim() && selectedFiles.length === 0) || isSending}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Send className="w-4 h-4" />
             </Button>
@@ -467,17 +468,12 @@ export function TicketChatbot({
             <Button
               variant="outline"
               onClick={() => setShowResolveDialog(false)}
-              disabled={isResolving}
               className="bg-transparent border-gray-600 text-white hover:bg-gray-700 px-6"
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleResolveTicket}
-              disabled={isResolving}
-              className="bg-cyan-500 hover:bg-cyan-600 text-white px-6"
-            >
-              {isResolving ? "Resolving..." : "Confirm"}
+            <Button onClick={handleResolveTicket} className="bg-cyan-500 hover:bg-cyan-600 text-white px-6">
+              Confirm
             </Button>
           </DialogFooter>
         </DialogContent>
