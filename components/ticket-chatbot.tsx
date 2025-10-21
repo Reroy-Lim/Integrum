@@ -45,6 +45,7 @@ export function TicketChatbot({
   const [isResolved, setIsResolved] = useState(
     initialTicketStatus?.toLowerCase().includes("done") ||
       initialTicketStatus?.toLowerCase().includes("resolved") ||
+      initialTicketStatus?.toLowerCase().includes("closed") ||
       false,
   )
   const [showResolveDialog, setShowResolveDialog] = useState(false)
