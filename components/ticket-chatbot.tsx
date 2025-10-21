@@ -44,19 +44,37 @@ export function TicketChatbot({
   const [isSending, setIsSending] = useState(false)
 
   const checkIfResolved = (status?: string): boolean => {
-    if (!status) return false
-    const statusLower = status.toLowerCase().trim()
-    console.log("[v0] Checking ticket status:", status, "-> normalized:", statusLower)
+    if (!status) {
+      console.log("[v0] No status provided, returning false")
+      return false
+    }
 
-    // Check for common resolved status names
-    const resolvedStatuses = ["done", "resolved", "closed", "complete", "completed", "finished"]
+    const statusLower = status.toLowerCase().trim()
+    console.log("[v0] Checking ticket status:", {
+      original: status,
+      normalized: statusLower,
+      ticketKey: ticketKey,
+    })
+
+    const resolvedStatuses = ["done", "resolved", "closed", "complete", "completed", "finished", "fix", "fixed"]
+
     const isResolved = resolvedStatuses.some((s) => statusLower.includes(s))
 
-    console.log("[v0] Is ticket resolved?", isResolved)
+    console.log("[v0] Status check result:", {
+      ticketKey: ticketKey,
+      status: status,
+      isResolved: isResolved,
+      matchedStatuses: resolvedStatuses.filter((s) => statusLower.includes(s)),
+    })
+
     return isResolved
   }
 
-  const [isResolved, setIsResolved] = useState(checkIfResolved(initialTicketStatus))
+  const [isResolved, setIsResolved] = useState(() => {
+    const resolved = checkIfResolved(initialTicketStatus)
+    console.log("[v0] Initial isResolved state:", resolved, "for ticket:", ticketKey)
+    return resolved
+  })
   const [showResolveDialog, setShowResolveDialog] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -64,9 +82,13 @@ export function TicketChatbot({
 
   useEffect(() => {
     const resolved = checkIfResolved(initialTicketStatus)
-    console.log("[v0] Ticket status updated, setting isResolved to:", resolved)
+    console.log("[v0] Ticket status prop changed:", {
+      ticketKey: ticketKey,
+      newStatus: initialTicketStatus,
+      newResolvedState: resolved,
+    })
     setIsResolved(resolved)
-  }, [initialTicketStatus])
+  }, [initialTicketStatus, ticketKey])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -234,19 +256,25 @@ export function TicketChatbot({
       })
 
       if (!response.ok) {
-        throw new Error("Failed to resolve ticket")
+        const errorData = await response.json()
+        console.error("[v0] Failed to resolve ticket:", errorData)
+        throw new Error(errorData.error || "Failed to resolve ticket")
       }
 
       const data = await response.json()
-      console.log("[v0] Ticket resolved successfully:", data)
+      console.log("[v0] Ticket resolved successfully:", {
+        ticketKey: ticketKey,
+        response: data,
+      })
 
       setIsResolved(true)
       setShowResolveDialog(false)
 
-      await loadMessages()
+      console.log("[v0] Reloading page to fetch updated ticket status")
+      window.location.reload()
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
-      alert("Failed to resolve ticket. Please try again.")
+      alert(`Failed to resolve ticket: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setIsResolving(false)
     }

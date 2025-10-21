@@ -30,6 +30,7 @@ export default function JiraTicketDetailPage() {
       setError(null)
 
       try {
+        console.log("[v0] Fetching ticket:", ticketKey)
         const response = await fetch(`/api/jira/ticket/${ticketKey}`)
 
         if (!response.ok) {
@@ -37,9 +38,15 @@ export default function JiraTicketDetailPage() {
         }
 
         const data = await response.json()
+        console.log("[v0] Ticket fetched successfully:", {
+          key: data.ticket.key,
+          status: data.ticket.status.name,
+          statusId: data.ticket.status.id,
+          summary: data.ticket.summary,
+        })
         setTicket(data.ticket)
       } catch (error) {
-        console.error("Error fetching ticket:", error)
+        console.error("[v0] Error fetching ticket:", error)
         setError(error instanceof Error ? error.message : "Failed to fetch ticket")
       } finally {
         setIsLoading(false)
@@ -567,6 +574,10 @@ export default function JiraTicketDetailPage() {
           </Card>
 
           <div className="lg:sticky lg:top-6 lg:self-start">
+            {(() => {
+              console.log("[v0] Rendering TicketChatbot with status:", ticket.status.name)
+              return null
+            })()}
             <TicketChatbot
               ticketKey={ticket.key}
               ticketTitle={ticket.summary}
