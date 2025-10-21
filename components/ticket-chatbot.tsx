@@ -53,6 +53,11 @@ export function TicketChatbot({
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [showResolveDialog, setShowResolveDialog] = useState(false)
+  const [isResolved, setIsResolved] = useState(
+    ticketStatus?.toLowerCase().includes("resolved") ||
+      ticketStatus?.toLowerCase().includes("done") ||
+      ticketStatus?.toLowerCase().includes("closed"),
+  )
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -234,13 +239,23 @@ export function TicketChatbot({
   console.log("[v0] Ticket status:", ticketStatus)
   console.log("[v0] Ticket status lowercase:", ticketStatus?.toLowerCase())
 
-  const showResolveButton =
-    ticketStatus &&
-    !ticketStatus.toLowerCase().includes("resolved") &&
-    !ticketStatus.toLowerCase().includes("done") &&
-    !ticketStatus.toLowerCase().includes("closed")
+  const showResolveButton = ticketStatus && !isResolved
 
   console.log("[v0] Show resolve button:", showResolveButton)
+  console.log("[v0] Is resolved:", isResolved)
+
+  const handleResolveConfirm = async () => {
+    console.log("[v0] Resolve confirmed")
+    setShowResolveDialog(false)
+
+    // Call the parent's onResolveTicket callback
+    if (onResolveTicket) {
+      await onResolveTicket()
+    }
+
+    // Update local state to show resolved UI
+    setIsResolved(true)
+  }
 
   return (
     <>
@@ -256,14 +271,7 @@ export function TicketChatbot({
             <AlertDialogCancel className="bg-transparent border border-gray-600 text-white hover:bg-gray-800">
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                console.log("[v0] Resolve confirmed")
-                onResolveTicket?.()
-                setShowResolveDialog(false)
-              }}
-              className="bg-cyan-500 hover:bg-cyan-600 text-white"
-            >
+            <AlertDialogAction onClick={handleResolveConfirm} className="bg-cyan-500 hover:bg-cyan-600 text-white">
               Confirmed
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -276,7 +284,11 @@ export function TicketChatbot({
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
           <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
 
-          {showResolveButton && (
+          {isResolved ? (
+            <div className="ml-2 bg-cyan-500 text-white text-sm px-3 py-1.5 rounded-md flex items-center gap-1.5">
+              Resolved
+            </div>
+          ) : showResolveButton ? (
             <Button
               onClick={() => {
                 console.log("[v0] Resolve button clicked")
@@ -294,7 +306,7 @@ export function TicketChatbot({
               />
               Resolve Ticket
             </Button>
-          )}
+          ) : null}
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -415,6 +427,23 @@ export function TicketChatbot({
             </div>
           )}
 
+          {isResolved && (
+            <div className="bg-green-900/30 border border-green-500 rounded-lg p-4 flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mt-0.5">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-green-400 font-semibold mb-1">This ticket has been Resolved</h4>
+                <p className="text-green-300 text-sm">
+                  If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
+                  Our live agent will get back to you asap!
+                </p>
+              </div>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -423,14 +452,20 @@ export function TicketChatbot({
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={isMasterAccount ? "Type your response..." : "Type your message..."}
-              disabled={isSending}
-              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50"
+              placeholder={
+                isResolved
+                  ? "This ticket has been resolved"
+                  : isMasterAccount
+                    ? "Type your response..."
+                    : "Type your message..."
+              }
+              disabled={isSending || isResolved}
+              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <Button
               type="submit"
-              disabled={!input.trim() || isSending}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={!input.trim() || isSending || isResolved}
+              className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
             </Button>

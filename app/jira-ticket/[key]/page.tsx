@@ -403,10 +403,35 @@ export default function JiraTicketDetailPage() {
     }
   }
 
-  const handleResolveTicket = () => {
+  const handleResolveTicket = async () => {
     console.log("[v0] Resolve Ticket button clicked for ticket:", ticketKey)
-    // TODO: Implement Jira API call to update ticket status to "Resolved"
-    alert("Resolve Ticket functionality will be implemented next. Ticket: " + ticketKey)
+
+    try {
+      const response = await fetch(`/api/jira/ticket/${ticketKey}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "resolve",
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to resolve ticket")
+      }
+
+      const data = await response.json()
+      console.log("[v0] Ticket resolved successfully:", data)
+
+      // Update the ticket state with the new data
+      if (data.ticket) {
+        setTicket(data.ticket)
+      }
+    } catch (error) {
+      console.error("[v0] Error resolving ticket:", error)
+      alert("Failed to resolve ticket. Please try again.")
+    }
   }
 
   if (isLoading) {

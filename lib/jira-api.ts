@@ -232,6 +232,60 @@ export class JiraApiClient {
     }
   }
 
+  async resolveTicket(ticketKey: string): Promise<boolean> {
+    try {
+      // First, get available transitions for the ticket
+      const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!transitionsResponse.ok) {
+        throw new Error(`Failed to fetch transitions: ${transitionsResponse.statusText}`)
+      }
+
+      const transitionsData = await transitionsResponse.json()
+
+      // Find the "Done" or "Resolved" transition
+      const resolveTransition = transitionsData.transitions.find(
+        (t: any) =>
+          t.name.toLowerCase().includes("done") ||
+          t.name.toLowerCase().includes("resolve") ||
+          t.name.toLowerCase().includes("close"),
+      )
+
+      if (!resolveTransition) {
+        console.error("[v0] No resolve transition found for ticket:", ticketKey)
+        return false
+      }
+
+      console.log("[v0] Found resolve transition:", resolveTransition.name, "ID:", resolveTransition.id)
+
+      // Perform the transition
+      const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          transition: {
+            id: resolveTransition.id,
+          },
+        }),
+      })
+
+      if (!transitionResponse.ok) {
+        const errorText = await transitionResponse.text()
+        console.error("[v0] Failed to transition ticket:", errorText)
+        return false
+      }
+
+      console.log("[v0] Successfully resolved ticket:", ticketKey)
+      return true
+    } catch (error) {
+      console.error("[v0] Error resolving ticket:", error)
+      return false
+    }
+  }
+
   private transformJiraIssue(issue: any): JiraTicket {
     let description = ""
 
