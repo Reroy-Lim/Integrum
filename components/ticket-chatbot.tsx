@@ -3,8 +3,9 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Headset, CheckCircle2 } from "lucide-react"
+import { Send, Bot, User, Headset } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
 
 interface ChatMessage {
   id: string
@@ -245,7 +246,13 @@ export function TicketChatbot({
             }}
             className="ml-2 bg-transparent hover:bg-green-500/10 border border-green-500 text-white hover:text-green-400 hover:border-green-400 text-sm px-3 py-1.5 h-auto flex items-center gap-1.5 transition-colors"
           >
-            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <Image
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-nAOJreBEw7hcsmXmowJ7UghISqtje3.png"
+              alt="Resolve"
+              width={16}
+              height={16}
+              className="w-4 h-4"
+            />
             Resolve Ticket
           </Button>
         )}
