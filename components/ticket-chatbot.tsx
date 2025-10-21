@@ -3,7 +3,7 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Send, Bot, User, Headset, CheckCircle } from "lucide-react"
+import { Send, Bot, User, Headset } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import Image from "next/image"
 
 interface ChatMessage {
   id: string
@@ -250,7 +251,7 @@ export function TicketChatbot({
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
           {isResolved ? (
             <Badge className="ml-auto bg-green-600 text-white">
-              <CheckCircle className="w-3 h-3 mr-1" />
+              <Send className="w-3 h-3 mr-1" />
               Resolved
             </Badge>
           ) : (
@@ -260,11 +261,12 @@ export function TicketChatbot({
             <Button
               onClick={() => setShowResolveDialog(true)}
               size="sm"
-              className="ml-2 text-white"
+              className="ml-2 text-white flex items-center gap-2"
               style={{ backgroundColor: "#4CAF50" }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#43A047")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#4CAF50")}
             >
+              <Image src="/checkmark-icon.png" alt="Resolve" width={16} height={16} className="w-4 h-4" />
               Resolve Ticket
             </Button>
           )}
@@ -393,7 +395,7 @@ export function TicketChatbot({
         {isResolved ? (
           <div className="p-4 border-t border-gray-700 bg-gray-800">
             <div className="flex items-start gap-3 p-4 bg-green-900/30 border border-green-500/30 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+              <Send className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-green-300 text-sm font-medium mb-1">This ticket has been Resolved</p>
                 <p className="text-green-400/80 text-xs leading-relaxed">
