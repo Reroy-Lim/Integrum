@@ -294,6 +294,10 @@ export default function JiraTicketDetailPage() {
                       )
                     }
 
+                    if (/^\d+[.,;:!?\s]*$/.test(line.trim())) {
+                      return null
+                    }
+
                     return (
                       <p key={lineIdx} className="text-gray-300 leading-relaxed">
                         {line}
