@@ -248,6 +248,7 @@ export default function JiraTicketDetailPage() {
       <div className="space-y-6 text-gray-100">
         {sections.map((section, idx) => {
           let numberCounter = 0
+          const isStepsSection = section.header?.toLowerCase().includes("steps to reproduce")
 
           return (
             <div key={idx}>
@@ -257,6 +258,10 @@ export default function JiraTicketDetailPage() {
               {section.content.length > 0 && (
                 <div className="space-y-3">
                   {section.content.map((line, lineIdx) => {
+                    if (/^\d+[.,;:!?\s]*$/.test(line.trim())) {
+                      return null
+                    }
+
                     const bulletMatch = line.match(/^[•\-*]\s+(.+)/)
                     const numberedMatch = line.match(/^(\d+)[.)]\s*(.+)/)
 
@@ -265,6 +270,28 @@ export default function JiraTicketDetailPage() {
                         <div key={lineIdx} className="flex items-start space-x-3 ml-4">
                           <span className="text-gray-400 mt-1 select-none">•</span>
                           <p className="text-gray-300 flex-1 leading-relaxed">{bulletMatch[1]}</p>
+                        </div>
+                      )
+                    }
+
+                    if (isStepsSection) {
+                      let textContent = line.trim()
+
+                      // If line has a number pattern, extract just the text
+                      if (numberedMatch) {
+                        textContent = numberedMatch[2].trim()
+                      }
+
+                      // Skip if content is empty, too short, or just punctuation
+                      if (!textContent || textContent.length <= 1 || /^[.,;:!?]+$/.test(textContent)) {
+                        return null
+                      }
+
+                      numberCounter++
+                      return (
+                        <div key={lineIdx} className="flex items-start space-x-3 ml-4 mb-4">
+                          <span className="text-gray-400 mt-1 select-none font-medium">{numberCounter}.</span>
+                          <p className="text-gray-300 flex-1 leading-relaxed">{textContent}</p>
                         </div>
                       )
                     }
@@ -281,7 +308,6 @@ export default function JiraTicketDetailPage() {
                           </div>
                         )
                       }
-                      // Skip rendering this invalid item
                       return null
                     }
 
@@ -292,10 +318,6 @@ export default function JiraTicketDetailPage() {
                           <span className="font-medium text-gray-200">{keyValueMatch[1]}:</span> {keyValueMatch[2]}
                         </p>
                       )
-                    }
-
-                    if (/^\d+[.,;:!?\s]*$/.test(line.trim())) {
-                      return null
                     }
 
                     return (
