@@ -221,13 +221,10 @@ export function TicketChatbot({
         <Bot className="w-5 h-5 text-blue-400" />
         <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
         <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
-        <Button
-          size="sm"
-          className="ml-2 bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 flex items-center gap-2"
-        >
-          <CheckCircle className="w-4 h-4 text-green-400" />
-          <span>Resolve Ticket</span>
-        </Button>
+        <button className="ml-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-md border border-slate-700 flex items-center gap-2 transition-colors">
+          <CheckCircle className="w-4 h-4 text-green-500" />
+          <span className="text-white text-sm">Resolve Ticket</span>
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
