@@ -261,9 +261,10 @@ export function TicketChatbot({
             <Button
               onClick={() => setShowResolveDialog(true)}
               size="sm"
-              className="ml-2 bg-transparent hover:bg-green-600/20 border border-green-600 text-green-600 hover:text-white transition-colors p-2"
+              className="ml-2 bg-transparent hover:bg-green-600/20 border border-green-600 text-green-600 hover:text-white transition-colors px-3 py-2 flex items-center gap-2"
             >
               <Image src="/resolved-icon.png" alt="Resolve Ticket" width={20} height={20} className="w-5 h-5" />
+              <span className="text-sm font-medium">Resolve Ticket</span>
             </Button>
           )}
         </div>

@@ -152,7 +152,8 @@ export default function JiraTicketDetailPage() {
 
     const preprocessed = description
       .replace(/(\d+\.\s+[^0-9]+?)(?=\d+\.)/g, "$1\n")
-      .replace(/(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\./g, "") // Remove standalone numbers like "1 4 4 0."
+      .replace(/^\s*\d+\s*$/gm, "") // Remove lines with only numbers
+      .replace(/\n\s*\d+\s*\n/g, "\n") // Remove standalone numbers between lines
 
     const lines = preprocessed.split("\n")
 
