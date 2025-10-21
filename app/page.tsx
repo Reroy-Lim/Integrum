@@ -722,8 +722,8 @@ export default function IntegrumPortal() {
             </h1>
 
             <p className="text-xl md:text-2xl text-foreground/70 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
-              Enterprise-grade ticket management powered by AI. Submit, track, and resolve issues with unprecedented
-              speed and intelligence.
+              Intelligent ticket management powered by AI. Submit, track, and resolve issues with unprecedented speed
+              and intelligence.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
