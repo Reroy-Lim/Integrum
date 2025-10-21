@@ -150,7 +150,10 @@ export default function JiraTicketDetailPage() {
   const formatDescription = (description: string) => {
     if (!description) return <p className="text-gray-300">No description provided</p>
 
-    const preprocessed = description.replace(/(\d+\.\s+[^0-9]+?)(?=\d+\.)/g, "$1\n")
+    const preprocessed = description
+      .replace(/(\d+\.\s+[^0-9]+?)(?=\d+\.)/g, "$1\n")
+      .replace(/(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\./g, "") // Remove standalone numbers like "1 4 4 0."
+
     const lines = preprocessed.split("\n")
 
     const sections: { header?: string; content: string[] }[] = []
@@ -178,6 +181,8 @@ export default function JiraTicketDetailPage() {
       const trimmedLine = line.trim()
       if (!trimmedLine) continue
 
+      if (/^\d+$/.test(trimmedLine)) continue
+
       // Check if line is a section header
       const matchedHeader = sectionHeaders.find((header) => trimmedLine.toLowerCase().startsWith(header.toLowerCase()))
 
@@ -197,7 +202,6 @@ export default function JiraTicketDetailPage() {
 
         if (header.toLowerCase().includes("additional details") && contentAfterHeader) {
           // Split by looking ahead for patterns like "Key:" where Key starts with uppercase
-          // This handles cases where all details are on one line
           const keyValuePairs = contentAfterHeader.split(/(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+$$[^)]+$$)?:)/)
 
           keyValuePairs.forEach((pair) => {
@@ -213,7 +217,7 @@ export default function JiraTicketDetailPage() {
             const splitItems = contentAfterHeader.split(/(?=\d+[.)])/)
             splitItems.forEach((item) => {
               const trimmedItem = item.trim()
-              if (trimmedItem) {
+              if (trimmedItem && !/^\d+$/.test(trimmedItem)) {
                 currentSection.content.push(trimmedItem)
               }
             })
@@ -229,7 +233,7 @@ export default function JiraTicketDetailPage() {
           const splitItems = trimmedLine.split(/(?=\d+[.)])/)
           splitItems.forEach((item) => {
             const trimmedItem = item.trim()
-            if (trimmedItem) {
+            if (trimmedItem && !/^\d+$/.test(trimmedItem)) {
               currentSection.content.push(trimmedItem)
             }
           })
