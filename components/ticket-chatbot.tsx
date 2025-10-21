@@ -27,7 +27,6 @@ interface TicketChatbotProps {
   currentUserEmail: string
   isMasterAccount: boolean
   initialTicketStatus?: string
-  onTicketResolved?: () => void
 }
 
 export function TicketChatbot({
@@ -38,7 +37,6 @@ export function TicketChatbot({
   currentUserEmail,
   isMasterAccount,
   initialTicketStatus,
-  onTicketResolved,
 }: TicketChatbotProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -220,9 +218,7 @@ export function TicketChatbot({
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        console.error("[v0] Failed to resolve ticket:", errorData)
-        throw new Error(errorData.error || "Failed to resolve ticket")
+        throw new Error("Failed to resolve ticket")
       }
 
       const data = await response.json()
@@ -231,14 +227,10 @@ export function TicketChatbot({
       setIsResolved(true)
       setShowResolveDialog(false)
 
-      if (onTicketResolved) {
-        onTicketResolved()
-      }
-
       await loadMessages()
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
-      alert(`Failed to resolve ticket: ${error instanceof Error ? error.message : "Unknown error"}`)
+      alert("Failed to resolve ticket. Please try again.")
     } finally {
       setIsResolving(false)
     }
@@ -251,7 +243,7 @@ export function TicketChatbot({
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
           {isResolved ? (
-            <Badge className="ml-auto bg-cyan-500 text-white hover:bg-cyan-600">
+            <Badge className="ml-auto bg-green-600 text-white">
               <CheckCircle className="w-3 h-3 mr-1" />
               Resolved
             </Badge>
@@ -391,12 +383,12 @@ export function TicketChatbot({
         </div>
 
         {isResolved ? (
-          <div className="p-4 border-t border-gray-700 bg-gray-900">
-            <div className="flex items-start gap-3 p-4 bg-green-900/40 border border-green-500/50 rounded-lg">
-              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
+          <div className="p-4 border-t border-gray-700 bg-gray-800">
+            <div className="flex items-start gap-3 p-4 bg-green-900/30 border border-green-500/30 rounded-lg">
+              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-green-400 text-base font-semibold mb-2">This ticket has been Resolved</p>
-                <p className="text-green-400/90 text-sm leading-relaxed">
+                <p className="text-green-300 text-sm font-medium mb-1">This ticket has been Resolved</p>
+                <p className="text-green-400/80 text-xs leading-relaxed">
                   If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
                   Our live agent will get back to you asap!
                 </p>

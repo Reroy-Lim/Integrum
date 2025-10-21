@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Loader2, Mail, AlertCircle } from "@/components/icons"
+import { Loader2, Mail, AlertCircle, CheckCircle } from "@/components/icons"
 import {
   Zap,
   Home,
@@ -1129,9 +1129,19 @@ export default function IntegrumPortal() {
                                   className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300"
                                 >
                                   <CardHeader className="pb-3">
-                                    <CardTitle className="text-sm text-foreground line-clamp-2">
-                                      {ticket.summary}
-                                    </CardTitle>
+                                    <div className="flex items-center justify-between mb-2">
+                                      <CardTitle className="text-sm text-foreground line-clamp-2 flex-1">
+                                        {ticket.summary}
+                                      </CardTitle>
+                                      {category.name === "Resolved" && (
+                                        <div className="flex items-center gap-1 ml-2">
+                                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                          <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-md font-medium">
+                                            Resolved
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                     <CardDescription className="text-xs text-foreground/60">
                                       {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
                                     </CardDescription>
