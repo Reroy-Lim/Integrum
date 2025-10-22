@@ -160,6 +160,28 @@ export function TicketChatbot({
     fileInputRef.current?.click()
   }
 
+  const toRomanNumeral = (num: number): string => {
+    const romanNumerals: [number, string][] = [
+      [10, "x"],
+      [9, "ix"],
+      [5, "v"],
+      [4, "iv"],
+      [1, "i"],
+    ]
+
+    let result = ""
+    let remaining = num
+
+    for (const [value, numeral] of romanNumerals) {
+      while (remaining >= value) {
+        result += numeral
+        remaining -= value
+      }
+    }
+
+    return result
+  }
+
   const formatSolutions = (solutions: string) => {
     if (!solutions) return null
 
@@ -351,13 +373,28 @@ export function TicketChatbot({
                       {section.header && <h4 className="font-bold text-blue-400 text-sm mb-3">{section.header}</h4>}
                       {section.items.length > 0 && (
                         <div className="space-y-4">
-                          {section.items.map((item, itemIdx) => (
-                            <div key={itemIdx}>
-                              <p className="text-blue-300 text-sm leading-relaxed whitespace-pre-line break-normal overflow-visible">
-                                {item.text}
-                              </p>
-                            </div>
-                          ))}
+                          {section.items.map((item, itemIdx) => {
+                            const isExplanationSection = section.header?.toLowerCase().includes("explanation")
+
+                            return (
+                              <div key={itemIdx}>
+                                {isExplanationSection && item.type === "numbered" ? (
+                                  <div className="flex gap-2">
+                                    <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0 font-medium">
+                                      {toRomanNumeral(Number.parseInt(item.number || "1"))})
+                                    </span>
+                                    <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line break-normal overflow-visible">
+                                      {item.text}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <p className="text-blue-300 text-sm leading-relaxed whitespace-pre-line break-normal overflow-visible">
+                                    {item.text}
+                                  </p>
+                                )}
+                              </div>
+                            )
+                          })}
                         </div>
                       )}
                     </div>
