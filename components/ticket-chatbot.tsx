@@ -194,7 +194,8 @@ export function TicketChatbot({
       .replace(/\)\)/g, ")")
 
     const preprocessed = normalizedSolutions
-      .replace(/(\d+\))/g, "\n$1")
+      .replace(/([^\d.])([1-9]|1[0-9]|20)\)/g, "$1\n$2)") // Only match solution numbers 1-20, not preceded by digits or dots
+      .replace(/^([1-9]|1[0-9]|20)\)/gm, "\n$1)") // Also match at start of lines
       .replace(/•/g, "\n•\n")
       .trim()
 
