@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Loader2, Mail, AlertCircle, Check } from "@/components/icons"
+import { Loader2, Mail, AlertCircle } from "@/components/icons"
 import {
   Zap,
   Home,
@@ -1160,12 +1160,6 @@ export default function IntegrumPortal() {
                                   className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300"
                                 >
                                   <CardHeader className="pb-3">
-                                    {category.name === "Resolved" && (
-                                      <div className="flex items-center space-x-2 mb-2 w-fit px-3 py-1.5 bg-blue-500 rounded-full">
-                                        <Check className="w-4 h-4 text-white" />
-                                        <span className="text-sm font-semibold text-white">Resolved</span>
-                                      </div>
-                                    )}
                                     <CardTitle className="text-sm text-foreground line-clamp-2">
                                       {ticket.summary}
                                     </CardTitle>
