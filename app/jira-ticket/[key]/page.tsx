@@ -598,7 +598,7 @@ export default function JiraTicketDetailPage() {
             </CardContent>
           </Card>
 
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-16 lg:self-start">
             <TicketChatbot
               ticketKey={ticket.key}
               ticketTitle={ticket.summary}

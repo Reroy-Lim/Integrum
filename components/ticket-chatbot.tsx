@@ -271,7 +271,7 @@ export function TicketChatbot({
 
   return (
     <>
-      <div className="flex flex-col h-[600px] bg-gray-900 rounded-lg border border-gray-700">
+      <div className="flex flex-col h-[900px] bg-gray-900 rounded-lg border border-gray-700">
         <div className="flex items-center gap-2 p-4 border-b border-gray-700">
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
@@ -325,7 +325,7 @@ export function TicketChatbot({
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-thumb]:bg-cyan-500 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-cyan-400">
           {solutionSections && solutionSections.length > 0 && (
             <div className="flex gap-3 justify-start">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
