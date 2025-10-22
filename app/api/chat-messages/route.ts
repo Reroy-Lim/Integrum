@@ -94,8 +94,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { ticketKey, userEmail, message, role } = body
+    const formData = await request.formData()
+    const ticketKey = formData.get("ticketKey") as string
+    const userEmail = formData.get("userEmail") as string
+    const message = formData.get("message") as string
+    const role = formData.get("role") as string
 
     if (!ticketKey || !userEmail || !message || !role) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -136,6 +139,12 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Message saved to DB:", dbResult.data.id)
     if (jiraResult) {
       console.log("[v0] Message posted to Jira:", jiraResult.id)
+    }
+
+    const fileCount = Number.parseInt(formData.get("fileCount") as string) || 0
+    if (fileCount > 0) {
+      console.log("[v0] Processing", fileCount, "file upload(s)")
+      // TODO: Implement file upload handling (e.g., upload to Vercel Blob or Supabase Storage)
     }
 
     try {
