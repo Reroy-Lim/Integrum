@@ -34,28 +34,6 @@ interface TicketChatbotProps {
   ticketStatus?: string
 }
 
-const toRomanNumeral = (num: number): string => {
-  const romanNumerals: [number, string][] = [
-    [10, "x"],
-    [9, "ix"],
-    [5, "v"],
-    [4, "iv"],
-    [1, "i"],
-  ]
-
-  let result = ""
-  let remaining = num
-
-  for (const [value, numeral] of romanNumerals) {
-    while (remaining >= value) {
-      result += numeral
-      remaining -= value
-    }
-  }
-
-  return result
-}
-
 export function TicketChatbot({
   ticketKey,
   ticketTitle,
@@ -374,24 +352,10 @@ export function TicketChatbot({
                       {section.items.length > 0 && (
                         <div className="space-y-4">
                           {section.items.map((item, itemIdx) => (
-                            <div key={itemIdx} className="flex items-start gap-2">
-                              {item.type === "numbered" ? (
-                                <>
-                                  <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0 font-medium">
-                                    {toRomanNumeral(Number.parseInt(item.number || "1"))})
-                                  </span>
-                                  <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line break-normal overflow-visible">
-                                    {item.text}
-                                  </p>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0">•</span>
-                                  <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line break-normal overflow-visible">
-                                    {item.text}
-                                  </p>
-                                </>
-                              )}
+                            <div key={itemIdx}>
+                              <p className="text-blue-300 text-sm leading-relaxed whitespace-pre-line break-normal overflow-visible">
+                                {item.text}
+                              </p>
                             </div>
                           ))}
                         </div>
