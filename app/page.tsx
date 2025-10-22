@@ -1161,9 +1161,9 @@ export default function IntegrumPortal() {
                                 >
                                   <CardHeader className="pb-3">
                                     {category.name === "Resolved" && (
-                                      <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-500 rounded-full w-fit mb-2">
-                                        <Check className="w-3.5 h-3.5 text-white" />
-                                        <span className="text-xs font-semibold text-white">Resolved</span>
+                                      <div className="flex items-center space-x-2 mb-2 w-fit px-3 py-1.5 bg-blue-500 rounded-full">
+                                        <Check className="w-4 h-4 text-white" />
+                                        <span className="text-sm font-semibold text-white">Resolved</span>
                                       </div>
                                     )}
                                     <CardTitle className="text-sm text-foreground line-clamp-2">
