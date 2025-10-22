@@ -255,7 +255,8 @@ export function TicketChatbot({
     }
   }
 
-  const isResolved = ticketStatus?.toLowerCase().includes("resolved") || ticketStatus?.toLowerCase().includes("done")
+  const isResolved =
+    ticketStatus && ticketStatus.toLowerCase() !== "in progress" && ticketStatus.toLowerCase() !== "pending reply"
 
   return (
     <>
