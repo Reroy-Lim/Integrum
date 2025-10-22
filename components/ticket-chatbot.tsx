@@ -164,12 +164,21 @@ export function TicketChatbot({
     if (!solutions) return null
 
     const normalizedSolutions = solutions
+      // Fix confidence formatting
       .replace(/$$Confidence:\s*\n\s*(\d+(?:\.\d+)?)\s*$$/gi, "(Confidence: $1)")
       .replace(/$$Confidence:\s*(\d+(?:\.\d+)?)\s*\n\s*$$/gi, "(Confidence: $1)")
       .replace(/\(Confidence:\s*\n\s*(\d+(?:\.\d+)?)/gi, "(Confidence: $1")
       .replace(/Confidence:\s*(\d+(?:\.\d+)?)\s*/gi, "(Confidence: $1)")
       .replace(/\(\(Confidence:/gi, "(Confidence:")
       .replace(/\)\)/g, ")")
+      // Fix version numbers followed by closing paren and next number (e.g., "v5.2.3)2)" -> "v5.2.0). 2)")
+      .replace(/(\d+\.\d+\.\d+)\)(\d+\))/g, "$1). $2")
+      // Fix missing spaces after closing parens before next numbered item (e.g., "stability.2)" -> "stability. 2)")
+      .replace(/([a-z])\)(\d+\))/gi, "$1). $2")
+      // Fix missing spaces between sentences (e.g., "persist.If" -> "persist. If")
+      .replace(/([a-z])\.([A-Z])/g, "$1. $2")
+      // Fix missing spaces after closing parens before words (e.g., ")Monitor" -> ") Monitor")
+      .replace(/\)([A-Z][a-z])/g, ") $1")
 
     const preprocessed = normalizedSolutions
       .replace(/(\d+\))/g, "\n$1")
