@@ -197,11 +197,13 @@ export function TicketChatbot({
       } else {
         const numberedMatch = trimmedLine.match(/^(\d+)\)\s*(.+)/)
         if (numberedMatch) {
-          currentSection.items.push({
-            type: "numbered",
-            number: numberedMatch[1],
-            text: numberedMatch[2],
-          })
+          if (numberedMatch[1] !== "0") {
+            currentSection.items.push({
+              type: "numbered",
+              number: numberedMatch[1],
+              text: numberedMatch[2],
+            })
+          }
         } else if (trimmedLine.startsWith("•")) {
           const bulletText = trimmedLine.substring(1).trim()
           if (bulletText) {
@@ -232,6 +234,16 @@ export function TicketChatbot({
     if (currentSection.header || currentSection.items.length > 0) {
       sections.push(currentSection)
     }
+
+    sections.forEach((section) => {
+      let numberCounter = 1
+      section.items.forEach((item) => {
+        if (item.type === "numbered") {
+          item.number = numberCounter.toString()
+          numberCounter++
+        }
+      })
+    })
 
     return sections
   }
