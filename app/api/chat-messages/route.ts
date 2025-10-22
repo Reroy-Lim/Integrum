@@ -169,10 +169,10 @@ export async function POST(request: NextRequest) {
       // Determine target category based on who sent the message
       let targetCategory: string | null = null
 
-      if (currentCategory === "Pending Reply") {
-        // ANY account responding to a pending ticket → Move to "In Progress"
+      if (isMasterAccount && currentCategory === "Pending Reply") {
+        // Master account responding to a pending ticket → Move to "In Progress"
         targetCategory = "In Progress"
-        console.log("[v0] Message sent on Pending Reply ticket → Moving to In Progress")
+        console.log("[v0] Master account responding to Pending Reply ticket → Moving to In Progress")
       } else if (!isMasterAccount && (!currentCategory || currentCategory === "In Progress")) {
         // User sending message on In Progress or new ticket → Move to "Pending Reply"
         targetCategory = "Pending Reply"
@@ -234,8 +234,9 @@ export async function POST(request: NextRequest) {
         const jiraClient = new JiraApiClient(jiraConfig)
         let transitioned = false
 
-        if (currentStatus.includes("pending")) {
-          console.log("[v0] Message sent on Pending ticket → Transitioning to In Progress")
+        // Frontend will show "Pending Reply" for UI purposes, but Jira stays "In Progress"
+        if (isMasterAccount && currentStatus.includes("pending")) {
+          console.log("[v0] Master account responding to Pending ticket → Transitioning to In Progress")
           transitioned = await jiraClient.transitionTicket(ticketKey, "In Progress")
 
           if (transitioned) {
@@ -244,15 +245,20 @@ export async function POST(request: NextRequest) {
             console.log("[v0] ⚠️ Failed to transition ticket to In Progress (transition may not be available)")
           }
         }
-        // Check if user is sending message on In Progress ticket
+        // User sending message should also keep Jira in "In Progress"
         else if (!isMasterAccount && (currentStatus.includes("progress") || currentStatus === "in development")) {
-          console.log("[v0] User sending message on In Progress ticket → Transitioning to Pending Reply")
-          transitioned = await jiraClient.transitionTicket(ticketKey, "Pending Reply")
+          console.log("[v0] User sending message on In Progress ticket → Keeping Jira in In Progress")
+          // Frontend will show "Pending Reply" but Jira stays "In Progress"
+          // No transition needed as it's already in the correct state
+        } else if (!isMasterAccount && !currentStatus.includes("progress")) {
+          // If user sends message and ticket is not in progress, move it to In Progress
+          console.log("[v0] User sending message on non-progress ticket → Transitioning to In Progress")
+          transitioned = await jiraClient.transitionTicket(ticketKey, "In Progress")
 
           if (transitioned) {
-            console.log("[v0] ✅ Successfully transitioned ticket to Pending Reply")
+            console.log("[v0] ✅ Successfully transitioned ticket to In Progress")
           } else {
-            console.log("[v0] ⚠️ Failed to transition ticket to Pending Reply (transition may not be available)")
+            console.log("[v0] ⚠️ Failed to transition ticket to In Progress (transition may not be available)")
           }
         } else {
           console.log("[v0] Ticket status does not require transition:", currentStatus)
