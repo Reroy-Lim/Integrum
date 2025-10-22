@@ -143,7 +143,7 @@ export default function PendingTicketPage() {
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
               <p className="text-sm text-gray-600">
-                This usually takes 5-10 minutes (Including the time of writing the emails).
+                This usually takes 5-10 minutes (Excluding the time of writing the emails).
               </p>
             </div>
           </div>
