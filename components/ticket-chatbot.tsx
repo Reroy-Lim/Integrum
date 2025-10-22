@@ -431,7 +431,7 @@ export function TicketChatbot({
           <div ref={messagesEndRef} />
         </div>
 
-        {isResolved && (
+        {isResolved ? (
           <div className="mx-4 mb-4 p-4 bg-green-900/30 border border-green-500/50 rounded-lg">
             <div className="flex items-start gap-3">
               <svg
@@ -459,78 +459,76 @@ export function TicketChatbot({
               </div>
             </div>
           </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
-          {selectedFiles.length > 0 && (
-            <div className="mb-3 flex flex-wrap gap-2">
-              {selectedFiles.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm"
-                >
-                  <File className="w-4 h-4 text-blue-400" />
-                  <span className="text-blue-300 max-w-[150px] truncate">{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    className="text-gray-400 hover:text-red-400 transition-colors"
+        ) : (
+          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+            {selectedFiles.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {selectedFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm"
                   >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                    <File className="w-4 h-4 text-blue-400" />
+                    <span className="text-blue-300 max-w-[150px] truncate">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="text-gray-400 hover:text-red-400 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
-          <div className="flex gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-              accept="*/*"
-            />
+            <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                accept="*/*"
+              />
 
-            <Button
-              type="button"
-              onClick={handleAttachClick}
-              disabled={isSending || isResolved}
-              variant="outline"
-              className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Paperclip className="w-4 h-4" />
-            </Button>
+              <Button
+                type="button"
+                onClick={handleAttachClick}
+                disabled={isSending}
+                variant="outline"
+                className="bg-gray-800 border-gray-700 text-blue-400 hover:bg-gray-700 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Paperclip className="w-4 h-4" />
+              </Button>
 
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                isResolved
-                  ? "This ticket has been resolved"
-                  : isMasterAccount
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={
+                  isMasterAccount
                     ? "Type your response... (Shift+Enter for new line)"
                     : "Type your message... (Shift+Enter for new line)"
-              }
-              disabled={isSending || isResolved}
-              className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && !isResolved) {
-                  e.preventDefault()
-                  handleSubmit(e)
                 }
-              }}
-            />
-            <Button
-              type="submit"
-              disabled={(!input.trim() && selectedFiles.length === 0) || isSending || isResolved}
-              className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
-        </form>
+                disabled={isSending}
+                className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSubmit(e)
+                  }
+                }}
+              />
+              <Button
+                type="submit"
+                disabled={(!input.trim() && selectedFiles.length === 0) || isSending}
+                className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
 
       <Dialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
