@@ -1167,7 +1167,7 @@ export default function IntegrumPortal() {
                                       {category.name === "Resolved" && (
                                         <div className="flex items-center gap-1.5 flex-shrink-0">
                                           <img
-                                            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-BnDgLEfsogG8ssI6jtEDU5weRCRRyn.png"
+                                            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-VW9yekTIz5tAHKi7QeDNuYcuvnoT1S.png"
                                             alt="Resolved"
                                             className="w-5 h-5"
                                           />
@@ -1176,8 +1176,8 @@ export default function IntegrumPortal() {
                                           </span>
                                         </div>
                                       )}
+                                      {/* </CHANGE> */}
                                     </div>
-                                    {/* </CHANGE> */}
                                     <CardDescription className="text-xs text-foreground/60">
                                       {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
                                     </CardDescription>
