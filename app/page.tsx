@@ -258,30 +258,45 @@ export default function IntegrumPortal() {
 
   useEffect(() => {
     const fetchTicketCategories = async () => {
-      if (!userEmail) return
+      if (!userEmail) {
+        console.log("[v0] No user email, skipping category fetch")
+        return
+      }
 
       try {
+        console.log("[v0] ===== FETCHING TICKET CATEGORIES =====")
+        console.log("[v0] Fetching categories for user:", userEmail)
+
         const supabase = await import("@/lib/supabase/client").then((m) => m.createClient())
         const { data, error } = await supabase.from("ticket_categories").select("ticket_key, category")
 
         if (error) {
-          console.error("[v0] Error fetching ticket categories:", error)
+          console.error("[v0] ❌ Error fetching ticket categories:", error)
+          console.error("[v0] Error details:", JSON.stringify(error, null, 2))
           return
         }
+
+        console.log("[v0] ✅ Successfully fetched", data?.length || 0, "category overrides from Supabase")
 
         const categoriesMap: Record<string, string> = {}
         data?.forEach((item) => {
           categoriesMap[item.ticket_key] = item.category
+          console.log("[v0] Category override:", item.ticket_key, "→", item.category)
         })
 
         setTicketCategories(categoriesMap)
         console.log("[v0] Loaded", Object.keys(categoriesMap).length, "frontend category overrides")
+        console.log("[v0] ===== TICKET CATEGORIES FETCH COMPLETE =====")
       } catch (error) {
-        console.error("[v0] Error loading ticket categories:", error)
+        console.error("[v0] ❌ Exception loading ticket categories:", error)
+        console.error("[v0] Error stack:", error instanceof Error ? error.stack : "No stack trace")
       }
     }
 
     fetchTicketCategories()
+
+    const intervalId = setInterval(fetchTicketCategories, 10000)
+    return () => clearInterval(intervalId)
   }, [userEmail, tickets])
 
   const refreshTickets = async () => {
@@ -951,7 +966,15 @@ export default function IntegrumPortal() {
     const categorizeTickets = (category: string) => {
       const filtered = userTickets.filter((ticket) => {
         const frontendCategory = ticketCategories[ticket.key]
-        const mappedCategory = frontendCategory || mapStatusToCategory(ticket.status.name)
+        const jiraStatus = ticket.status.name
+        const mappedCategory = frontendCategory || mapStatusToCategory(jiraStatus)
+
+        if (frontendCategory) {
+          console.log(
+            `[v0] Ticket ${ticket.key}: Using frontend override "${frontendCategory}" (Jira: "${jiraStatus}")`,
+          )
+        }
+
         return mappedCategory === category
       })
       console.log(`[v0] Category "${category}" has ${filtered.length} tickets`)
