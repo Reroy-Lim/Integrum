@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,28 @@ interface TicketChatbotProps {
   currentUserEmail: string
   isMasterAccount: boolean
   ticketStatus?: string
+}
+
+const toRomanNumeral = (num: number): string => {
+  const romanNumerals: [number, string][] = [
+    [10, "x"],
+    [9, "ix"],
+    [5, "v"],
+    [4, "iv"],
+    [1, "i"],
+  ]
+
+  let result = ""
+  let remaining = num
+
+  for (const [value, numeral] of romanNumerals) {
+    while (remaining >= value) {
+      result += numeral
+      remaining -= value
+    }
+  }
+
+  return result
 }
 
 export function TicketChatbot({
@@ -164,21 +186,12 @@ export function TicketChatbot({
     if (!solutions) return null
 
     const normalizedSolutions = solutions
-      // Fix confidence formatting
       .replace(/$$Confidence:\s*\n\s*(\d+(?:\.\d+)?)\s*$$/gi, "(Confidence: $1)")
       .replace(/$$Confidence:\s*(\d+(?:\.\d+)?)\s*\n\s*$$/gi, "(Confidence: $1)")
       .replace(/\(Confidence:\s*\n\s*(\d+(?:\.\d+)?)/gi, "(Confidence: $1")
       .replace(/Confidence:\s*(\d+(?:\.\d+)?)\s*/gi, "(Confidence: $1)")
       .replace(/\(\(Confidence:/gi, "(Confidence:")
       .replace(/\)\)/g, ")")
-      // Fix version numbers followed by closing paren and next number (e.g., "v5.2.3)2)" -> "v5.2.0). 2)")
-      .replace(/(\d+\.\d+\.\d+)\)(\d+\))/g, "$1). $2")
-      // Fix missing spaces after closing parens before next numbered item (e.g., "stability.2)" -> "stability. 2)")
-      .replace(/([a-z])\)(\d+\))/gi, "$1). $2")
-      // Fix missing spaces between sentences (e.g., "persist.If" -> "persist. If")
-      .replace(/([a-z])\.([A-Z])/g, "$1. $2")
-      // Fix missing spaces after closing parens before words (e.g., ")Monitor" -> ") Monitor")
-      .replace(/\)([A-Z][a-z])/g, ") $1")
 
     const preprocessed = normalizedSolutions
       .replace(/(\d+\))/g, "\n$1")
@@ -364,7 +377,7 @@ export function TicketChatbot({
                               {item.type === "numbered" ? (
                                 <>
                                   <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0 font-medium">
-                                    {item.number})
+                                    {toRomanNumeral(Number.parseInt(item.number || "1"))})
                                   </span>
                                   <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line">
                                     {item.text}
@@ -537,7 +550,7 @@ export function TicketChatbot({
                 <Paperclip className="w-4 h-4" />
               </Button>
 
-              <Input
+              <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={
@@ -546,13 +559,14 @@ export function TicketChatbot({
                     : "Type your message... (Shift+Enter for new line)"
                 }
                 disabled={isSending}
-                className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gray-800 border-gray-700 text-blue-300 placeholder:text-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed min-h-[42px] max-h-[120px] resize-none overflow-y-auto"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault()
                     handleSubmit(e)
                   }
                 }}
+                rows={1}
               />
               <Button
                 type="submit"
