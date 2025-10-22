@@ -45,7 +45,7 @@ export async function POST(request: NextRequest, { params }: { params: { key: st
     }
 
     const jiraClient = new JiraApiClient(jiraConfig)
-    const success = await jiraClient.transitionTicketToDone(ticketKey)
+    const success = await jiraClient.transitionTicket(ticketKey, "Done")
 
     if (!success) {
       return NextResponse.json({ error: "Failed to resolve ticket" }, { status: 500 })

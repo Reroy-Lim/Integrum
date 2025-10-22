@@ -232,6 +232,57 @@ export class JiraApiClient {
     }
   }
 
+  async transitionTicket(ticketKey: string, transitionName = "Done"): Promise<boolean> {
+    try {
+      // First, get available transitions for the ticket
+      const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!transitionsResponse.ok) {
+        throw new Error(`Failed to fetch transitions: ${transitionsResponse.statusText}`)
+      }
+
+      const transitionsData = await transitionsResponse.json()
+      const transitions = transitionsData.transitions || []
+
+      // Find the transition ID for "Done" (case-insensitive)
+      const doneTransition = transitions.find((t: any) => t.name.toLowerCase() === transitionName.toLowerCase())
+
+      if (!doneTransition) {
+        console.error(
+          `[v0] Jira API: Transition "${transitionName}" not found. Available transitions:`,
+          transitions.map((t: any) => t.name),
+        )
+        throw new Error(`Transition "${transitionName}" not available for this ticket`)
+      }
+
+      // Execute the transition
+      const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          transition: {
+            id: doneTransition.id,
+          },
+        }),
+      })
+
+      if (!transitionResponse.ok) {
+        const errorText = await transitionResponse.text()
+        console.error("[v0] Jira API: Transition error:", errorText)
+        throw new Error(`Failed to transition ticket: ${transitionResponse.statusText}`)
+      }
+
+      console.log(`[v0] Jira API: Successfully transitioned ticket ${ticketKey} to ${transitionName}`)
+      return true
+    } catch (error) {
+      console.error("[v0] Jira API: Error transitioning ticket:", error)
+      return false
+    }
+  }
+
   private transformJiraIssue(issue: any): JiraTicket {
     let description = ""
 
@@ -339,55 +390,6 @@ export class JiraApiClient {
     }
 
     return "In Progression" // Default
-  }
-
-  async transitionTicketToDone(ticketKey: string): Promise<boolean> {
-    try {
-      // First, get available transitions for the ticket
-      const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
-        method: "GET",
-        headers: this.getAuthHeaders(),
-      })
-
-      if (!transitionsResponse.ok) {
-        throw new Error(`Failed to fetch transitions: ${transitionsResponse.statusText}`)
-      }
-
-      const transitionsData = await transitionsResponse.json()
-
-      // Find the "Done" transition (case-insensitive)
-      const doneTransition = transitionsData.transitions.find(
-        (t: any) => t.name.toLowerCase() === "done" || t.to.name.toLowerCase() === "done",
-      )
-
-      if (!doneTransition) {
-        console.error("[v0] Jira API: No 'Done' transition found for ticket", ticketKey)
-        return false
-      }
-
-      // Perform the transition
-      const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
-        method: "POST",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify({
-          transition: {
-            id: doneTransition.id,
-          },
-        }),
-      })
-
-      if (!transitionResponse.ok) {
-        const errorText = await transitionResponse.text()
-        console.error("[v0] Jira API: Failed to transition ticket:", errorText)
-        return false
-      }
-
-      console.log("[v0] Jira API: Successfully transitioned ticket", ticketKey, "to Done")
-      return true
-    } catch (error) {
-      console.error("[v0] Jira API: Error transitioning ticket:", error)
-      return false
-    }
   }
 }
 

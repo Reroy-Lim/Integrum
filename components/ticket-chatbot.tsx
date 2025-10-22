@@ -247,18 +247,18 @@ export function TicketChatbot({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          action: "resolve",
-        }),
+        body: JSON.stringify({ action: "resolve" }),
       })
 
       if (!response.ok) {
-        throw new Error("Failed to resolve ticket")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to resolve ticket")
       }
 
+      console.log("[v0] Ticket resolved successfully")
       setShowResolveDialog(false)
 
-      // Reload the page to reflect the updated status
+      // Refresh the page to show updated status
       window.location.reload()
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
@@ -279,7 +279,7 @@ export function TicketChatbot({
             <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
           )}
           {isResolved ? (
-            <div className="ml-2 px-3 py-1.5 bg-cyan-500 rounded-md flex items-center gap-2">
+            <div className="ml-auto px-3 py-1.5 bg-cyan-500 rounded-md flex items-center gap-2">
               <svg
                 width="16"
                 height="16"
