@@ -16,14 +16,12 @@ export default function TicketProcessingPage() {
   const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
-    if (status !== "processing") return
-
     const timer = setInterval(() => {
       setElapsedTime((prev) => prev + 1)
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [status])
+  }, []) // Empty dependency array so timer runs continuously
 
   useEffect(() => {
     const checkStatus = async () => {
