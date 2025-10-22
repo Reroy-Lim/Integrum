@@ -379,14 +379,14 @@ export function TicketChatbot({
                                   <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0 font-medium">
                                     {toRomanNumeral(Number.parseInt(item.number || "1"))})
                                   </span>
-                                  <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line">
+                                  <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line break-normal overflow-visible">
                                     {item.text}
                                   </p>
                                 </>
                               ) : (
                                 <>
                                   <span className="text-blue-400 text-sm mt-0.5 flex-shrink-0">•</span>
-                                  <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line">
+                                  <p className="text-blue-300 text-sm leading-relaxed flex-1 whitespace-pre-line break-normal overflow-visible">
                                     {item.text}
                                   </p>
                                 </>
