@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getJiraCommentsClient } from "@/lib/jira-comments"
+import { getJiraTicket, JiraApiClient, type JiraConfig } from "@/lib/jira-api"
 
 export async function GET(request: NextRequest) {
   try {
@@ -134,6 +135,83 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Message saved to DB:", dbResult.data.id)
     if (jiraResult) {
       console.log("[v0] Message posted to Jira:", jiraResult.id)
+    }
+
+    try {
+      console.log("[v0] Checking if ticket needs frontend category update...")
+
+      // Get current frontend category (if exists)
+      const { data: existingCategory } = await supabase
+        .from("ticket_categories")
+        .select("category")
+        .eq("ticket_key", ticketKey)
+        .single()
+
+      const currentCategory = existingCategory?.category
+
+      // Only update if ticket is currently "In Progress" or has no category set
+      if (!currentCategory || currentCategory === "In Progress") {
+        console.log("[v0] Updating frontend category to 'Pending Reply'...")
+
+        const { error: updateError } = await supabase.from("ticket_categories").upsert(
+          {
+            ticket_key: ticketKey,
+            category: "Pending Reply",
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "ticket_key",
+          },
+        )
+
+        if (updateError) {
+          console.error("[v0] Error updating frontend category:", updateError)
+        } else {
+          console.log("[v0] Successfully updated frontend category to 'Pending Reply'")
+        }
+      } else {
+        console.log("[v0] Ticket category is already:", currentCategory, "- no update needed")
+      }
+    } catch (error) {
+      // Don't fail the message send if category update fails
+      console.error("[v0] Error during frontend category update (non-critical):", error)
+    }
+
+    // Check if ticket needs status transition
+    try {
+      console.log("[v0] Checking if ticket needs status transition...")
+      const ticket = await getJiraTicket(ticketKey)
+
+      if (ticket) {
+        const currentStatus = ticket.status.name.toLowerCase()
+        console.log("[v0] Current ticket status:", ticket.status.name)
+
+        // Check if ticket is in "In Progress" or similar active status
+        if (currentStatus.includes("progress") || currentStatus === "in development") {
+          console.log("[v0] Ticket is in progress, transitioning to Pending Reply...")
+
+          const jiraConfig: JiraConfig = {
+            baseUrl: process.env.JIRA_BASE_URL || "",
+            email: process.env.JIRA_EMAIL || "",
+            apiToken: process.env.JIRA_API_TOKEN || "",
+            projectKey: process.env.JIRA_PROJECT_KEY || "",
+          }
+
+          const jiraClient = new JiraApiClient(jiraConfig)
+          const transitioned = await jiraClient.transitionTicket(ticketKey, "Pending Reply")
+
+          if (transitioned) {
+            console.log("[v0] Successfully transitioned ticket to Pending Reply")
+          } else {
+            console.log("[v0] Failed to transition ticket (transition may not be available)")
+          }
+        } else {
+          console.log("[v0] Ticket status does not require transition:", currentStatus)
+        }
+      }
+    } catch (error) {
+      // Don't fail the message send if transition fails
+      console.error("[v0] Error during auto-transition (non-critical):", error)
     }
 
     return NextResponse.json({ message: dbResult.data })

@@ -201,6 +201,8 @@ export default function IntegrumPortal() {
   const [ticketsError, setTicketsError] = useState<string | null>(null)
   const [ticketLimit, setTicketLimit] = useState(100)
 
+  const [ticketCategories, setTicketCategories] = useState<Record<string, string>>({})
+
   const userEmail = session?.user?.email || ""
 
   const isMasterAccount = userEmail === process.env.NEXT_PUBLIC_MASTER_EMAIL || userEmail === "heyroy23415@gmail.com"
@@ -253,6 +255,34 @@ export default function IntegrumPortal() {
     const intervalId = setInterval(fetchTickets, 30000)
     return () => clearInterval(intervalId)
   }, [userEmail, ticketLimit])
+
+  useEffect(() => {
+    const fetchTicketCategories = async () => {
+      if (!userEmail) return
+
+      try {
+        const supabase = await import("@/lib/supabase/client").then((m) => m.createClient())
+        const { data, error } = await supabase.from("ticket_categories").select("ticket_key, category")
+
+        if (error) {
+          console.error("[v0] Error fetching ticket categories:", error)
+          return
+        }
+
+        const categoriesMap: Record<string, string> = {}
+        data?.forEach((item) => {
+          categoriesMap[item.ticket_key] = item.category
+        })
+
+        setTicketCategories(categoriesMap)
+        console.log("[v0] Loaded", Object.keys(categoriesMap).length, "frontend category overrides")
+      } catch (error) {
+        console.error("[v0] Error loading ticket categories:", error)
+      }
+    }
+
+    fetchTicketCategories()
+  }, [userEmail, tickets])
 
   const refreshTickets = async () => {
     if (!userEmail) return
@@ -920,7 +950,8 @@ export default function IntegrumPortal() {
 
     const categorizeTickets = (category: string) => {
       const filtered = userTickets.filter((ticket) => {
-        const mappedCategory = mapStatusToCategory(ticket.status.name)
+        const frontendCategory = ticketCategories[ticket.key]
+        const mappedCategory = frontendCategory || mapStatusToCategory(ticket.status.name)
         return mappedCategory === category
       })
       console.log(`[v0] Category "${category}" has ${filtered.length} tickets`)
