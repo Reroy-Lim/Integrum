@@ -241,14 +241,25 @@ export function TicketChatbot({
   const handleResolveTicket = async () => {
     try {
       console.log("[v0] Resolving ticket:", ticketKey)
-      // TODO: Implement actual resolve ticket API call
-      // const response = await fetch(`/api/tickets/${ticketKey}/resolve`, {
-      //   method: 'POST',
-      // })
-      // if (!response.ok) throw new Error('Failed to resolve ticket')
+
+      const response = await fetch(`/api/jira/ticket/${ticketKey}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "resolve",
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to resolve ticket")
+      }
 
       setShowResolveDialog(false)
-      alert("Ticket resolved successfully!")
+
+      // Reload the page to reflect the updated status
+      window.location.reload()
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
       alert("Failed to resolve ticket. Please try again.")
@@ -264,7 +275,9 @@ export function TicketChatbot({
         <div className="flex items-center gap-2 p-4 border-b border-gray-700">
           <Bot className="w-5 h-5 text-blue-400" />
           <h3 className="font-semibold text-blue-400">Ticket Chat</h3>
-          <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
+          {!isResolved && (
+            <span className="text-xs text-blue-500 ml-auto">{isMasterAccount ? "Support Mode" : "User Mode"}</span>
+          )}
           {isResolved ? (
             <div className="ml-2 px-3 py-1.5 bg-cyan-500 rounded-md flex items-center gap-2">
               <svg
