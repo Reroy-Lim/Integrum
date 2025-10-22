@@ -266,8 +266,8 @@ export function TicketChatbot({
     }
   }
 
-  const isResolved =
-    ticketStatus && ticketStatus.toLowerCase() !== "in progress" && ticketStatus.toLowerCase() !== "pending reply"
+  // Previously was treating all non-"In Progress"/"Pending Reply" statuses as resolved (including Backlog, To Do, etc.)
+  const isResolved = ticketStatus && ["done", "resolved", "closed", "cancelled"].includes(ticketStatus.toLowerCase())
 
   return (
     <>
