@@ -1160,9 +1160,24 @@ export default function IntegrumPortal() {
                                   className="bg-card/80 border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300"
                                 >
                                   <CardHeader className="pb-3">
-                                    <CardTitle className="text-sm text-foreground line-clamp-2">
-                                      {ticket.summary}
-                                    </CardTitle>
+                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                      <CardTitle className="text-sm text-foreground line-clamp-2 flex-1">
+                                        {ticket.summary}
+                                      </CardTitle>
+                                      {category.name === "Resolved" && (
+                                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                                          <img
+                                            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-BnDgLEfsogG8ssI6jtEDU5weRCRRyn.png"
+                                            alt="Resolved"
+                                            className="w-5 h-5"
+                                          />
+                                          <span className="px-2.5 py-1 bg-blue-500 text-white text-xs font-semibold rounded-md">
+                                            Resolved
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {/* </CHANGE> */}
                                     <CardDescription className="text-xs text-foreground/60">
                                       {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}
                                     </CardDescription>
