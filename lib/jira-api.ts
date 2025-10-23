@@ -96,30 +96,63 @@ export class JiraApiClient {
       )
 
       const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
-      const params = new URLSearchParams({
-        jql,
-        maxResults: maxResults.toString(),
-        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype,attachment",
-      })
-
       const baseUrl = this.config.baseUrl.replace(/\/$/, "")
-      const requestUrl = `${baseUrl}/rest/api/3/search/jql?${params.toString()}`
 
-      const response = await fetch(requestUrl, {
-        method: "GET",
-        headers: this.getAuthHeaders(),
-      })
+      let allIssues: any[] = []
+      let startAt = 0
+      const pageSize = 50 // Jira's default max per request
+      let totalFetched = 0
 
-      console.log("[v0] Jira API: Response status:", response.status)
+      // Keep fetching until we have all requested tickets or no more results
+      while (totalFetched < maxResults) {
+        const remainingToFetch = maxResults - totalFetched
+        const currentPageSize = Math.min(pageSize, remainingToFetch)
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("[v0] Jira API: Error response:", errorText)
-        throw new Error(`Failed to fetch tickets: ${response.statusText}`)
+        const params = new URLSearchParams({
+          jql,
+          startAt: startAt.toString(),
+          maxResults: currentPageSize.toString(),
+          fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype,attachment",
+        })
+
+        const requestUrl = `${baseUrl}/rest/api/3/search/jql?${params.toString()}`
+
+        console.log(`[v0] Jira API: Fetching page starting at ${startAt}, page size: ${currentPageSize}`)
+
+        const response = await fetch(requestUrl, {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        })
+
+        console.log("[v0] Jira API: Response status:", response.status)
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error("[v0] Jira API: Error response:", errorText)
+          throw new Error(`Failed to fetch tickets: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        const issues = data.issues || []
+
+        console.log(
+          `[v0] Jira API: Fetched ${issues.length} tickets in this page (total so far: ${totalFetched + issues.length})`,
+        )
+
+        allIssues = allIssues.concat(issues)
+        totalFetched += issues.length
+
+        // If we got fewer results than requested, we've reached the end
+        if (issues.length < currentPageSize) {
+          console.log("[v0] Jira API: Reached end of results")
+          break
+        }
+
+        startAt += currentPageSize
       }
+      // End of pagination implementation
 
-      const data = await response.json()
-      const allTickets = data.issues.map((issue: any) => this.transformJiraIssue(issue))
+      const allTickets = allIssues.map((issue: any) => this.transformJiraIssue(issue))
 
       console.log("[v0] Jira API: Total tickets fetched:", allTickets.length)
 
