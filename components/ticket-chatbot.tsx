@@ -293,8 +293,10 @@ export function TicketChatbot({
       console.log("[v0] Ticket resolved successfully")
       setShowResolveDialog(false)
 
-      // Refresh the page to show updated status
-      window.location.reload()
+      // Wait 1 second to allow Supabase update to commit before reloading
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
       alert("Failed to resolve ticket. Please try again.")
