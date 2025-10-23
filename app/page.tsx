@@ -203,10 +203,6 @@ export default function IntegrumPortal() {
 
   const [ticketCategories, setTicketCategories] = useState<Record<string, string>>({})
 
-  const [isBulkResolving, setIsBulkResolving] = useState(false)
-  const [showBulkResolveDialog, setShowBulkResolveDialog] = useState(false)
-  // </CHANGE>
-
   const userEmail = session?.user?.email || ""
 
   const isMasterAccount = userEmail === process.env.NEXT_PUBLIC_MASTER_EMAIL || userEmail === "heyroy23415@gmail.com"
@@ -328,80 +324,25 @@ export default function IntegrumPortal() {
 
   const mapStatusToCategory = (status: string): string => {
     if (!status || typeof status !== "string") {
-      console.log("[v0] ⚠️ Invalid status received:", status, "- defaulting to 'In Progress'")
       return "In Progress"
     }
 
     const statusLower = status.toLowerCase()
-    console.log("[v0] 🔍 Mapping Jira status:", status, "→", statusLower)
 
     if (statusLower.includes("progress") || statusLower.includes("development") || statusLower.includes("review")) {
-      console.log("[v0] ✅ Mapped to: In Progress")
       return "In Progress"
     }
 
     if (statusLower.includes("done") || statusLower.includes("resolved") || statusLower.includes("closed")) {
-      console.log("[v0] ✅ Mapped to: Resolved")
       return "Resolved"
     }
 
     if (statusLower.includes("waiting") || statusLower.includes("pending") || statusLower.includes("feedback")) {
-      console.log("[v0] ✅ Mapped to: Pending Reply")
       return "Pending Reply"
     }
 
-    console.log("[v0] ⚠️ No mapping found, defaulting to: In Progress")
     return "In Progress"
   }
-
-  const handleBulkResolve = async () => {
-    setShowBulkResolveDialog(false)
-    setIsBulkResolving(true)
-
-    try {
-      console.log("[v0] Starting bulk resolve for all tickets")
-
-      const response = await fetch("/api/tickets/bulk-resolve", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userEmail: userEmail,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to bulk resolve tickets")
-      }
-
-      console.log("[v0] Bulk resolve completed:", data.results)
-
-      toast({
-        title: "Bulk Resolve Completed",
-        description: `Successfully resolved ${data.results.successful} tickets. ${data.results.failed > 0 ? `${data.results.failed} failed.` : ""}`,
-        duration: 5000,
-      })
-
-      // Refresh the page to show updated tickets
-      setTimeout(() => {
-        window.location.reload()
-      }, 1500)
-    } catch (error) {
-      console.error("[v0] Bulk resolve error:", error)
-      toast({
-        title: "Bulk Resolve Failed",
-        description: error instanceof Error ? error.message : "An error occurred while resolving tickets",
-        variant: "destructive",
-        duration: 5000,
-      })
-    } finally {
-      setIsBulkResolving(false)
-    }
-  }
-  // </CHANGE>
 
   const handleGoogleAuth = () => {
     window.location.href = "/api/auth/google"
@@ -897,7 +838,7 @@ export default function IntegrumPortal() {
 
             <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-xl mb-6 shadow-lg">
-                <Zap className="w-6 h-6 text-white" />
+                <Zap className="w-8 h-8 text-white" />
               </div>
               <div className="text-3xl font-bold text-foreground mb-3 tracking-tight">AI-Driven</div>
               <div className="text-foreground/90 font-medium text-lg">Smart Analysis</div>
@@ -1031,23 +972,15 @@ export default function IntegrumPortal() {
         const jiraStatus = ticket.status.name
         const mappedCategory = frontendCategory || mapStatusToCategory(jiraStatus)
 
-        console.log(`[v0] 📋 Ticket ${ticket.key}:`)
-        console.log(`[v0]    - Jira Status: "${jiraStatus}"`)
-        console.log(`[v0]    - Frontend Override: ${frontendCategory ? `"${frontendCategory}"` : "None"}`)
-        console.log(`[v0]    - Final Category: "${mappedCategory}"`)
-        console.log(`[v0]    - Matches "${category}"? ${mappedCategory === category}`)
-
         if (frontendCategory) {
           console.log(
-            `[v0] ✅ Ticket ${ticket.key}: Using frontend override "${frontendCategory}" (Jira: "${jiraStatus}")`,
+            `[v0] Ticket ${ticket.key}: Using frontend override "${frontendCategory}" (Jira: "${jiraStatus}")`,
           )
-        } else {
-          console.log(`[v0] 🔄 Ticket ${ticket.key}: Using Jira mapping "${jiraStatus}" → "${mappedCategory}"`)
         }
 
         return mappedCategory === category
       })
-      console.log(`[v0] 📊 Category "${category}" has ${filtered.length} tickets`)
+      console.log(`[v0] Category "${category}" has ${filtered.length} tickets`)
       return filtered
     }
 
@@ -1132,56 +1065,7 @@ export default function IntegrumPortal() {
           onCancel={handleLogoutCancel}
         />
 
-        <Dialog open={showBulkResolveDialog} onOpenChange={setShowBulkResolveDialog}>
-          <DialogContent className="max-w-md w-full bg-white">
-            <DialogHeader className="space-y-4">
-              <div className="flex items-center justify-center">
-                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
-                  <AlertCircle className="w-8 h-8 text-amber-600" />
-                </div>
-              </div>
-              <DialogTitle className="text-xl font-semibold text-center text-gray-800">
-                Bulk Resolve All Tickets?
-              </DialogTitle>
-            </DialogHeader>
-
-            <DialogDescription className="text-center space-y-4">
-              <p className="text-gray-600">
-                This will mark ALL tickets as "Resolved" and update their Jira status to "Done".
-              </p>
-              <p className="text-gray-600 font-medium text-red-600">
-                This action cannot be undone. Are you sure you want to continue?
-              </p>
-            </DialogDescription>
-
-            <div className="flex space-x-3 mt-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowBulkResolveDialog(false)}
-                className="flex-1"
-                disabled={isBulkResolving}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleBulkResolve}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                disabled={isBulkResolving}
-              >
-                {isBulkResolving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Resolving...
-                  </>
-                ) : (
-                  "Confirm"
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-        {/* </CHANGE> */}
-
+        {/* Background animation matching home page */}
         <div className="relative overflow-hidden bg-gradient-to-b from-background via-secondary/10 to-background">
           <AIBackgroundAnimation />
 
@@ -1220,27 +1104,6 @@ export default function IntegrumPortal() {
                         )}
                       </select>
                     </div>
-
-                    {isMasterAccount && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowBulkResolveDialog(true)}
-                        disabled={isBulkResolving || isLoadingTickets || tickets.length === 0}
-                        className="flex items-center space-x-2 bg-transparent border-2 border-red-500 text-white hover:bg-red-600 hover:text-white hover:shadow-[0_0_30px_rgba(239,68,68,0.6)] transition-all duration-300 hover:scale-105"
-                      >
-                        {isBulkResolving ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Resolving...
-                          </>
-                        ) : (
-                          "Resolve All"
-                        )}
-                      </Button>
-                    )}
-                    {/* </CHANGE> */}
-
                     <Button
                       variant="outline"
                       size="sm"
