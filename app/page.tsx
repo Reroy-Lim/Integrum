@@ -201,7 +201,6 @@ export default function IntegrumPortal() {
   const [ticketsError, setTicketsError] = useState<string | null>(null)
   const [ticketLimit, setTicketLimit] = useState(100)
   const [fetchProgress, setFetchProgress] = useState<string>("")
-  // </CHANGE>
 
   const [ticketCategories, setTicketCategories] = useState<Record<string, string>>({})
 
@@ -220,7 +219,6 @@ export default function IntegrumPortal() {
       setIsLoadingTickets(true)
       setTicketsError(null)
       setFetchProgress(`Fetching up to ${ticketLimit} tickets from Jira...`)
-      // </CHANGE>
 
       try {
         console.log("[v0] Fetching tickets for user:", userEmail, "with limit:", ticketLimit)
@@ -228,7 +226,6 @@ export default function IntegrumPortal() {
         if (ticketLimit > 50) {
           setFetchProgress(`Fetching ${ticketLimit} tickets (this may take a moment for large requests)...`)
         }
-        // </CHANGE>
 
         const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=${ticketLimit}`)
 
@@ -246,7 +243,6 @@ export default function IntegrumPortal() {
         if (data.tickets && data.tickets.length > 0) {
           setFetchProgress(`Successfully loaded ${data.tickets.length} ticket${data.tickets.length !== 1 ? "s" : ""}`)
         }
-        // </CHANGE>
 
         if (data.tickets && data.tickets.length > 0) {
           console.log("[v0] First ticket sample:", {
@@ -261,11 +257,9 @@ export default function IntegrumPortal() {
         console.error("[v0] Error fetching tickets:", error)
         setTicketsError(error instanceof Error ? error.message : "Failed to fetch tickets")
         setFetchProgress("")
-        // </CHANGE>
       } finally {
         setIsLoadingTickets(false)
         setTimeout(() => setFetchProgress(""), 2000)
-        // </CHANGE>
       }
     }
 
@@ -324,7 +318,6 @@ export default function IntegrumPortal() {
     setIsLoadingTickets(true)
     setTicketsError(null)
     setFetchProgress(`Refreshing tickets...`)
-    // </CHANGE>
 
     try {
       const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=${ticketLimit}`)
@@ -339,16 +332,13 @@ export default function IntegrumPortal() {
       if (data.tickets && data.tickets.length > 0) {
         setFetchProgress(`Refreshed ${data.tickets.length} ticket${data.tickets.length !== 1 ? "s" : ""}`)
       }
-      // </CHANGE>
     } catch (error) {
       console.error("[v0] Error refreshing tickets:", error)
       setTicketsError(error instanceof Error ? error.message : "Failed to refresh tickets")
       setFetchProgress("")
-      // </CHANGE>
     } finally {
       setIsLoadingTickets(false)
       setTimeout(() => setFetchProgress(""), 2000)
-      // </CHANGE>
     }
   }
 
@@ -813,7 +803,6 @@ export default function IntegrumPortal() {
                   Submit Ticket
                 </Button>
               )}
-              {/* </CHANGE> */}
               <Button
                 size="lg"
                 variant="outline"
@@ -868,7 +857,7 @@ export default function IntegrumPortal() {
 
             <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-xl mb-6 shadow-lg">
-                <Zap className="w-8 h-8 text-white" />
+                <Zap className="w-6 h-6 text-white" />
               </div>
               <div className="text-3xl font-bold text-foreground mb-3 tracking-tight">AI-Driven</div>
               <div className="text-foreground/90 font-medium text-lg">Smart Analysis</div>
@@ -1112,7 +1101,11 @@ export default function IntegrumPortal() {
                       <select
                         id="ticket-limit"
                         value={ticketLimit}
-                        onChange={(e) => setTicketLimit(Number(e.target.value))}
+                        onChange={(e) => {
+                          const newLimit = Number(e.target.value)
+                          console.log("[v0] Ticket limit changed from", ticketLimit, "to", newLimit)
+                          setTicketLimit(newLimit)
+                        }}
                         className="px-4 py-2 border-2 border-primary rounded-lg text-sm bg-secondary/80 text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:bg-secondary transition-all duration-200 cursor-pointer"
                       >
                         <option value={50} className="bg-secondary text-foreground">
@@ -1161,7 +1154,6 @@ export default function IntegrumPortal() {
                     </div>
                   </div>
                 )}
-                {/* </CHANGE> */}
 
                 {session?.user && (
                   <div className="mb-6 p-4 bg-secondary/30 border-2 border-border rounded-xl">
@@ -1249,7 +1241,6 @@ export default function IntegrumPortal() {
                                           </span>
                                         </div>
                                       )}
-                                      {/* </CHANGE> */}
                                     </div>
                                     <CardDescription className="text-xs text-foreground/60">
                                       {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}

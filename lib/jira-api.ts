@@ -103,7 +103,6 @@ export class JiraApiClient {
       const pageSize = 50 // Jira's default max per request
       let totalFetched = 0
       let pageNumber = 0
-      let jiraTotalAvailable = 0
 
       while (totalFetched < maxResults) {
         pageNumber++
@@ -117,7 +116,7 @@ export class JiraApiClient {
           fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype,attachment",
         })
 
-        const requestUrl = `${baseUrl}/rest/api/3/search/jql?${params.toString()}`
+        const requestUrl = `${baseUrl}/rest/api/3/search?${params.toString()}`
 
         console.log(
           `[v0] 📄 PAGE ${pageNumber} - Requesting ${currentPageSize} tickets starting at position ${startAt}`,
@@ -136,17 +135,22 @@ export class JiraApiClient {
 
         const data = await response.json()
         const issues = data.issues || []
-        jiraTotalAvailable = data.total || 0
+        const jiraTotalAvailable = data.total || 0
 
         console.log(
-          `[v0] ✓ PAGE ${pageNumber} received ${issues.length} tickets | Jira reports ${jiraTotalAvailable} total available in project`,
+          `[v0] ✓ PAGE ${pageNumber} received ${issues.length} tickets | Jira reports ${jiraTotalAvailable} total in project`,
         )
+
+        if (issues.length === 0) {
+          console.log(`[v0] 🏁 No more tickets available - received 0 tickets on page ${pageNumber}`)
+          break
+        }
 
         allIssues = allIssues.concat(issues)
         totalFetched += issues.length
 
         console.log(
-          `[v0] 📊 Progress: ${totalFetched}/${maxResults} tickets fetched (${jiraTotalAvailable} available in Jira)`,
+          `[v0] 📊 Progress: ${totalFetched}/${maxResults} tickets fetched (${jiraTotalAvailable} reported by Jira)`,
         )
 
         if (issues.length < currentPageSize) {
@@ -154,7 +158,7 @@ export class JiraApiClient {
           break
         }
 
-        if (totalFetched >= jiraTotalAvailable) {
+        if (jiraTotalAvailable > 0 && totalFetched >= jiraTotalAvailable) {
           console.log(`[v0] 🏁 Fetched all ${jiraTotalAvailable} tickets available in Jira`)
           break
         }
@@ -256,7 +260,7 @@ export class JiraApiClient {
       })
 
       const baseUrl = this.config.baseUrl.replace(/\/$/, "")
-      const response = await fetch(`${baseUrl}/rest/api/3/search/jql?${params.toString()}`, {
+      const response = await fetch(`${baseUrl}/rest/api/3/search?${params.toString()}`, {
         method: "GET",
         headers: this.getAuthHeaders(),
       })
