@@ -464,27 +464,6 @@ export default function JiraTicketDetailPage() {
       <section className="py-12 px-6">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-6">
           <Card className="bg-gray-900 border-gray-700">
-            <CardContent className="pt-6 space-y-6">
-              {!isMasterAccount && customerEmail && (
-                <div className="p-4 bg-blue-900/30 border border-blue-700 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-blue-400" />
-                    <div>
-                      <p className="text-xs text-blue-300">Customer Email</p>
-                      <p className="font-medium text-blue-200">{customerEmail}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
-                <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                  {formatDescription(displayDescription)}
-                </div>
-              </div>
-            </CardContent>
-
             <CardHeader>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -547,6 +526,25 @@ export default function JiraTicketDetailPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
+              {!isMasterAccount && customerEmail && (
+                <div className="p-4 bg-blue-900/30 border border-blue-700 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Mail className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <p className="text-xs text-blue-300">Customer Email</p>
+                      <p className="font-medium text-blue-200">{customerEmail}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
+                <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
+                  {formatDescription(displayDescription)}
+                </div>
+              </div>
+
               {ticket.attachments && ticket.attachments.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-3">
