@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Send, Bot, User, Headset, X, Paperclip, File } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 interface ChatMessage {
   id: string
@@ -290,7 +291,29 @@ export function TicketChatbot({
         throw new Error(errorData.error || "Failed to resolve ticket")
       }
 
-      console.log("[v0] Ticket resolved successfully")
+      console.log("[v0] Ticket resolved successfully in Jira")
+
+      console.log("[v0] Updating frontend category to Resolved in Supabase")
+      const supabase = createClient()
+
+      const { error: supabaseError } = await supabase.from("ticket_categories").upsert(
+        {
+          ticket_key: ticketKey,
+          category: "Resolved",
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "ticket_key",
+        },
+      )
+
+      if (supabaseError) {
+        console.error("[v0] Error updating Supabase category:", supabaseError)
+        // Don't throw - Jira update succeeded, so we can continue
+      } else {
+        console.log("[v0] Successfully updated frontend category to Resolved")
+      }
+
       setShowResolveDialog(false)
 
       // Refresh the page to show updated status

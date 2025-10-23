@@ -772,15 +772,18 @@ export default function IntegrumPortal() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Button
-                size="lg"
-                onClick={handleSubmitTicket}
-                disabled={isLoading}
-                className="bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl cursor-pointer hover:scale-105"
-              >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Mail className="w-5 h-5 mr-2" />}
-                Submit Ticket
-              </Button>
+              {!isMasterAccount && (
+                <Button
+                  size="lg"
+                  onClick={handleSubmitTicket}
+                  disabled={isLoading}
+                  className="bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl cursor-pointer hover:scale-105"
+                >
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Mail className="w-5 h-5 mr-2" />}
+                  Submit Ticket
+                </Button>
+              )}
+              {/* </CHANGE> */}
               <Button
                 size="lg"
                 variant="outline"
