@@ -177,7 +177,7 @@ const AIBackgroundAnimation = () => {
 export default function IntegrumPortal() {
   const { data: session, status, signOut } = useSession()
   const isAuthenticated = status === "authenticated"
-  const isLoadingAuth = status === "loading" // Renamed from isLoading to avoid conflict
+  const isLoading = status === "loading"
   const searchParams = useSearchParams()
   const { toast } = useToast()
 
@@ -206,16 +206,6 @@ export default function IntegrumPortal() {
   const userEmail = session?.user?.email || ""
 
   const isMasterAccount = userEmail === process.env.NEXT_PUBLIC_MASTER_EMAIL || userEmail === "heyroy23415@gmail.com"
-
-  const [userTickets, setUserTickets] = useState<JiraTicket[]>([])
-  const [isLoading, setIsLoading] = useState(true) // This isLoading refers to initial page load or similar, distinct from isLoadingAuth
-  const [currentUserEmail, setUserEmail] = useState<string | null>(null) // Renamed to avoid conflict
-  const [selectedTicket, setSelectedTicket] = useState<JiraTicket | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [processingTicketId, setProcessingTicketId] = useState<string | null>(null)
-  const [isBulkResolving, setIsBulkResolving] = useState(false)
-  // </CHANGE>
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -651,10 +641,10 @@ export default function IntegrumPortal() {
           <Button
             variant="ghost"
             onClick={handleGoogleAuth}
-            disabled={isLoadingAuth}
+            disabled={isLoading}
             className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
           >
-            {isLoadingAuth ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
           </Button>
         )}
@@ -729,10 +719,10 @@ export default function IntegrumPortal() {
             <Button
               variant="ghost"
               onClick={handleGoogleAuth}
-              disabled={isLoadingAuth}
+              disabled={isLoading}
               className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
             >
-              {isLoadingAuth ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </Button>
           )}
@@ -792,14 +782,10 @@ export default function IntegrumPortal() {
                 <Button
                   size="lg"
                   onClick={handleSubmitTicket}
-                  disabled={isLoadingAuth}
+                  disabled={isLoading}
                   className="bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl cursor-pointer hover:scale-105"
                 >
-                  {isLoadingAuth ? (
-                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  ) : (
-                    <Mail className="w-5 h-5 mr-2" />
-                  )}
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Mail className="w-5 h-5 mr-2" />}
                   Submit Ticket
                 </Button>
               )}
@@ -808,7 +794,7 @@ export default function IntegrumPortal() {
                 size="lg"
                 variant="outline"
                 onClick={handleReviewTickets}
-                disabled={isLoadingAuth}
+                disabled={isLoading}
                 className="bg-transparent border-2 border-primary text-white hover:bg-primary hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl cursor-pointer hover:scale-105"
               >
                 <FileText className="w-5 h-5 mr-2" />
@@ -858,7 +844,7 @@ export default function IntegrumPortal() {
 
             <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-xl mb-6 shadow-lg">
-                <Zap className="w-6 h-6 text-white" />
+                <Zap className="w-8 h-8 text-white" />
               </div>
               <div className="text-3xl font-bold text-foreground mb-3 tracking-tight">AI-Driven</div>
               <div className="text-foreground/90 font-medium text-lg">Smart Analysis</div>
@@ -960,8 +946,9 @@ export default function IntegrumPortal() {
   )
 
   const renderYourTickets = () => {
+    const userTickets: JiraTicket[] = tickets
     const urlParams = new URLSearchParams(window.location.search)
-    const isProcessingFromUrl = urlParams.get("processing") === "true"
+    const isProcessing = urlParams.get("processing") === "true"
     const processingTicketId = urlParams.get("ticket")
 
     console.log("[v0] Total tickets in state:", userTickets.length)
@@ -969,13 +956,23 @@ export default function IntegrumPortal() {
     if (userTickets.length > 0) {
       const statusCounts: Record<string, number> = {}
       userTickets.forEach((ticket) => {
-        const category = getTicketCategory(ticket)
-        statusCounts[category] = (statusCounts[category] || 0) + 1
+        const status = ticket.status.name
+        statusCounts[status] = (statusCounts[status] || 0) + 1
       })
-      console.log("[v0] Ticket distribution:", statusCounts)
+      console.log("[v0] Status distribution:", statusCounts)
+
+      console.log(
+        "[v0] Sample tickets (first 5):",
+        userTickets.slice(0, 5).map((t) => ({
+          key: t.key,
+          summary: t.summary.substring(0, 50),
+          status: t.status.name,
+          mapped: mapStatusToCategory(t.status.name),
+        })),
+      )
     }
 
-    const categorizeTickets = (category: string): JiraTicket[] => {
+    const categorizeTickets = (category: string) => {
       const filtered = userTickets.filter((ticket) => {
         const frontendCategory = ticketCategories[ticket.key]
         const jiraStatus = ticket.status.name
@@ -1065,10 +1062,10 @@ export default function IntegrumPortal() {
               <Button
                 variant="ghost"
                 onClick={handleGoogleAuth}
-                disabled={isLoadingAuth}
+                disabled={isLoading}
                 className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
               >
-                {isLoadingAuth ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </Button>
             )}
@@ -1092,25 +1089,6 @@ export default function IntegrumPortal() {
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-4xl font-bold text-foreground">Your Ticket Page</h2>
                   <div className="flex items-center space-x-3">
-                    {isMasterAccount && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleBulkResolve}
-                        disabled={isBulkResolving || isLoadingTickets}
-                        className="flex items-center space-x-2 bg-transparent border-2 border-green-500 text-white hover:bg-green-500 hover:text-white hover:shadow-[0_0_30px_rgba(34,197,94,0.6)] transition-all duration-300 hover:scale-105"
-                      >
-                        {isBulkResolving ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Resolving All...</span>
-                          </>
-                        ) : (
-                          <span>Resolve All Pending</span>
-                        )}
-                      </Button>
-                    )}
-                    {/* </CHANGE> */}
                     <div className="flex items-center space-x-2">
                       <label htmlFor="ticket-limit" className="text-sm font-medium text-foreground/80">
                         Show:
@@ -1171,7 +1149,7 @@ export default function IntegrumPortal() {
                   </div>
                 )}
 
-                {isProcessingFromUrl && processingTicketId && (
+                {isProcessing && processingTicketId && (
                   <div className="mb-6 p-4 bg-primary/10 border-2 border-primary/50 rounded-xl">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center justify-center">
@@ -1299,67 +1277,6 @@ export default function IntegrumPortal() {
     )
   }
 
-  const handleBulkResolve = async () => {
-    const confirmed = window.confirm(
-      "⚠️ WARNING: This will resolve ALL tickets in 'Pending Reply' status!\n\n" +
-        "This action will:\n" +
-        "1. Update all 'Pending Reply' tickets in Jira to 'Done'\n" +
-        "2. Move tickets to 'Resolved' column\n\n" +
-        "This action cannot be undone.",
-    )
-
-    if (!confirmed) {
-      return
-    }
-
-    setIsBulkResolving(true)
-
-    try {
-      console.log("[v0] Starting bulk resolve operation...")
-
-      const response = await fetch("/api/jira/bulk-resolve", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userEmail }), // Use userEmail from the component's scope
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to bulk resolve tickets")
-      }
-
-      console.log("[v0] Bulk resolve completed:", result)
-
-      // Show success message
-      alert(
-        `✅ Bulk Resolve Completed!\n\n` +
-          `Resolved: ${result.resolved} tickets\n` +
-          `Failed: ${result.failed} tickets\n\n` +
-          `${result.message}`,
-      )
-
-      // Refresh tickets
-      await refreshTickets() // Use the existing refreshTickets function
-    } catch (error) {
-      console.error("[v0] Bulk resolve failed:", error)
-      alert(`❌ Bulk resolve failed: ${error instanceof Error ? error.message : "Unknown error"}`)
-    } finally {
-      setIsBulkResolving(false)
-    }
-  }
-  // </CHANGE>
-
-  const getTicketCategory = (ticket: JiraTicket): string => {
-    const frontendCategory = ticketCategories[ticket.key]
-    if (frontendCategory) {
-      return frontendCategory
-    }
-    return mapStatusToCategory(ticket.status.name)
-  }
-
   const renderFAQ = () => {
     const toggleItem = (itemId: string) => {
       setOpenItems((prev) => (prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]))
@@ -1416,10 +1333,10 @@ export default function IntegrumPortal() {
               <Button
                 variant="ghost"
                 onClick={handleGoogleAuth}
-                disabled={isLoadingAuth}
+                disabled={isLoading}
                 className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
               >
-                {isLoadingAuth ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </Button>
             )}
@@ -1644,10 +1561,10 @@ export default function IntegrumPortal() {
             <Button
               variant="ghost"
               onClick={handleGoogleAuth}
-              disabled={isLoadingAuth}
+              disabled={isLoading}
               className="text-foreground/80 hover:text-primary hover:bg-secondary/50 font-medium px-4 transition-all duration-200 relative group"
             >
-              {isLoadingAuth ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </Button>
           )}
