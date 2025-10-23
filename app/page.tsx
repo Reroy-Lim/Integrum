@@ -324,23 +324,29 @@ export default function IntegrumPortal() {
 
   const mapStatusToCategory = (status: string): string => {
     if (!status || typeof status !== "string") {
+      console.log("[v0] ⚠️ Invalid status received:", status, "- defaulting to 'In Progress'")
       return "In Progress"
     }
 
     const statusLower = status.toLowerCase()
+    console.log("[v0] 🔍 Mapping Jira status:", status, "→", statusLower)
 
     if (statusLower.includes("progress") || statusLower.includes("development") || statusLower.includes("review")) {
+      console.log("[v0] ✅ Mapped to: In Progress")
       return "In Progress"
     }
 
     if (statusLower.includes("done") || statusLower.includes("resolved") || statusLower.includes("closed")) {
+      console.log("[v0] ✅ Mapped to: Resolved")
       return "Resolved"
     }
 
     if (statusLower.includes("waiting") || statusLower.includes("pending") || statusLower.includes("feedback")) {
+      console.log("[v0] ✅ Mapped to: Pending Reply")
       return "Pending Reply"
     }
 
+    console.log("[v0] ⚠️ No mapping found, defaulting to: In Progress")
     return "In Progress"
   }
 
@@ -972,15 +978,23 @@ export default function IntegrumPortal() {
         const jiraStatus = ticket.status.name
         const mappedCategory = frontendCategory || mapStatusToCategory(jiraStatus)
 
+        console.log(`[v0] 📋 Ticket ${ticket.key}:`)
+        console.log(`[v0]    - Jira Status: "${jiraStatus}"`)
+        console.log(`[v0]    - Frontend Override: ${frontendCategory ? `"${frontendCategory}"` : "None"}`)
+        console.log(`[v0]    - Final Category: "${mappedCategory}"`)
+        console.log(`[v0]    - Matches "${category}"? ${mappedCategory === category}`)
+
         if (frontendCategory) {
           console.log(
-            `[v0] Ticket ${ticket.key}: Using frontend override "${frontendCategory}" (Jira: "${jiraStatus}")`,
+            `[v0] ✅ Ticket ${ticket.key}: Using frontend override "${frontendCategory}" (Jira: "${jiraStatus}")`,
           )
+        } else {
+          console.log(`[v0] 🔄 Ticket ${ticket.key}: Using Jira mapping "${jiraStatus}" → "${mappedCategory}"`)
         }
 
         return mappedCategory === category
       })
-      console.log(`[v0] Category "${category}" has ${filtered.length} tickets`)
+      console.log(`[v0] 📊 Category "${category}" has ${filtered.length} tickets`)
       return filtered
     }
 
