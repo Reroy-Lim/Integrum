@@ -53,13 +53,32 @@ export function TicketChatbot({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const prevMessageCountRef = useRef<number>(0)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (!chatContainerRef.current || !messagesEndRef.current) return
+
+    const container = chatContainerRef.current
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100
+
+    // Only auto-scroll if user is already near the bottom (within 100px)
+    if (isNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+    }
   }
 
   useEffect(() => {
-    scrollToBottom()
+    const currentCount = messages.length
+    const prevCount = prevMessageCountRef.current
+
+    // Only scroll if we have new messages (count increased)
+    if (currentCount > prevCount && prevCount > 0) {
+      scrollToBottom()
+    }
+
+    // Update the ref for next comparison
+    prevMessageCountRef.current = currentCount
   }, [messages])
 
   const loadMessages = async () => {
@@ -383,7 +402,10 @@ export function TicketChatbot({
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-thumb]:bg-cyan-500 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-cyan-400">
+        <div
+          ref={chatContainerRef}
+          className="flex-1 overflow-y-auto p-4 space-y-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-thumb]:bg-cyan-500 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-cyan-400"
+        >
           {solutionSections && solutionSections.length > 0 && (
             <div className="flex gap-3 justify-start">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
