@@ -404,3 +404,27 @@ export async function getJiraTicket(ticketKey: string): Promise<JiraTicket | nul
   const jiraClient = new JiraApiClient(jiraConfig)
   return jiraClient.getTicket(ticketKey)
 }
+
+export async function getJiraTickets(userEmail: string, maxResults = 100): Promise<JiraTicket[]> {
+  const jiraConfig: JiraConfig = {
+    baseUrl: process.env.JIRA_BASE_URL || "",
+    email: process.env.JIRA_EMAIL || "",
+    apiToken: process.env.JIRA_API_TOKEN || "",
+    projectKey: process.env.JIRA_PROJECT_KEY || "",
+  }
+
+  const jiraClient = new JiraApiClient(jiraConfig)
+  return jiraClient.getTicketsByUser(userEmail, maxResults)
+}
+
+export async function updateJiraTicketStatus(ticketKey: string, transitionName = "Done"): Promise<boolean> {
+  const jiraConfig: JiraConfig = {
+    baseUrl: process.env.JIRA_BASE_URL || "",
+    email: process.env.JIRA_EMAIL || "",
+    apiToken: process.env.JIRA_API_TOKEN || "",
+    projectKey: process.env.JIRA_PROJECT_KEY || "",
+  }
+
+  const jiraClient = new JiraApiClient(jiraConfig)
+  return jiraClient.transitionTicket(ticketKey, transitionName)
+}
