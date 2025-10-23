@@ -200,6 +200,8 @@ export default function IntegrumPortal() {
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
   const [ticketsError, setTicketsError] = useState<string | null>(null)
   const [ticketLimit, setTicketLimit] = useState(100)
+  const [fetchProgress, setFetchProgress] = useState<string>("")
+  // </CHANGE>
 
   const [ticketCategories, setTicketCategories] = useState<Record<string, string>>({})
 
@@ -217,9 +219,17 @@ export default function IntegrumPortal() {
 
       setIsLoadingTickets(true)
       setTicketsError(null)
+      setFetchProgress(`Fetching up to ${ticketLimit} tickets from Jira...`)
+      // </CHANGE>
 
       try {
         console.log("[v0] Fetching tickets for user:", userEmail, "with limit:", ticketLimit)
+
+        if (ticketLimit > 50) {
+          setFetchProgress(`Fetching ${ticketLimit} tickets (this may take a moment for large requests)...`)
+        }
+        // </CHANGE>
+
         const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=${ticketLimit}`)
 
         console.log("[v0] Jira API response status:", response.status)
@@ -234,6 +244,11 @@ export default function IntegrumPortal() {
         console.log("[v0] Fetched tickets:", data.tickets?.length || 0)
 
         if (data.tickets && data.tickets.length > 0) {
+          setFetchProgress(`Successfully loaded ${data.tickets.length} ticket${data.tickets.length !== 1 ? "s" : ""}`)
+        }
+        // </CHANGE>
+
+        if (data.tickets && data.tickets.length > 0) {
           console.log("[v0] First ticket sample:", {
             key: data.tickets[0].key,
             summary: data.tickets[0].summary,
@@ -245,8 +260,12 @@ export default function IntegrumPortal() {
       } catch (error) {
         console.error("[v0] Error fetching tickets:", error)
         setTicketsError(error instanceof Error ? error.message : "Failed to fetch tickets")
+        setFetchProgress("")
+        // </CHANGE>
       } finally {
         setIsLoadingTickets(false)
+        setTimeout(() => setFetchProgress(""), 2000)
+        // </CHANGE>
       }
     }
 
@@ -304,6 +323,8 @@ export default function IntegrumPortal() {
 
     setIsLoadingTickets(true)
     setTicketsError(null)
+    setFetchProgress(`Refreshing tickets...`)
+    // </CHANGE>
 
     try {
       const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=${ticketLimit}`)
@@ -314,11 +335,20 @@ export default function IntegrumPortal() {
 
       const data = await response.json()
       setTickets(data.tickets || [])
+
+      if (data.tickets && data.tickets.length > 0) {
+        setFetchProgress(`Refreshed ${data.tickets.length} ticket${data.tickets.length !== 1 ? "s" : ""}`)
+      }
+      // </CHANGE>
     } catch (error) {
       console.error("[v0] Error refreshing tickets:", error)
       setTicketsError(error instanceof Error ? error.message : "Failed to refresh tickets")
+      setFetchProgress("")
+      // </CHANGE>
     } finally {
       setIsLoadingTickets(false)
+      setTimeout(() => setFetchProgress(""), 2000)
+      // </CHANGE>
     }
   }
 
@@ -1115,6 +1145,23 @@ export default function IntegrumPortal() {
                     </Button>
                   </div>
                 </div>
+
+                {isLoadingTickets && fetchProgress && (
+                  <div className="mb-6 p-4 bg-primary/10 border-2 border-primary/30 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                      <div>
+                        <p className="text-sm font-medium text-primary">{fetchProgress}</p>
+                        {ticketLimit > 50 && (
+                          <p className="text-xs text-primary/70 mt-1">
+                            Fetching in batches of 50 from Jira (may require multiple requests)
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {/* </CHANGE> */}
 
                 {session?.user && (
                   <div className="mb-6 p-4 bg-secondary/30 border-2 border-border rounded-xl">
