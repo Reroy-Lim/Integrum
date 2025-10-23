@@ -275,10 +275,7 @@ export function TicketChatbot({
 
   const handleResolveTicket = async () => {
     try {
-      console.log("[v0] ===== RESOLVE TICKET BUTTON CLICKED =====")
       console.log("[v0] Resolving ticket:", ticketKey)
-      console.log("[v0] Current user:", currentUserEmail)
-      console.log("[v0] Is master account:", isMasterAccount)
 
       const response = await fetch(`/api/jira/ticket/${ticketKey}`, {
         method: "POST",
@@ -288,28 +285,18 @@ export function TicketChatbot({
         body: JSON.stringify({ action: "resolve" }),
       })
 
-      console.log("[v0] API response status:", response.status)
-
       if (!response.ok) {
         const errorData = await response.json()
-        console.error("[v0] ❌ API error:", errorData)
         throw new Error(errorData.error || "Failed to resolve ticket")
       }
 
-      const responseData = await response.json()
-      console.log("[v0] ✅ API response data:", responseData)
       console.log("[v0] Ticket resolved successfully")
       setShowResolveDialog(false)
 
-      console.log("[v0] Waiting 2 seconds for database propagation...")
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      console.log("[v0] Redirecting to Your Ticket Page...")
-      // Redirect to Your Ticket Page instead of reloading to ensure fresh data fetch
-      window.location.href = "/?view=yourTickets&resolved=" + ticketKey
+      // Refresh the page to show updated status
+      window.location.reload()
     } catch (error) {
-      console.error("[v0] ❌ Error resolving ticket:", error)
-      console.error("[v0] Error details:", error instanceof Error ? error.message : String(error))
+      console.error("[v0] Error resolving ticket:", error)
       alert("Failed to resolve ticket. Please try again.")
     }
   }
