@@ -87,11 +87,11 @@ export class JiraApiClient {
       const isMasterAccount = userEmail.toLowerCase() === masterEmail.toLowerCase()
 
       console.log(
-        "[v0] Jira API: Fetching tickets for user:",
+        "[v0] 🎯 Jira API: Starting fetch for user:",
         userEmail,
         "| Is master:",
         isMasterAccount,
-        "| Limit:",
+        "| Requested limit:",
         maxResults,
       )
 
@@ -103,6 +103,7 @@ export class JiraApiClient {
       const pageSize = 50 // Jira's default max per request
       let totalFetched = 0
       let pageNumber = 0
+      let jiraTotalAvailable = 0
 
       while (totalFetched < maxResults) {
         pageNumber++
@@ -119,62 +120,62 @@ export class JiraApiClient {
         const requestUrl = `${baseUrl}/rest/api/3/search/jql?${params.toString()}`
 
         console.log(
-          `[v0] Jira API: 📄 PAGE ${pageNumber} - Fetching from position ${startAt}, requesting ${currentPageSize} tickets`,
+          `[v0] 📄 PAGE ${pageNumber} - Requesting ${currentPageSize} tickets starting at position ${startAt}`,
         )
-        console.log(`[v0] Jira API: 📊 Progress: ${totalFetched}/${maxResults} tickets fetched so far`)
 
         const response = await fetch(requestUrl, {
           method: "GET",
           headers: this.getAuthHeaders(),
         })
 
-        console.log(`[v0] Jira API: ✓ Response status: ${response.status}`)
-
         if (!response.ok) {
           const errorText = await response.text()
-          console.error("[v0] Jira API: ❌ Error response:", errorText)
+          console.error("[v0] ❌ Jira API error:", errorText)
           throw new Error(`Failed to fetch tickets: ${response.statusText}`)
         }
 
         const data = await response.json()
         const issues = data.issues || []
-        const totalAvailable = data.total || 0
+        jiraTotalAvailable = data.total || 0
 
         console.log(
-          `[v0] Jira API: ✓ PAGE ${pageNumber} returned ${issues.length} tickets (Jira reports ${totalAvailable} total available)`,
+          `[v0] ✓ PAGE ${pageNumber} received ${issues.length} tickets | Jira reports ${jiraTotalAvailable} total available in project`,
         )
 
         allIssues = allIssues.concat(issues)
         totalFetched += issues.length
 
-        console.log(`[v0] Jira API: 📊 Running total: ${totalFetched} tickets accumulated`)
+        console.log(
+          `[v0] 📊 Progress: ${totalFetched}/${maxResults} tickets fetched (${jiraTotalAvailable} available in Jira)`,
+        )
 
         if (issues.length < currentPageSize) {
-          console.log(`[v0] Jira API: 🏁 Reached end of results (got ${issues.length}, expected ${currentPageSize})`)
+          console.log(`[v0] 🏁 End of results - page returned ${issues.length} tickets, expected ${currentPageSize}`)
           break
         }
 
-        if (totalFetched >= totalAvailable) {
-          console.log(`[v0] Jira API: 🏁 Fetched all available tickets (${totalAvailable} total in Jira)`)
+        if (totalFetched >= jiraTotalAvailable) {
+          console.log(`[v0] 🏁 Fetched all ${jiraTotalAvailable} tickets available in Jira`)
           break
         }
 
-        startAt += currentPageSize
-        console.log(`[v0] Jira API: ➡️  Moving to next page, new startAt: ${startAt}`)
+        startAt += issues.length
+        console.log(`[v0] ➡️  Continuing to next page, new startAt: ${startAt}`)
       }
 
-      console.log(`[v0] Jira API: ✅ PAGINATION COMPLETE - Fetched ${totalFetched} tickets across ${pageNumber} pages`)
+      console.log(`[v0] ✅ PAGINATION COMPLETE - Fetched ${totalFetched} tickets across ${pageNumber} page(s)`)
+      console.log(`[v0] 📦 Total issues in array before transformation: ${allIssues.length}`)
 
       const allTickets = allIssues.map((issue: any) => this.transformJiraIssue(issue))
 
-      console.log("[v0] Jira API: 🎫 Total tickets after transformation:", allTickets.length)
+      console.log("[v0] 🎫 Total tickets after transformation:", allTickets.length)
 
       if (isMasterAccount) {
-        console.log("[v0] Jira API: 👑 Master account - returning all", allTickets.length, "tickets")
+        console.log("[v0] 👑 Master account - returning all", allTickets.length, "tickets without filtering")
         return allTickets
       }
 
-      console.log("[v0] Jira API: 🔍 Starting email filtering for non-master account:", userEmail)
+      console.log("[v0] 🔍 Non-master account - filtering tickets for:", userEmail)
 
       const filteredTickets = allTickets.filter((ticket, index) => {
         const description = ticket.description || ""
@@ -211,7 +212,7 @@ export class JiraApiClient {
         const matches = ticketOwnerEmail === userEmail.toLowerCase()
 
         if (index < 5) {
-          console.log(`[v0] Jira API: Ticket ${ticket.key}:`)
+          console.log(`[v0] Ticket ${ticket.key}:`)
           console.log(`  - Extracted email: ${ticketOwnerEmail || "NONE"}`)
           console.log(`  - Pattern used: ${matchedPattern >= 0 ? matchedPattern : "none"}`)
           console.log(`  - Matches user: ${matches}`)
@@ -222,25 +223,25 @@ export class JiraApiClient {
       })
 
       console.log(
-        `[v0] Jira API: ✅ FILTERING COMPLETE - Showing ${filteredTickets.length} of ${allTickets.length} tickets for user ${userEmail}`,
+        `[v0] ✅ FILTERING COMPLETE - Showing ${filteredTickets.length} of ${allTickets.length} tickets for user ${userEmail}`,
       )
 
       if (filteredTickets.length === 0 && allTickets.length > 0) {
-        console.log("[v0] Jira API: ⚠️ NO MATCHES FOUND for user:", userEmail)
-        console.log("[v0] Jira API: Showing full descriptions of first 2 tickets:")
+        console.log("[v0] ⚠️ NO MATCHES FOUND for user:", userEmail)
+        console.log("[v0] Showing full descriptions of first 2 tickets:")
 
         for (let i = 0; i < Math.min(2, allTickets.length); i++) {
           const ticket = allTickets[i]
           const desc = ticket.description || "No description"
-          console.log(`\n[v0] Jira API: ===== Ticket ${ticket.key} FULL DESCRIPTION =====`)
+          console.log(`\n===== Ticket ${ticket.key} FULL DESCRIPTION =====`)
           console.log(desc)
-          console.log(`[v0] Jira API: ===== END ${ticket.key} =====\n`)
+          console.log(`===== END ${ticket.key} =====\n`)
         }
       }
 
       return filteredTickets
     } catch (error) {
-      console.error("[v0] Jira API: Error:", error instanceof Error ? error.message : "Unknown error")
+      console.error("[v0] Error:", error instanceof Error ? error.message : "Unknown error")
       return []
     }
   }
@@ -260,7 +261,7 @@ export class JiraApiClient {
         headers: this.getAuthHeaders(),
       })
 
-      console.log("[v0] Jira API: Response status:", response.status, response.statusText)
+      console.log("[v0] Response status:", response.status, response.statusText)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch latest ticket: ${response.statusText}`)
@@ -292,7 +293,7 @@ export class JiraApiClient {
 
       if (!doneTransition) {
         console.error(
-          `[v0] Jira API: Transition "${transitionName}" not found. Available transitions:`,
+          `[v0] Transition "${transitionName}" not found. Available transitions:`,
           transitions.map((t: any) => t.name),
         )
         throw new Error(`Transition "${transitionName}" not available for this ticket`)
@@ -310,14 +311,14 @@ export class JiraApiClient {
 
       if (!transitionResponse.ok) {
         const errorText = await transitionResponse.text()
-        console.error("[v0] Jira API: Transition error:", errorText)
+        console.error("[v0] Transition error:", errorText)
         throw new Error(`Failed to transition ticket: ${transitionResponse.statusText}`)
       }
 
-      console.log(`[v0] Jira API: Successfully transitioned ticket ${ticketKey} to ${transitionName}`)
+      console.log(`[v0] Successfully transitioned ticket ${ticketKey} to ${transitionName}`)
       return true
     } catch (error) {
-      console.error("[v0] Jira API: Error transitioning ticket:", error)
+      console.error("[v0] Error transitioning ticket:", error)
       return false
     }
   }
