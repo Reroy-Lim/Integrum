@@ -87,118 +87,70 @@ export class JiraApiClient {
       const isMasterAccount = userEmail.toLowerCase() === masterEmail.toLowerCase()
 
       console.log(
-        "[v0] 🎯 Jira API: Starting fetch for user:",
+        "[v0] Jira API: Fetching tickets for user:",
         userEmail,
         "| Is master:",
         isMasterAccount,
-        "| Requested limit:",
+        "| Limit:",
         maxResults,
       )
 
       const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
+      const params = new URLSearchParams({
+        jql,
+        maxResults: maxResults.toString(),
+        fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype,attachment",
+      })
+
       const baseUrl = this.config.baseUrl.replace(/\/$/, "")
+      const requestUrl = `${baseUrl}/rest/api/3/search/jql?${params.toString()}`
 
-      let allIssues: any[] = []
-      let startAt = 0
-      const pageSize = 50 // Jira's default max per request
-      let totalFetched = 0
-      let pageNumber = 0
+      const response = await fetch(requestUrl, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      })
 
-      while (totalFetched < maxResults) {
-        pageNumber++
-        const remainingToFetch = maxResults - totalFetched
-        const currentPageSize = Math.min(pageSize, remainingToFetch)
+      console.log("[v0] Jira API: Response status:", response.status)
 
-        const params = new URLSearchParams({
-          jql,
-          startAt: startAt.toString(),
-          maxResults: currentPageSize.toString(),
-          fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype,attachment",
-        })
-
-        const requestUrl = `${baseUrl}/rest/api/3/search?${params.toString()}`
-
-        console.log(
-          `[v0] 📄 PAGE ${pageNumber} - Requesting ${currentPageSize} tickets starting at position ${startAt}`,
-        )
-
-        const response = await fetch(requestUrl, {
-          method: "GET",
-          headers: this.getAuthHeaders(),
-        })
-
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.error("[v0] ❌ Jira API error:", errorText)
-          throw new Error(`Failed to fetch tickets: ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        const issues = data.issues || []
-        const jiraTotalAvailable = data.total || 0
-
-        console.log(
-          `[v0] ✓ PAGE ${pageNumber} received ${issues.length} tickets | Jira reports ${jiraTotalAvailable} total in project`,
-        )
-
-        if (issues.length === 0) {
-          console.log(`[v0] 🏁 No more tickets available - received 0 tickets on page ${pageNumber}`)
-          break
-        }
-
-        allIssues = allIssues.concat(issues)
-        totalFetched += issues.length
-
-        console.log(
-          `[v0] 📊 Progress: ${totalFetched}/${maxResults} tickets fetched (${jiraTotalAvailable} reported by Jira)`,
-        )
-
-        if (issues.length < currentPageSize) {
-          console.log(`[v0] 🏁 End of results - page returned ${issues.length} tickets, expected ${currentPageSize}`)
-          break
-        }
-
-        if (jiraTotalAvailable > 0 && totalFetched >= jiraTotalAvailable) {
-          console.log(`[v0] 🏁 Fetched all ${jiraTotalAvailable} tickets available in Jira`)
-          break
-        }
-
-        startAt += issues.length
-        console.log(`[v0] ➡️  Continuing to next page, new startAt: ${startAt}`)
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("[v0] Jira API: Error response:", errorText)
+        throw new Error(`Failed to fetch tickets: ${response.statusText}`)
       }
 
-      console.log(`[v0] ✅ PAGINATION COMPLETE - Fetched ${totalFetched} tickets across ${pageNumber} page(s)`)
-      console.log(`[v0] 📦 Total issues in array before transformation: ${allIssues.length}`)
+      const data = await response.json()
+      const allTickets = data.issues.map((issue: any) => this.transformJiraIssue(issue))
 
-      const allTickets = allIssues.map((issue: any) => this.transformJiraIssue(issue))
+      console.log("[v0] Jira API: Total tickets fetched:", allTickets.length)
 
-      console.log("[v0] 🎫 Total tickets after transformation:", allTickets.length)
-
+      // If master account, return all tickets
       if (isMasterAccount) {
-        console.log("[v0] 👑 Master account - returning all", allTickets.length, "tickets without filtering")
+        console.log("[v0] Jira API: Master account - returning all tickets")
         return allTickets
       }
 
-      console.log("[v0] 🔍 Non-master account - filtering tickets for:", userEmail)
+      console.log("[v0] Jira API: Starting email filtering for non-master account:", userEmail)
 
       const filteredTickets = allTickets.filter((ticket, index) => {
         const description = ticket.description || ""
 
+        // This ensures [a-z]{2,6} only matches lowercase letters, stopping at "Description"
         const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/
 
         const patterns = [
-          new RegExp(`From:\\s*${emailPattern.source}`),
-          new RegExp(`from:\\s*${emailPattern.source}`),
-          new RegExp(`FROM:\\s*${emailPattern.source}`),
-          new RegExp(`From:\\s*<${emailPattern.source}>`),
-          new RegExp(`from:\\s*<${emailPattern.source}>`),
-          new RegExp(`From:\\s*\\n\\s*${emailPattern.source}`),
-          new RegExp(`From\\s*:\\s*${emailPattern.source}`),
+          new RegExp(`From:\\s*${emailPattern.source}`), // From: email
+          new RegExp(`from:\\s*${emailPattern.source}`), // from: email
+          new RegExp(`FROM:\\s*${emailPattern.source}`), // FROM: email
+          new RegExp(`From:\\s*<${emailPattern.source}>`), // From: <email>
+          new RegExp(`from:\\s*<${emailPattern.source}>`), // from: <email>
+          new RegExp(`From:\\s*\\n\\s*${emailPattern.source}`), // From:\n email
+          new RegExp(`From\\s*:\\s*${emailPattern.source}`), // From : email
         ]
 
         let ticketOwnerEmail: string | null = null
         let matchedPattern = -1
 
+        // Try each pattern
         for (let i = 0; i < patterns.length; i++) {
           const match = description.match(patterns[i])
           if (match && match[1]) {
@@ -208,15 +160,17 @@ export class JiraApiClient {
           }
         }
 
+        // Fallback: if no "From:" field found, check if description contains the user's email anywhere
         if (!ticketOwnerEmail && description.toLowerCase().includes(userEmail.toLowerCase())) {
           ticketOwnerEmail = userEmail.toLowerCase()
-          matchedPattern = 999
+          matchedPattern = 999 // Fallback pattern
         }
 
         const matches = ticketOwnerEmail === userEmail.toLowerCase()
 
+        // Log first 5 tickets in detail for debugging
         if (index < 5) {
-          console.log(`[v0] Ticket ${ticket.key}:`)
+          console.log(`[v0] Jira API: Ticket ${ticket.key}:`)
           console.log(`  - Extracted email: ${ticketOwnerEmail || "NONE"}`)
           console.log(`  - Pattern used: ${matchedPattern >= 0 ? matchedPattern : "none"}`)
           console.log(`  - Matches user: ${matches}`)
@@ -226,26 +180,25 @@ export class JiraApiClient {
         return matches
       })
 
-      console.log(
-        `[v0] ✅ FILTERING COMPLETE - Showing ${filteredTickets.length} of ${allTickets.length} tickets for user ${userEmail}`,
-      )
+      console.log("[v0] Jira API: Filtered", filteredTickets.length, "tickets for", userEmail)
 
+      // If no matches, show more detailed debugging
       if (filteredTickets.length === 0 && allTickets.length > 0) {
-        console.log("[v0] ⚠️ NO MATCHES FOUND for user:", userEmail)
-        console.log("[v0] Showing full descriptions of first 2 tickets:")
+        console.log("[v0] Jira API: ⚠️ NO MATCHES FOUND for user:", userEmail)
+        console.log("[v0] Jira API: Showing full descriptions of first 2 tickets:")
 
         for (let i = 0; i < Math.min(2, allTickets.length); i++) {
           const ticket = allTickets[i]
           const desc = ticket.description || "No description"
-          console.log(`\n===== Ticket ${ticket.key} FULL DESCRIPTION =====`)
+          console.log(`\n[v0] Jira API: ===== Ticket ${ticket.key} FULL DESCRIPTION =====`)
           console.log(desc)
-          console.log(`===== END ${ticket.key} =====\n`)
+          console.log(`[v0] Jira API: ===== END ${ticket.key} =====\n`)
         }
       }
 
       return filteredTickets
     } catch (error) {
-      console.error("[v0] Error:", error instanceof Error ? error.message : "Unknown error")
+      console.error("[v0] Jira API: Error:", error instanceof Error ? error.message : "Unknown error")
       return []
     }
   }
@@ -260,12 +213,12 @@ export class JiraApiClient {
       })
 
       const baseUrl = this.config.baseUrl.replace(/\/$/, "")
-      const response = await fetch(`${baseUrl}/rest/api/3/search?${params.toString()}`, {
+      const response = await fetch(`${baseUrl}/rest/api/3/search/jql?${params.toString()}`, {
         method: "GET",
         headers: this.getAuthHeaders(),
       })
 
-      console.log("[v0] Response status:", response.status, response.statusText)
+      console.log("[v0] Jira API: Response status:", response.status, response.statusText)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch latest ticket: ${response.statusText}`)
@@ -281,6 +234,7 @@ export class JiraApiClient {
 
   async transitionTicket(ticketKey: string, transitionName = "Done"): Promise<boolean> {
     try {
+      // First, get available transitions for the ticket
       const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
         method: "GET",
         headers: this.getAuthHeaders(),
@@ -293,16 +247,18 @@ export class JiraApiClient {
       const transitionsData = await transitionsResponse.json()
       const transitions = transitionsData.transitions || []
 
+      // Find the transition ID for "Done" (case-insensitive)
       const doneTransition = transitions.find((t: any) => t.name.toLowerCase() === transitionName.toLowerCase())
 
       if (!doneTransition) {
         console.error(
-          `[v0] Transition "${transitionName}" not found. Available transitions:`,
+          `[v0] Jira API: Transition "${transitionName}" not found. Available transitions:`,
           transitions.map((t: any) => t.name),
         )
         throw new Error(`Transition "${transitionName}" not available for this ticket`)
       }
 
+      // Execute the transition
       const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
         method: "POST",
         headers: this.getAuthHeaders(),
@@ -315,14 +271,14 @@ export class JiraApiClient {
 
       if (!transitionResponse.ok) {
         const errorText = await transitionResponse.text()
-        console.error("[v0] Transition error:", errorText)
+        console.error("[v0] Jira API: Transition error:", errorText)
         throw new Error(`Failed to transition ticket: ${transitionResponse.statusText}`)
       }
 
-      console.log(`[v0] Successfully transitioned ticket ${ticketKey} to ${transitionName}`)
+      console.log(`[v0] Jira API: Successfully transitioned ticket ${ticketKey} to ${transitionName}`)
       return true
     } catch (error) {
-      console.error("[v0] Error transitioning ticket:", error)
+      console.error("[v0] Jira API: Error transitioning ticket:", error)
       return false
     }
   }
@@ -334,6 +290,7 @@ export class JiraApiClient {
       if (typeof issue.fields.description === "string") {
         description = issue.fields.description
       } else if (issue.fields.description.content) {
+        // Handle Atlassian Document Format (ADF)
         description = this.extractTextFromADF(issue.fields.description)
       }
     }
@@ -385,10 +342,12 @@ export class JiraApiClient {
     const extractText = (node: any): string => {
       if (!node) return ""
 
+      // If it's a text node, return the text directly
       if (node.type === "text" && node.text) {
         return node.text
       }
 
+      // If it's a block-level node (paragraph, heading, etc.), process children and add newline
       if (node.type === "paragraph" || node.type === "heading") {
         let text = ""
         if (node.content && Array.isArray(node.content)) {
@@ -396,9 +355,10 @@ export class JiraApiClient {
             text += extractText(child)
           }
         }
-        return text + "\n"
+        return text + "\n" // Add newline after each paragraph/heading
       }
 
+      // For other container nodes (doc, listItem, etc.), just process children
       if (node.content && Array.isArray(node.content)) {
         let text = ""
         for (const child of node.content) {
@@ -413,6 +373,7 @@ export class JiraApiClient {
     return extractText(adf).trim()
   }
 
+  // Map JIRA status to our categories
   mapStatusToCategory(status: string): string {
     const statusLower = status.toLowerCase()
 
@@ -428,7 +389,7 @@ export class JiraApiClient {
       return "Pending Reply"
     }
 
-    return "In Progression"
+    return "In Progression" // Default
   }
 }
 

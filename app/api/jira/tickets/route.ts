@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const limit = searchParams.get("limit")
   const maxResults = limit ? Number.parseInt(limit, 10) : 100
 
-  console.log("[v0] 🌐 API Route: Received request | User:", userEmail, "| Limit:", maxResults)
+  console.log("[v0] Jira API Route: Request for user:", userEmail, "with limit:", maxResults)
 
   if (!userEmail) {
     return NextResponse.json({ error: "User email is required" }, { status: 400 })
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     const jiraClient = new JiraApiClient(jiraConfig)
     const tickets = await jiraClient.getTicketsByUser(userEmail, maxResults)
 
-    console.log("[v0] 📤 API Route: Returning", tickets.length, "tickets to frontend")
+    console.log("[v0] Jira API Route: Returning", tickets.length, "tickets")
     return NextResponse.json({ tickets })
   } catch (error) {
     console.error("[v0] Jira API Route: Error:", error instanceof Error ? error.message : "Unknown error")
