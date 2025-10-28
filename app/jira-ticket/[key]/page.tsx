@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "@/lib/use-session"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,18 +9,36 @@ import { Loader2, ArrowLeft, Calendar, User, AlertCircle, Mail, Download } from 
 import { Badge } from "@/components/ui/badge"
 import type { JiraTicket } from "@/lib/jira-api"
 import { TicketChatbot } from "@/components/ticket-chatbot"
+import { useToast } from "@/hooks/use-toast"
 
 export default function JiraTicketDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const ticketKey = params.key as string
   const { data: session } = useSession()
   const userEmail = session?.user?.email || ""
   const isMasterAccount = userEmail === "heyroy23415@gmail.com"
+  const { toast } = useToast()
 
   const [ticket, setTicket] = useState<JiraTicket | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const isNewTicket = searchParams.get("newTicket")
+
+    if (isNewTicket === "true" && ticketKey) {
+      toast({
+        title: "Ticket Successfully Created!",
+        description: `You have created new ticket: ${ticketKey}`,
+        duration: 5000,
+      })
+
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, "", newUrl)
+    }
+  }, [searchParams, ticketKey, toast])
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -50,7 +68,6 @@ export default function JiraTicketDetailPage() {
   }, [ticketKey])
 
   const extractEmailFromDescription = (description: string): string | null => {
-    // Use the same pattern as in jira-api.ts for consistency
     const patterns = [
       /From:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/,
       /from:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=[A-Z]|\s|$|[^a-zA-Z0-9])/,
@@ -77,7 +94,6 @@ export default function JiraTicketDetailPage() {
     for (const line of lines) {
       const trimmedLine = line.trim()
 
-      // Check if we're entering a solutions section
       if (
         trimmedLine.toLowerCase().startsWith("possible solutions:") ||
         trimmedLine.toLowerCase().startsWith("explanation for solution")
@@ -85,7 +101,6 @@ export default function JiraTicketDetailPage() {
         inSolutionsSection = true
       }
 
-      // If we're in solutions section, collect the lines
       if (inSolutionsSection) {
         solutionsLines.push(line)
       }
@@ -98,7 +113,6 @@ export default function JiraTicketDetailPage() {
     if (!description) return ""
 
     if (isMasterAccount) {
-      // Add line break after email if it's immediately followed by "Description Detail:"
       const withLineBreak = description.replace(
         /From:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,6})(?=Description Detail:)/i,
         "From: $1\n",
@@ -106,15 +120,11 @@ export default function JiraTicketDetailPage() {
       return withLineBreak.trim()
     }
 
-    // For non-master accounts, remove the "From:" line
-    // This ensures we don't accidentally truncate "Description Detail:"
     const descriptionDetailIndex = description.indexOf("Description Detail:")
     if (descriptionDetailIndex > 0) {
-      // Found "Description Detail:" - remove everything before it
       return description.substring(descriptionDetailIndex).trim()
     }
 
-    // If "Description Detail:" is not found, try to remove just the "From:" line
     const cleaned = description.replace(/^From:\s*[^\n]+\n?/i, "")
     return cleaned.trim()
   }
@@ -129,7 +139,6 @@ export default function JiraTicketDetailPage() {
     for (const line of lines) {
       const trimmedLine = line.trim()
 
-      // Check if we're entering a solutions section
       if (
         trimmedLine.toLowerCase().startsWith("possible solutions:") ||
         trimmedLine.toLowerCase().startsWith("explanation for solution")
@@ -138,7 +147,6 @@ export default function JiraTicketDetailPage() {
         continue
       }
 
-      // If not in solutions section, keep the line
       if (!inSolutionsSection) {
         filteredLines.push(line)
       }
@@ -178,26 +186,20 @@ export default function JiraTicketDetailPage() {
       const trimmedLine = line.trim()
       if (!trimmedLine) continue
 
-      // Check if line is a section header
       const matchedHeader = sectionHeaders.find((header) => trimmedLine.toLowerCase().startsWith(header.toLowerCase()))
 
       if (matchedHeader) {
-        // Save previous section if it has content
         if (currentSection.header || currentSection.content.length > 0) {
           sections.push(currentSection)
         }
 
-        // Extract just the header part (up to and including the colon)
         const headerEndIndex = trimmedLine.toLowerCase().indexOf(matchedHeader.toLowerCase()) + matchedHeader.length
         const header = trimmedLine.substring(0, headerEndIndex)
         const contentAfterHeader = trimmedLine.substring(headerEndIndex).trim()
 
-        // Start new section with just the header
         currentSection = { header, content: [] }
 
         if (header.toLowerCase().includes("additional details") && contentAfterHeader) {
-          // Split by looking ahead for patterns like "Key:" where Key starts with uppercase
-          // This handles cases where all details are on one line
           const keyValuePairs = contentAfterHeader.split(/(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+$$[^)]+$$)?:)/)
 
           keyValuePairs.forEach((pair) => {
@@ -209,7 +211,6 @@ export default function JiraTicketDetailPage() {
         } else if (contentAfterHeader) {
           const numberedItemsMatch = contentAfterHeader.match(/\d+[.)]/g)
           if (numberedItemsMatch && numberedItemsMatch.length > 1) {
-            // Multiple numbered items on the same line - split them
             const splitItems = contentAfterHeader.split(/(?=\d+[.)])/)
             splitItems.forEach((item) => {
               const trimmedItem = item.trim()
@@ -218,14 +219,12 @@ export default function JiraTicketDetailPage() {
               }
             })
           } else {
-            // Single item or no numbered items - add as-is
             currentSection.content.push(contentAfterHeader)
           }
         }
       } else {
         const numberedItemsMatch = trimmedLine.match(/\d+[.)]/g)
         if (numberedItemsMatch && numberedItemsMatch.length > 1) {
-          // Multiple numbered items on the same line - split them
           const splitItems = trimmedLine.split(/(?=\d+[.)])/)
           splitItems.forEach((item) => {
             const trimmedItem = item.trim()
@@ -239,7 +238,6 @@ export default function JiraTicketDetailPage() {
       }
     }
 
-    // Add the last section
     if (currentSection.header || currentSection.content.length > 0) {
       sections.push(currentSection)
     }
@@ -277,12 +275,10 @@ export default function JiraTicketDetailPage() {
                     if (isStepsSection) {
                       let textContent = line.trim()
 
-                      // If line has a number pattern, extract just the text
                       if (numberedMatch) {
                         textContent = numberedMatch[2].trim()
                       }
 
-                      // Skip if content is empty, too short, or just punctuation
                       if (!textContent || textContent.length <= 1 || /^[.,;:!?]+$/.test(textContent)) {
                         return null
                       }
@@ -298,7 +294,6 @@ export default function JiraTicketDetailPage() {
 
                     if (numberedMatch) {
                       const textContent = numberedMatch[2].trim()
-                      // Skip if content is empty, too short, or just punctuation
                       if (textContent && textContent.length > 1 && !/^[.,;:!?]+$/.test(textContent)) {
                         numberCounter++
                         return (
@@ -383,15 +378,12 @@ export default function JiraTicketDetailPage() {
       }
 
       console.log("[v0] Creating blob from response")
-      // Create a blob from the response
       const blob = await response.blob()
       console.log("[v0] Blob created, size:", blob.size, "type:", blob.type)
 
-      // Create a temporary URL for the blob
       const url = window.URL.createObjectURL(blob)
       console.log("[v0] Blob URL created:", url)
 
-      // Create a temporary anchor element and trigger download
       const a = document.createElement("a")
       a.href = url
       a.download = filename
@@ -399,7 +391,6 @@ export default function JiraTicketDetailPage() {
       console.log("[v0] Triggering download for:", filename)
       a.click()
 
-      // Cleanup
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
       console.log("[v0] Download completed successfully")

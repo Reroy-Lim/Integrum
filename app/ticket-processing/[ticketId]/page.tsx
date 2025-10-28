@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Loader2, CheckCircle2, Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Loader2, Mail } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function TicketProcessingPage() {
@@ -21,7 +20,7 @@ export default function TicketProcessingPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, []) // Empty dependency array so timer runs continuously
+  }, [])
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -31,6 +30,9 @@ export default function TicketProcessingPage() {
 
         if (data.status === "done") {
           setStatus("done")
+          setTimeout(() => {
+            router.push(`/jira-ticket/${ticketId}?newTicket=true`)
+          }, 1000) // Small delay to show success state briefly
         } else if (data.status === "error") {
           setStatus("error")
           setErrorMessage(data.message || "Failed to create ticket")
@@ -40,24 +42,16 @@ export default function TicketProcessingPage() {
       }
     }
 
-    // Initial check
     checkStatus()
-
-    // Poll every 3 seconds
     const pollInterval = setInterval(checkStatus, 3000)
 
     return () => clearInterval(pollInterval)
-  }, [ticketId])
+  }, [ticketId, router])
 
-  // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
-
-  const handleViewDashboard = () => {
-    router.push("/?view=yourTickets")
   }
 
   return (
@@ -80,12 +74,20 @@ export default function TicketProcessingPage() {
           {status === "done" && (
             <>
               <div className="flex justify-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="w-10 h-10 text-green-600" />
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
+                  <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                      stroke="#16a34a"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </div>
               </div>
               <CardTitle className="text-2xl font-bold text-gray-800">Ticket Successfully Created!</CardTitle>
-              <p className="text-gray-600">You may now view it on your dashboard.</p>
+              <p className="text-gray-600">Redirecting to your ticket...</p>
             </>
           )}
 
@@ -103,19 +105,16 @@ export default function TicketProcessingPage() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Live Timer */}
           <div className="bg-gray-50 rounded-lg p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">Processing time</p>
             <p className="text-3xl font-mono font-bold text-blue-600">{formatTime(elapsedTime)}</p>
           </div>
 
-          {/* Ticket ID */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-700 mb-1">Ticket ID</p>
             <p className="text-lg font-semibold text-blue-900">{ticketId}</p>
           </div>
 
-          {/* Status Messages */}
           {status === "processing" && (
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
@@ -132,29 +131,8 @@ export default function TicketProcessingPage() {
               </div>
             </div>
           )}
-
-          {status === "done" && (
-            <Button onClick={handleViewDashboard} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-              View Dashboard
-            </Button>
-          )}
-
-          {status === "error" && (
-            <Button onClick={() => router.push("/")} variant="outline" className="w-full">
-              Back to Home
-            </Button>
-          )}
         </CardContent>
       </Card>
-
-      {/* Optional Debug Console (for monitoring only) */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="fixed bottom-4 right-4 bg-black/80 text-white p-4 rounded-lg text-xs font-mono max-w-sm">
-          <p>Status: {status}</p>
-          <p>Ticket ID: {ticketId}</p>
-          <p>Elapsed: {formatTime(elapsedTime)}</p>
-        </div>
-      )}
     </div>
   )
 }
