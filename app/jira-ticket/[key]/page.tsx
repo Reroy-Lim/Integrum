@@ -32,7 +32,7 @@ export default function JiraTicketDetailPage() {
       toast({
         title: "Ticket Successfully Created!",
         description: `You have created new ticket: ${ticketKey}`,
-        duration: 5000,
+        duration: Number.POSITIVE_INFINITY,
       })
 
       const newUrl = window.location.pathname
