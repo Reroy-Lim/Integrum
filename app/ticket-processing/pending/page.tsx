@@ -126,7 +126,9 @@ export default function PendingTicketPage() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>error icon</p>
+                  <p className="max-w-xs text-center">
+                    Didn't send Email? Don't worry, Click on this Error Icon Button to return to Home Page!
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
