@@ -15,6 +15,7 @@ export default function PendingTicketPage() {
 
   const [elapsedTime, setElapsedTime] = useState(0)
   const [foundTicket, setFoundTicket] = useState(false)
+  const [checkCount, setCheckCount] = useState(0)
 
   useEffect(() => {
     if (foundTicket) return
@@ -31,7 +32,8 @@ export default function PendingTicketPage() {
 
     const checkForNewTicket = async () => {
       try {
-        console.log("[v0] Checking for new tickets for user:", userEmail)
+        setCheckCount((prev) => prev + 1)
+        console.log("[v0] Checking for new tickets (attempt #" + (checkCount + 1) + ") for user:", userEmail)
 
         const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=1`)
 
@@ -48,14 +50,29 @@ export default function PendingTicketPage() {
           const currentTime = Date.now()
           const timeDifference = currentTime - ticketCreatedTime
 
-          if (timeDifference < 2 * 60 * 1000) {
-            console.log("[v0] Found new ticket:", latestTicket.key)
+          if (timeDifference < 3 * 60 * 1000) {
+            console.log(
+              "[v0] Found new ticket:",
+              latestTicket.key,
+              "Created:",
+              new Date(latestTicket.created).toISOString(),
+            )
             setFoundTicket(true)
 
             setTimeout(() => {
               router.push(`/ticket-processing/${latestTicket.key}`)
-            }, 1000)
+            }, 500)
+          } else {
+            console.log(
+              "[v0] Latest ticket is too old:",
+              latestTicket.key,
+              "Age:",
+              Math.floor(timeDifference / 1000),
+              "seconds",
+            )
           }
+        } else {
+          console.log("[v0] No tickets found yet")
         }
       } catch (error) {
         console.error("[v0] Error checking for new tickets:", error)
@@ -70,7 +87,7 @@ export default function PendingTicketPage() {
       clearTimeout(initialTimeout)
       clearInterval(pollInterval)
     }
-  }, [userEmail, router])
+  }, [userEmail, router, checkCount])
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
@@ -102,6 +119,7 @@ export default function PendingTicketPage() {
           <div className="bg-gray-50 rounded-lg p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">Processing time</p>
             <p className="text-3xl font-mono font-bold text-blue-600">{formatTime(elapsedTime)}</p>
+            <p className="text-xs text-gray-400 mt-1">Checks: {checkCount}</p>
           </div>
 
           {/* Instructions */}
