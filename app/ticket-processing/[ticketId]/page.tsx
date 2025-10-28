@@ -43,8 +43,7 @@ export default function TicketProcessingPage() {
     // Initial check
     checkStatus()
 
-    // Poll every 3 seconds
-    const pollInterval = setInterval(checkStatus, 3000)
+    const pollInterval = setInterval(checkStatus, 1000)
 
     return () => clearInterval(pollInterval)
   }, [ticketId])

@@ -62,11 +62,9 @@ export default function PendingTicketPage() {
       }
     }
 
-    // Initial check after 3 seconds (give time for email to be sent)
-    const initialTimeout = setTimeout(checkForNewTicket, 3000)
+    const initialTimeout = setTimeout(checkForNewTicket, 1000)
 
-    // Poll every 5 seconds
-    const pollInterval = setInterval(checkForNewTicket, 5000)
+    const pollInterval = setInterval(checkForNewTicket, 2000)
 
     return () => {
       clearTimeout(initialTimeout)
