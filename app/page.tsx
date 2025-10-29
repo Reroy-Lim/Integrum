@@ -200,9 +200,6 @@ export default function IntegrumPortal() {
   const [isLoadingTickets, setIsLoadingTickets] = useState(false)
   const [ticketsError, setTicketsError] = useState<string | null>(null)
   const [ticketLimit, setTicketLimit] = useState(50)
-  const [totalTickets, setTotalTickets] = useState(0)
-  const [showingTickets, setShowingTickets] = useState(0)
-  // </CHANGE>
 
   const [ticketCategories, setTicketCategories] = useState<Record<string, string>>({})
 
@@ -235,10 +232,6 @@ export default function IntegrumPortal() {
 
         const data = await response.json()
         console.log("[v0] Fetched tickets:", data.tickets?.length || 0)
-
-        setTotalTickets(data.total || 0)
-        setShowingTickets(data.showing || data.tickets?.length || 0)
-        // </CHANGE>
 
         if (data.tickets && data.tickets.length > 0) {
           console.log("[v0] First ticket sample:", {
@@ -320,9 +313,6 @@ export default function IntegrumPortal() {
       }
 
       const data = await response.json()
-      setTotalTickets(data.total || 0)
-      setShowingTickets(data.showing || data.tickets?.length || 0)
-      // </CHANGE>
       setTickets(data.tickets || [])
     } catch (error) {
       console.error("[v0] Error refreshing tickets:", error)
@@ -793,7 +783,6 @@ export default function IntegrumPortal() {
                   Submit Ticket
                 </Button>
               )}
-              {/* </CHANGE> */}
               <Button
                 size="lg"
                 variant="outline"
@@ -1083,15 +1072,7 @@ export default function IntegrumPortal() {
             <div className="max-w-7xl mx-auto">
               <div className="bg-card/50 border-2 border-border backdrop-blur-sm rounded-2xl p-8 shadow-xl">
                 <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-4xl font-bold text-foreground">Your Ticket Page</h2>
-                    {showingTickets > 0 && (
-                      <p className="text-sm text-foreground/60 mt-2">
-                        Showing {showingTickets} of {totalTickets} total tickets
-                      </p>
-                    )}
-                    {/* </CHANGE> */}
-                  </div>
+                  <h2 className="text-4xl font-bold text-foreground">Your Ticket Page</h2>
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center space-x-2">
                       <label htmlFor="ticket-limit" className="text-sm font-medium text-foreground/80">
@@ -1121,7 +1102,6 @@ export default function IntegrumPortal() {
                           </option>
                         )}
                       </select>
-                      {/* </CHANGE> */}
                     </div>
                     <Button
                       variant="outline"
@@ -1221,7 +1201,6 @@ export default function IntegrumPortal() {
                                           </span>
                                         </div>
                                       )}
-                                      {/* </CHANGE> */}
                                     </div>
                                     <CardDescription className="text-xs text-foreground/60">
                                       {ticket.key} • {new Date(ticket.updated).toLocaleDateString()}

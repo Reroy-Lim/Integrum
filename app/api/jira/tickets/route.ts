@@ -5,9 +5,17 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const userEmail = searchParams.get("email")
   const limit = searchParams.get("limit")
-  const userRequestedLimit = limit ? Number.parseInt(limit, 10) : 50
+  const requestedLimit = limit ? Number.parseInt(limit, 10) : 50
 
-  console.log("[v0] Jira API Route: Request for user:", userEmail, "with limit:", userRequestedLimit)
+  const masterEmail = process.env.NEXT_PUBLIC_MASTER_EMAIL || "heyroy23415@gmail.com"
+  const isMasterAccount = userEmail?.toLowerCase() === masterEmail.toLowerCase()
+
+  // Enforce limits: 1000 for master, 500 for regular users
+  const maxAllowedLimit = isMasterAccount ? 1000 : 500
+  const maxResults = Math.min(requestedLimit, maxAllowedLimit)
+
+  console.log(`[v0] Jira API Route: Fetching ${maxResults} tickets in single request for user: ${userEmail}`)
+  // </CHANGE>
 
   if (!userEmail) {
     return NextResponse.json({ error: "User email is required" }, { status: 400 })
@@ -48,63 +56,20 @@ export async function GET(request: NextRequest) {
     }
 
     const jiraClient = new JiraApiClient(jiraConfig)
-    const allTickets: any[] = []
-    let startAt = 0
-    const maxResultsPerRequest = 50 // Always 50 per Jira API call
-    let totalAvailable = 0
+    const result = await jiraClient.getTicketsByUser(userEmail, maxResults, requestedLimit)
+    // </CHANGE>
 
     console.log(
-      "[v0] Jira API Route: Starting pagination - User limit:",
-      userRequestedLimit,
-      "| Per request:",
-      maxResultsPerRequest,
-    )
-
-    // Loop until we have enough tickets or no more available
-    while (startAt < userRequestedLimit) {
-      console.log("[v0] Jira API Route: Fetching batch starting at:", startAt, "| Current total:", allTickets.length)
-
-      const result = await jiraClient.getTicketsByUser(userEmail, maxResultsPerRequest, startAt)
-      totalAvailable = result.total
-
-      if (result.tickets.length === 0) {
-        console.log("[v0] Jira API Route: No more tickets available, stopping pagination")
-        break
-      }
-
-      allTickets.push(...result.tickets)
-      console.log("[v0] Jira API Route: Added", result.tickets.length, "tickets. Total now:", allTickets.length)
-
-      // Stop if we've reached the user's requested limit
-      if (allTickets.length >= userRequestedLimit) {
-        console.log("[v0] Jira API Route: Reached user requested limit, stopping pagination")
-        break
-      }
-
-      // Stop if we've fetched all available tickets
-      if (startAt + maxResultsPerRequest >= totalAvailable) {
-        console.log("[v0] Jira API Route: Fetched all available tickets, stopping pagination")
-        break
-      }
-
-      startAt += maxResultsPerRequest
-    }
-
-    // Trim to exact user limit if we fetched more
-    const finalTickets = allTickets.slice(0, userRequestedLimit)
-
-    console.log(
-      "[v0] Jira API Route: Pagination complete - Returning",
-      finalTickets.length,
-      "tickets out of",
-      totalAvailable,
-      "total available",
+      `[v0] Jira API Route: Pagination complete - Returning ${result.tickets.length} of ${requestedLimit} requested`,
     )
 
     return NextResponse.json({
-      tickets: finalTickets,
-      total: totalAvailable,
-      showing: finalTickets.length,
+      tickets: result.tickets,
+      metadata: {
+        requested: requestedLimit,
+        returned: result.tickets.length,
+        total: result.total,
+      },
     })
     // </CHANGE>
   } catch (error) {
