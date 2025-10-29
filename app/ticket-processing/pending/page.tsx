@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
 import { Loader2, Mail } from "lucide-react"
@@ -16,6 +16,15 @@ export default function PendingTicketPage() {
   const [elapsedTime, setElapsedTime] = useState(0)
   const [foundTicket, setFoundTicket] = useState(false)
   const [checkCount, setCheckCount] = useState(0)
+  const checkCountRef = useRef(0)
+
+  useEffect(() => {
+    console.log("[v0] Pending ticket page mounted, resetting state")
+    setElapsedTime(0)
+    setFoundTicket(false)
+    setCheckCount(0)
+    checkCountRef.current = 0
+  }, [])
 
   useEffect(() => {
     if (foundTicket) return
@@ -32,8 +41,9 @@ export default function PendingTicketPage() {
 
     const checkForNewTicket = async () => {
       try {
-        setCheckCount((prev) => prev + 1)
-        console.log("[v0] Checking for new tickets (attempt #" + (checkCount + 1) + ") for user:", userEmail)
+        checkCountRef.current += 1
+        setCheckCount(checkCountRef.current)
+        console.log("[v0] Checking for new tickets (attempt #" + checkCountRef.current + ") for user:", userEmail)
 
         const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=1`)
 
@@ -87,7 +97,7 @@ export default function PendingTicketPage() {
       clearTimeout(initialTimeout)
       clearInterval(pollInterval)
     }
-  }, [userEmail, router, checkCount])
+  }, [userEmail, router])
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
