@@ -279,54 +279,128 @@ export class JiraApiClient {
     }
   }
 
-  async syncCategoryToJiraStatus(ticketKey: string, frontendCategory: string): Promise<boolean> {
+  async updateTicketStatusAndResolution(
+    ticketKey: string,
+    category: "In Progression" | "Pending Reply" | "Resolved",
+  ): Promise<boolean> {
     try {
-      console.log(`[v0] Jira API: Syncing category "${frontendCategory}" to Jira status for ${ticketKey}`)
+      console.log(`[v0] Jira API: Updating ticket ${ticketKey} for category "${category}"`)
 
-      // Define the mapping from frontend category to Jira status
-      const categoryToStatusMap: Record<string, string> = {
-        "In Progress": "Backlog",
-        "Pending Reply": "In Progress",
-        Resolved: "Done",
+      // Define the mapping from frontend category to Jira status and resolution
+      const categoryMapping = {
+        "In Progression": {
+          status: "Backlog",
+          resolution: "Investigate",
+        },
+        "Pending Reply": {
+          status: "In Progress",
+          resolution: "Almost there",
+        },
+        Resolved: {
+          status: "Done",
+          resolution: "Done",
+        },
       }
 
-      const targetStatus = categoryToStatusMap[frontendCategory]
-
-      if (!targetStatus) {
-        console.log(`[v0] Jira API: No status mapping found for category "${frontendCategory}"`)
+      const mapping = categoryMapping[category]
+      if (!mapping) {
+        console.error(`[v0] Jira API: Unknown category "${category}"`)
         return false
       }
 
-      // Get current ticket status
-      const ticket = await this.getTicket(ticketKey)
-      if (!ticket) {
-        console.error(`[v0] Jira API: Ticket ${ticketKey} not found`)
+      console.log(`[v0] Jira API: Target status: "${mapping.status}", resolution: "${mapping.resolution}"`)
+
+      // Step 1: Transition the ticket status
+      const statusUpdated = await this.transitionTicket(ticketKey, mapping.status)
+
+      if (!statusUpdated) {
+        console.error(`[v0] Jira API: Failed to transition ticket to "${mapping.status}"`)
         return false
       }
 
-      const currentStatus = ticket.status.name
-      console.log(`[v0] Jira API: Current status: ${currentStatus}, Target status: ${targetStatus}`)
+      // Step 2: Update the resolution field
+      const resolutionUpdated = await this.updateResolutionField(ticketKey, mapping.resolution)
 
-      // If already at target status, no need to transition
-      if (currentStatus.toLowerCase() === targetStatus.toLowerCase()) {
-        console.log(`[v0] Jira API: Ticket already at target status "${targetStatus}"`)
-        return true
+      if (!resolutionUpdated) {
+        console.warn(`[v0] Jira API: Failed to update resolution to "${mapping.resolution}", but status was updated`)
+        return true // Status update succeeded, so return true
       }
 
-      // Attempt to transition to the target status
-      const transitioned = await this.transitionTicket(ticketKey, targetStatus)
-
-      if (transitioned) {
-        console.log(`[v0] Jira API: ✅ Successfully synced ${ticketKey} to status "${targetStatus}"`)
-      } else {
-        console.log(
-          `[v0] Jira API: ⚠️ Could not transition to "${targetStatus}" (may not be available from current status)`,
-        )
-      }
-
-      return transitioned
+      console.log(
+        `[v0] Jira API: ✅ Successfully updated ticket ${ticketKey} to status "${mapping.status}" and resolution "${mapping.resolution}"`,
+      )
+      return true
     } catch (error) {
-      console.error("[v0] Jira API: Error syncing category to status:", error)
+      console.error("[v0] Jira API: Error updating ticket status and resolution:", error)
+      return false
+    }
+  }
+
+  async updateResolutionField(ticketKey: string, resolution: string): Promise<boolean> {
+    try {
+      console.log(`[v0] Jira API: Updating resolution field for ${ticketKey} to "${resolution}"`)
+
+      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}`, {
+        method: "PUT",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          fields: {
+            customfield_10000: resolution, // This might need to be adjusted based on your Jira setup
+            // Alternative: Use a description field or comment to store resolution info
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        // If custom field doesn't work, try adding a comment instead
+        console.log(`[v0] Jira API: Custom field update failed, adding resolution as comment instead`)
+        return await this.addResolutionComment(ticketKey, resolution)
+      }
+
+      console.log(`[v0] Jira API: ✅ Successfully updated resolution field to "${resolution}"`)
+      return true
+    } catch (error) {
+      console.error("[v0] Jira API: Error updating resolution field:", error)
+      // Fallback to comment
+      return await this.addResolutionComment(ticketKey, resolution)
+    }
+  }
+
+  async addResolutionComment(ticketKey: string, resolution: string): Promise<boolean> {
+    try {
+      console.log(`[v0] Jira API: Adding resolution "${resolution}" as comment to ${ticketKey}`)
+
+      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/comment`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          body: {
+            type: "doc",
+            version: 1,
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: `Resolution: ${resolution}`,
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        console.error(`[v0] Jira API: Failed to add resolution comment: ${response.statusText}`)
+        return false
+      }
+
+      console.log(`[v0] Jira API: ✅ Successfully added resolution comment "${resolution}"`)
+      return true
+    } catch (error) {
+      console.error("[v0] Jira API: Error adding resolution comment:", error)
       return false
     }
   }

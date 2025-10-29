@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getJiraCommentsClient } from "@/lib/jira-comments"
-import { JiraApiClient, type JiraConfig } from "@/lib/jira-api"
+import { getJiraTicket, JiraApiClient, type JiraConfig } from "@/lib/jira-api"
 
 export async function GET(request: NextRequest) {
   try {
@@ -190,19 +190,6 @@ export async function POST(request: NextRequest) {
         } else {
           console.log("[v0] ✅ Successfully updated frontend category to 'Pending Reply'")
           console.log("[v0] Upsert result:", upsertData)
-
-          try {
-            const jiraConfig: JiraConfig = {
-              baseUrl: process.env.JIRA_BASE_URL || "",
-              email: process.env.JIRA_EMAIL || "",
-              apiToken: process.env.JIRA_API_TOKEN || "",
-              projectKey: process.env.JIRA_PROJECT_KEY || "",
-            }
-            const jiraClient = new JiraApiClient(jiraConfig)
-            await jiraClient.syncCategoryToJiraStatus(ticketKey, "Pending Reply")
-          } catch (syncError) {
-            console.error("[v0] Error syncing category to Jira status:", syncError)
-          }
         }
       } else {
         console.log("[v0] ⏭️  Ticket category is already:", currentCategory, "- no update needed")
@@ -212,6 +199,50 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       // Don't fail the message send if category update fails
       console.error("[v0] ❌ Exception during frontend category update:", error)
+      console.error("[v0] Error stack:", error instanceof Error ? error.stack : "No stack trace")
+    }
+
+    // Check if ticket needs status transition
+    try {
+      console.log("[v0] ===== STATUS TRANSITION CHECK START =====")
+      console.log("[v0] Checking if ticket needs status transition for:", ticketKey)
+
+      const ticket = await getJiraTicket(ticketKey)
+
+      if (ticket) {
+        const currentStatus = ticket.status.name.toLowerCase()
+        console.log("[v0] Current ticket status for", ticketKey, ":", currentStatus)
+
+        // Check if ticket is in "In Progress" or similar active status
+        if (currentStatus.includes("progress") || currentStatus === "in development") {
+          console.log("[v0] Ticket is in progress, transitioning to In Progress in Jira...")
+
+          const jiraConfig: JiraConfig = {
+            baseUrl: process.env.JIRA_BASE_URL || "",
+            email: process.env.JIRA_EMAIL || "",
+            apiToken: process.env.JIRA_API_TOKEN || "",
+            projectKey: process.env.JIRA_PROJECT_KEY || "",
+          }
+
+          const jiraClient = new JiraApiClient(jiraConfig)
+          const transitioned = await jiraClient.transitionTicket(ticketKey, "In Progress")
+
+          if (transitioned) {
+            console.log("[v0] ✅ Successfully transitioned ticket to In Progress")
+          } else {
+            console.log("[v0] ⚠️ Failed to transition ticket (transition may not be available)")
+          }
+        } else {
+          console.log("[v0] Ticket status does not require transition:", currentStatus)
+        }
+      } else {
+        console.log("[v0] Ticket not found in Jira")
+      }
+
+      console.log("[v0] ===== STATUS TRANSITION CHECK END =====")
+    } catch (error) {
+      // Don't fail the message send if transition fails
+      console.error("[v0] ❌ Exception during auto-transition:", error)
       console.error("[v0] Error stack:", error instanceof Error ? error.stack : "No stack trace")
     }
 
