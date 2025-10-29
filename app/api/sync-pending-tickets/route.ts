@@ -66,6 +66,9 @@ export async function POST(request: NextRequest) {
           const success = await jiraClient.transitionTicket(ticket.ticket_key, "In Progress")
 
           if (success) {
+            console.log(`[v0] Sync API: Updating resolution for ${ticket.ticket_key} to "Work in Progress"`)
+            await jiraClient.updateTicketResolution(ticket.ticket_key, "Work in Progress")
+
             updatedCount++
             console.log(`[v0] Sync API: ✅ Successfully updated ticket ${ticket.ticket_key}`)
           } else {

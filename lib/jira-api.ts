@@ -279,6 +279,36 @@ export class JiraApiClient {
     }
   }
 
+  async updateTicketResolution(ticketKey: string, resolutionName: string): Promise<boolean> {
+    try {
+      console.log(`[v0] Jira API: Updating resolution for ${ticketKey} to "${resolutionName}"`)
+
+      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}`, {
+        method: "PUT",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          fields: {
+            resolution: {
+              name: resolutionName,
+            },
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("[v0] Jira API: Resolution update error:", errorText)
+        throw new Error(`Failed to update resolution: ${response.statusText}`)
+      }
+
+      console.log(`[v0] Jira API: Successfully updated resolution for ${ticketKey} to "${resolutionName}"`)
+      return true
+    } catch (error) {
+      console.error("[v0] Jira API: Error updating resolution:", error)
+      return false
+    }
+  }
+
   private transformJiraIssue(issue: any): JiraTicket {
     let description = ""
 

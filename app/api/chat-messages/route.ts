@@ -229,6 +229,9 @@ export async function POST(request: NextRequest) {
 
           if (transitioned) {
             console.log("[v0] ✅ Successfully transitioned ticket to In Progress")
+            console.log("[v0] Updating resolution to 'Work in Progress'...")
+            await jiraClient.updateTicketResolution(ticketKey, "Work in Progress")
+            console.log("[v0] ✅ Successfully updated resolution to 'Work in Progress'")
           } else {
             console.log("[v0] ⚠️ Failed to transition ticket (transition may not be available)")
           }
