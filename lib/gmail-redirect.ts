@@ -58,8 +58,13 @@ export class GmailRedirectHandler {
 
   static generateReturnUrl(ticketId: string): string {
     const baseUrl = window.location.origin
-    // Always redirect to the loading page so the system can properly detect the new ticket
-    return `${baseUrl}/ticket-processing/pending`
+    const returnParams = new URLSearchParams({
+      view: "yourTickets",
+      ticket: ticketId,
+      timestamp: Date.now().toString(),
+    })
+
+    return `${baseUrl}/?${returnParams.toString()}`
   }
 
   static createGmailInstructions(ticketId: string, customerEmail: string) {

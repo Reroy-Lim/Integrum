@@ -11,10 +11,6 @@ export default function SubmitTicketPage() {
   useEffect(() => {
     console.log("[v0] Submit ticket page loaded, status:", status)
 
-    if (typeof window !== "undefined") {
-      window.history.replaceState({}, "", window.location.pathname)
-    }
-
     if (status === "authenticated") {
       console.log("[v0] User authenticated, opening Gmail")
 
@@ -27,7 +23,8 @@ export default function SubmitTicketPage() {
 
       console.log("[v0] Gmail opened, redirecting to ticket processing page")
 
-      router.replace("/ticket-processing/pending")
+      const submittedAt = Date.now()
+      router.push(`/ticket-processing/pending?submittedAt=${submittedAt}`)
     } else if (status === "unauthenticated") {
       console.log("[v0] User not authenticated, redirecting to home")
       router.push("/")

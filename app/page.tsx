@@ -448,8 +448,6 @@ export default function IntegrumPortal() {
   const handleSubmitTicket = () => {
     console.log("[v0] Submit ticket clicked, authenticated:", isAuthenticated)
 
-    window.history.replaceState({}, "", window.location.pathname)
-
     if (!isAuthenticated) {
       console.log("[v0] Not authenticated, redirecting to OAuth with /submit-ticket callback")
       window.location.href = "/api/auth/google?callbackUrl=/submit-ticket"

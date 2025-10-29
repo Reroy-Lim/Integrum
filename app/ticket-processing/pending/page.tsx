@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "@/lib/use-session"
 import { Loader2, Mail } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,8 +10,12 @@ import Image from "next/image"
 
 export default function PendingTicketPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: session } = useSession()
   const userEmail = session?.user?.email
+
+  const submittedAt = searchParams.get("submittedAt")
+  const submissionTime = submittedAt ? Number.parseInt(submittedAt, 10) : Date.now()
 
   const [elapsedTime, setElapsedTime] = useState(0)
   const [foundTicket, setFoundTicket] = useState(false)
@@ -34,6 +38,7 @@ export default function PendingTicketPage() {
       try {
         setCheckCount((prev) => prev + 1)
         console.log("[v0] Checking for new tickets (attempt #" + (checkCount + 1) + ") for user:", userEmail)
+        console.log("[v0] Only accepting tickets created after:", new Date(submissionTime).toISOString())
 
         const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=1`)
 
@@ -47,10 +52,8 @@ export default function PendingTicketPage() {
         if (data.tickets && data.tickets.length > 0) {
           const latestTicket = data.tickets[0]
           const ticketCreatedTime = new Date(latestTicket.created).getTime()
-          const currentTime = Date.now()
-          const timeDifference = currentTime - ticketCreatedTime
 
-          if (timeDifference < 3 * 60 * 1000) {
+          if (ticketCreatedTime >= submissionTime) {
             console.log(
               "[v0] Found new ticket:",
               latestTicket.key,
@@ -63,12 +66,13 @@ export default function PendingTicketPage() {
               router.push(`/ticket-processing/${latestTicket.key}`)
             }, 500)
           } else {
+            const timeDiff = Math.floor((submissionTime - ticketCreatedTime) / 1000)
             console.log(
               "[v0] Latest ticket is too old:",
               latestTicket.key,
-              "Age:",
-              Math.floor(timeDifference / 1000),
-              "seconds",
+              "Created",
+              timeDiff,
+              "seconds before submission",
             )
           }
         } else {
@@ -87,7 +91,7 @@ export default function PendingTicketPage() {
       clearTimeout(initialTimeout)
       clearInterval(pollInterval)
     }
-  }, [userEmail, router, checkCount])
+  }, [userEmail, router, checkCount, submissionTime])
 
   // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
