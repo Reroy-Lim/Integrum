@@ -279,32 +279,54 @@ export class JiraApiClient {
     }
   }
 
-  async updateTicketResolution(ticketKey: string, resolutionName: string): Promise<boolean> {
+  async syncCategoryToJiraStatus(ticketKey: string, frontendCategory: string): Promise<boolean> {
     try {
-      console.log(`[v0] Jira API: Updating resolution for ${ticketKey} to "${resolutionName}"`)
+      console.log(`[v0] Jira API: Syncing category "${frontendCategory}" to Jira status for ${ticketKey}`)
 
-      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify({
-          fields: {
-            resolution: {
-              name: resolutionName,
-            },
-          },
-        }),
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("[v0] Jira API: Resolution update error:", errorText)
-        throw new Error(`Failed to update resolution: ${response.statusText}`)
+      // Define the mapping from frontend category to Jira status
+      const categoryToStatusMap: Record<string, string> = {
+        "In Progress": "Backlog",
+        "Pending Reply": "In Progress",
+        Resolved: "Done",
       }
 
-      console.log(`[v0] Jira API: Successfully updated resolution for ${ticketKey} to "${resolutionName}"`)
-      return true
+      const targetStatus = categoryToStatusMap[frontendCategory]
+
+      if (!targetStatus) {
+        console.log(`[v0] Jira API: No status mapping found for category "${frontendCategory}"`)
+        return false
+      }
+
+      // Get current ticket status
+      const ticket = await this.getTicket(ticketKey)
+      if (!ticket) {
+        console.error(`[v0] Jira API: Ticket ${ticketKey} not found`)
+        return false
+      }
+
+      const currentStatus = ticket.status.name
+      console.log(`[v0] Jira API: Current status: ${currentStatus}, Target status: ${targetStatus}`)
+
+      // If already at target status, no need to transition
+      if (currentStatus.toLowerCase() === targetStatus.toLowerCase()) {
+        console.log(`[v0] Jira API: Ticket already at target status "${targetStatus}"`)
+        return true
+      }
+
+      // Attempt to transition to the target status
+      const transitioned = await this.transitionTicket(ticketKey, targetStatus)
+
+      if (transitioned) {
+        console.log(`[v0] Jira API: ✅ Successfully synced ${ticketKey} to status "${targetStatus}"`)
+      } else {
+        console.log(
+          `[v0] Jira API: ⚠️ Could not transition to "${targetStatus}" (may not be available from current status)`,
+        )
+      }
+
+      return transitioned
     } catch (error) {
-      console.error("[v0] Jira API: Error updating resolution:", error)
+      console.error("[v0] Jira API: Error syncing category to status:", error)
       return false
     }
   }

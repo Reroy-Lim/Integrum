@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("[v0] Sync API: Starting sync of Pending Reply tickets to In Progress")
+    console.log("[v0] Sync API: Starting sync of all ticket categories to Jira statuses")
 
     const body = await request.json()
     const { userEmail } = body
@@ -17,21 +17,20 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    const { data: pendingTickets, error: supabaseError } = await supabase
+    const { data: allTickets, error: supabaseError } = await supabase
       .from("ticket_categories")
       .select("ticket_key, category")
-      .eq("category", "Pending Reply")
 
     if (supabaseError) {
-      console.error("[v0] Sync API: Error fetching pending tickets from Supabase:", supabaseError)
-      return NextResponse.json({ error: "Failed to fetch pending tickets" }, { status: 500 })
+      console.error("[v0] Sync API: Error fetching tickets from Supabase:", supabaseError)
+      return NextResponse.json({ error: "Failed to fetch tickets" }, { status: 500 })
     }
 
-    console.log("[v0] Sync API: Found", pendingTickets?.length || 0, "tickets in Pending Reply category")
+    console.log("[v0] Sync API: Found", allTickets?.length || 0, "tickets with categories")
 
-    if (!pendingTickets || pendingTickets.length === 0) {
-      console.log("[v0] Sync API: No pending tickets to sync")
-      return NextResponse.json({ message: "No pending tickets to sync", updated: 0 }, { status: 200 })
+    if (!allTickets || allTickets.length === 0) {
+      console.log("[v0] Sync API: No tickets to sync")
+      return NextResponse.json({ message: "No tickets to sync", updated: 0 }, { status: 200 })
     }
 
     const jiraConfig: JiraConfig = {
@@ -45,53 +44,52 @@ export async function POST(request: NextRequest) {
 
     let updatedCount = 0
     const errors: string[] = []
+    const categoryStats = {
+      "In Progress": { total: 0, updated: 0 },
+      "Pending Reply": { total: 0, updated: 0 },
+      Resolved: { total: 0, updated: 0 },
+    }
 
-    for (const ticket of pendingTickets) {
+    for (const ticket of allTickets) {
       try {
-        console.log(`[v0] Sync API: Checking ticket ${ticket.ticket_key}`)
+        const category = ticket.category
 
-        const jiraTicket = await jiraClient.getTicket(ticket.ticket_key)
-
-        if (!jiraTicket) {
-          console.log(`[v0] Sync API: Ticket ${ticket.ticket_key} not found in Jira, skipping`)
-          continue
+        // Track category statistics
+        if (categoryStats[category as keyof typeof categoryStats]) {
+          categoryStats[category as keyof typeof categoryStats].total++
         }
 
-        const currentStatus = jiraTicket.status.name
-        console.log(`[v0] Sync API: Ticket ${ticket.ticket_key} current status: ${currentStatus}`)
+        console.log(`[v0] Sync API: Syncing ticket ${ticket.ticket_key} with category "${category}"`)
 
-        if (currentStatus.toLowerCase() !== "in progress") {
-          console.log(`[v0] Sync API: Updating ticket ${ticket.ticket_key} from "${currentStatus}" to "In Progress"`)
+        // Use the new syncCategoryToJiraStatus method
+        const success = await jiraClient.syncCategoryToJiraStatus(ticket.ticket_key, category)
 
-          const success = await jiraClient.transitionTicket(ticket.ticket_key, "In Progress")
-
-          if (success) {
-            console.log(`[v0] Sync API: Updating resolution for ${ticket.ticket_key} to "Work in Progress"`)
-            await jiraClient.updateTicketResolution(ticket.ticket_key, "Work in Progress")
-
-            updatedCount++
-            console.log(`[v0] Sync API: ✅ Successfully updated ticket ${ticket.ticket_key}`)
-          } else {
-            errors.push(`Failed to update ${ticket.ticket_key}`)
-            console.log(`[v0] Sync API: ❌ Failed to update ticket ${ticket.ticket_key}`)
+        if (success) {
+          updatedCount++
+          if (categoryStats[category as keyof typeof categoryStats]) {
+            categoryStats[category as keyof typeof categoryStats].updated++
           }
+          console.log(`[v0] Sync API: ✅ Successfully synced ticket ${ticket.ticket_key}`)
         } else {
-          console.log(`[v0] Sync API: Ticket ${ticket.ticket_key} already "In Progress", skipping`)
+          errors.push(`Failed to sync ${ticket.ticket_key} (category: ${category})`)
+          console.log(`[v0] Sync API: ⚠️ Could not sync ticket ${ticket.ticket_key}`)
         }
       } catch (error) {
-        const errorMsg = `Error updating ${ticket.ticket_key}: ${error instanceof Error ? error.message : "Unknown error"}`
+        const errorMsg = `Error syncing ${ticket.ticket_key}: ${error instanceof Error ? error.message : "Unknown error"}`
         errors.push(errorMsg)
         console.error(`[v0] Sync API: ${errorMsg}`)
       }
     }
 
-    console.log(`[v0] Sync API: Sync complete. Updated ${updatedCount} tickets`)
+    console.log(`[v0] Sync API: Sync complete. Updated ${updatedCount} of ${allTickets.length} tickets`)
+    console.log("[v0] Sync API: Category breakdown:", categoryStats)
 
     return NextResponse.json(
       {
         message: "Sync completed",
         updated: updatedCount,
-        total: pendingTickets.length,
+        total: allTickets.length,
+        categoryStats,
         errors: errors.length > 0 ? errors : undefined,
       },
       { status: 200 },

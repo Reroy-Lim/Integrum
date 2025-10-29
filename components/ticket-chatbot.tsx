@@ -312,33 +312,6 @@ export function TicketChatbot({
 
       console.log("[v0] Ticket resolved successfully in Jira")
 
-      console.log("[v0] Updating resolution to 'Fixed'...")
-
-      const jiraConfig = {
-        baseUrl: process.env.NEXT_PUBLIC_JIRA_BASE_URL || "",
-        email: process.env.JIRA_EMAIL || "",
-        apiToken: process.env.JIRA_API_TOKEN || "",
-        projectKey: process.env.JIRA_PROJECT_KEY || "",
-      }
-
-      // Call API to update resolution
-      const resolutionResponse = await fetch(`/api/jira/update-resolution`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ticketKey,
-          resolution: "Fixed",
-        }),
-      })
-
-      if (resolutionResponse.ok) {
-        console.log("[v0] ✅ Successfully updated resolution to 'Fixed'")
-      } else {
-        console.log("[v0] ⚠️ Failed to update resolution, but ticket is resolved")
-      }
-
       console.log("[v0] Updating frontend category to Resolved in Supabase")
       const supabase = createClient()
 
