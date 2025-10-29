@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getJiraCommentsClient } from "@/lib/jira-comments"
-import { getJiraTicket, JiraApiClient, type JiraConfig } from "@/lib/jira-api"
+import { getJiraTicket, JiraApiClient, type JiraConfig, getCategoryToJiraMapping } from "@/lib/jira-api"
 
 export async function GET(request: NextRequest) {
   try {
@@ -151,7 +151,6 @@ export async function POST(request: NextRequest) {
       console.log("[v0] ===== FRONTEND CATEGORY UPDATE START =====")
       console.log("[v0] Checking if ticket needs frontend category update for:", ticketKey)
 
-      // Get current frontend category (if exists)
       const { data: existingCategory, error: fetchError } = await supabase
         .from("ticket_categories")
         .select("category")
@@ -159,14 +158,12 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (fetchError && fetchError.code !== "PGRST116") {
-        // PGRST116 is "not found" error, which is expected for new tickets
         console.error("[v0] Error fetching existing category:", fetchError)
       }
 
       const currentCategory = existingCategory?.category
       console.log("[v0] Current frontend category for", ticketKey, ":", currentCategory || "none")
 
-      // Only update if ticket is currently "In Progress" or has no category set
       if (!currentCategory || currentCategory === "In Progress") {
         console.log("[v0] Ticket qualifies for category update. Updating to 'Pending Reply'...")
 
@@ -197,25 +194,27 @@ export async function POST(request: NextRequest) {
 
       console.log("[v0] ===== FRONTEND CATEGORY UPDATE END =====")
     } catch (error) {
-      // Don't fail the message send if category update fails
       console.error("[v0] ❌ Exception during frontend category update:", error)
       console.error("[v0] Error stack:", error instanceof Error ? error.stack : "No stack trace")
     }
 
-    // Check if ticket needs status transition
     try {
-      console.log("[v0] ===== STATUS TRANSITION CHECK START =====")
-      console.log("[v0] Checking if ticket needs status transition for:", ticketKey)
+      console.log("[v0] ===== JIRA STATUS & RESOLUTION UPDATE START =====")
+      console.log("[v0] Checking if ticket needs Jira status/resolution update for:", ticketKey)
 
       const ticket = await getJiraTicket(ticketKey)
 
       if (ticket) {
         const currentStatus = ticket.status.name.toLowerCase()
-        console.log("[v0] Current ticket status for", ticketKey, ":", currentStatus)
+        console.log("[v0] Current Jira status for", ticketKey, ":", currentStatus)
 
-        // Check if ticket is in "In Progress" or similar active status
         if (currentStatus.includes("progress") || currentStatus === "in development") {
-          console.log("[v0] Ticket is in progress, transitioning to In Progress in Jira...")
+          console.log("[v0] Ticket is in progress, applying 'Pending Reply' mapping...")
+
+          const mapping = getCategoryToJiraMapping("Pending Reply")
+          console.log(
+            `[v0] Applying mapping: Frontend "Pending Reply" → Jira "${mapping.status}" + Resolution "${mapping.resolution}"`,
+          )
 
           const jiraConfig: JiraConfig = {
             baseUrl: process.env.JIRA_BASE_URL || "",
@@ -225,24 +224,26 @@ export async function POST(request: NextRequest) {
           }
 
           const jiraClient = new JiraApiClient(jiraConfig)
-          const transitioned = await jiraClient.transitionTicket(ticketKey, "In Progress")
+
+          const transitioned = await jiraClient.transitionTicket(ticketKey, mapping.status, mapping.resolution)
 
           if (transitioned) {
-            console.log("[v0] ✅ Successfully transitioned ticket to In Progress")
+            console.log(
+              `[v0] ✅ Successfully updated Jira: Status="${mapping.status}", Resolution="${mapping.resolution}"`,
+            )
           } else {
-            console.log("[v0] ⚠️ Failed to transition ticket (transition may not be available)")
+            console.log("[v0] ⚠️ Failed to update Jira (transition may not be available)")
           }
         } else {
-          console.log("[v0] Ticket status does not require transition:", currentStatus)
+          console.log("[v0] Ticket status does not require update:", currentStatus)
         }
       } else {
         console.log("[v0] Ticket not found in Jira")
       }
 
-      console.log("[v0] ===== STATUS TRANSITION CHECK END =====")
+      console.log("[v0] ===== JIRA STATUS & RESOLUTION UPDATE END =====")
     } catch (error) {
-      // Don't fail the message send if transition fails
-      console.error("[v0] ❌ Exception during auto-transition:", error)
+      console.error("[v0] ❌ Exception during Jira update:", error)
       console.error("[v0] Error stack:", error instanceof Error ? error.stack : "No stack trace")
     }
 
