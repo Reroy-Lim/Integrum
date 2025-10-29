@@ -81,7 +81,11 @@ export class JiraApiClient {
     }
   }
 
-  async getTicketsByUser(userEmail: string, maxResults = 100): Promise<JiraTicket[]> {
+  async getTicketsByUser(
+    userEmail: string,
+    maxResults = 50,
+    startAt = 0,
+  ): Promise<{ tickets: JiraTicket[]; total: number }> {
     try {
       const masterEmail = "heyroy23415@gmail.com"
       const isMasterAccount = userEmail.toLowerCase() === masterEmail.toLowerCase()
@@ -93,11 +97,14 @@ export class JiraApiClient {
         isMasterAccount,
         "| Limit:",
         maxResults,
+        "| StartAt:",
+        startAt,
       )
 
       const jql = `project = "${this.config.projectKey}" ORDER BY updated DESC`
       const params = new URLSearchParams({
         jql,
+        startAt: startAt.toString(),
         maxResults: maxResults.toString(),
         fields: "summary,status,created,updated,assignee,reporter,description,priority,issuetype,attachment",
       })
@@ -120,13 +127,19 @@ export class JiraApiClient {
 
       const data = await response.json()
       const allTickets = data.issues.map((issue: any) => this.transformJiraIssue(issue))
+      const totalAvailable = data.total || 0
 
-      console.log("[v0] Jira API: Total tickets fetched:", allTickets.length)
+      console.log(
+        "[v0] Jira API: Fetched",
+        allTickets.length,
+        "tickets in this batch. Total available:",
+        totalAvailable,
+      )
 
-      // If master account, return all tickets
+      // If master account, return all tickets without filtering
       if (isMasterAccount) {
         console.log("[v0] Jira API: Master account - returning all tickets")
-        return allTickets
+        return { tickets: allTickets, total: totalAvailable }
       }
 
       console.log("[v0] Jira API: Starting email filtering for non-master account:", userEmail)
@@ -196,10 +209,10 @@ export class JiraApiClient {
         }
       }
 
-      return filteredTickets
+      return { tickets: filteredTickets, total: totalAvailable }
     } catch (error) {
       console.error("[v0] Jira API: Error:", error instanceof Error ? error.message : "Unknown error")
-      return []
+      return { tickets: [], total: 0 }
     }
   }
 
