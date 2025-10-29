@@ -232,44 +232,6 @@ export default function IntegrumPortal() {
     }
   }
 
-  const syncAllCategoriesToJira = async () => {
-    try {
-      console.log("[v0] Dashboard: Syncing all categorized tickets to Jira")
-
-      const response = await fetch("/api/sync-category-to-jira", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log(`[v0] Dashboard: Sync complete. Updated ${data.updated} tickets`)
-
-        toast({
-          title: "Sync Complete",
-          description: `Successfully synced ${data.updated} tickets to Jira`,
-          duration: 5000,
-        })
-      } else {
-        console.error("[v0] Dashboard: Sync failed:", await response.text())
-        toast({
-          title: "Sync Failed",
-          description: "Failed to sync tickets to Jira. Please try again.",
-          duration: 5000,
-        })
-      }
-    } catch (error) {
-      console.error("[v0] Dashboard: Error syncing tickets:", error)
-      toast({
-        title: "Sync Error",
-        description: "An error occurred while syncing tickets.",
-        duration: 5000,
-      })
-    }
-  }
-
   useEffect(() => {
     const fetchTickets = async () => {
       if (!userEmail) {
@@ -306,7 +268,7 @@ export default function IntegrumPortal() {
 
         setTickets(data.tickets || [])
 
-        await syncAllCategoriesToJira()
+        await syncPendingTickets()
       } catch (error) {
         console.error("[v0] Error fetching tickets:", error)
         setTicketsError(error instanceof Error ? error.message : "Failed to fetch tickets")
@@ -1168,15 +1130,6 @@ export default function IntegrumPortal() {
                         )}
                       </select>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={syncAllCategoriesToJira}
-                      disabled={isLoadingTickets}
-                      className="flex items-center space-x-2 bg-transparent border-2 border-accent text-white hover:bg-accent hover:text-white hover:shadow-[0_0_30px_rgba(14,165,233,0.6)] transition-all duration-300 hover:scale-105"
-                    >
-                      {isLoadingTickets ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sync to Jira"}
-                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
