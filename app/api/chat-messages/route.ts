@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
 
         // Check if ticket is in "In Progress" or similar active status
         if (currentStatus.includes("progress") || currentStatus === "in development") {
-          console.log("[v0] Ticket is in progress, transitioning to Pending Reply...")
+          console.log("[v0] Ticket is in progress, transitioning to In Progress in Jira...")
 
           const jiraConfig: JiraConfig = {
             baseUrl: process.env.JIRA_BASE_URL || "",
@@ -225,10 +225,10 @@ export async function POST(request: NextRequest) {
           }
 
           const jiraClient = new JiraApiClient(jiraConfig)
-          const transitioned = await jiraClient.transitionTicket(ticketKey, "Pending Reply")
+          const transitioned = await jiraClient.transitionTicket(ticketKey, "In Progress")
 
           if (transitioned) {
-            console.log("[v0] ✅ Successfully transitioned ticket to Pending Reply")
+            console.log("[v0] ✅ Successfully transitioned ticket to In Progress")
           } else {
             console.log("[v0] ⚠️ Failed to transition ticket (transition may not be available)")
           }
