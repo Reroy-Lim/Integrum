@@ -405,8 +405,8 @@ export default function IntegrumPortal() {
       console.log("[v0] Opening Gmail URL:", gmailUrl)
       window.open(gmailUrl, "_blank")
 
-      console.log("[v0] Redirecting main window to home page")
-      window.location.href = "/"
+      console.log("[v0] Redirecting main window to loading page")
+      window.location.href = "/ticket-processing/pending"
       return
     }
 
