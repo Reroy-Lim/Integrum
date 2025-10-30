@@ -207,31 +207,6 @@ export default function IntegrumPortal() {
 
   const isMasterAccount = userEmail === process.env.NEXT_PUBLIC_MASTER_EMAIL || userEmail === "heyroy23415@gmail.com"
 
-  const syncPendingTickets = async () => {
-    if (!userEmail) return
-
-    try {
-      console.log("[v0] Dashboard: Syncing Pending Reply tickets to In Progress")
-
-      const response = await fetch("/api/sync-pending-tickets", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userEmail }),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log(`[v0] Dashboard: Sync complete. Updated ${data.updated} tickets`)
-      } else {
-        console.error("[v0] Dashboard: Sync failed:", await response.text())
-      }
-    } catch (error) {
-      console.error("[v0] Dashboard: Error syncing tickets:", error)
-    }
-  }
-
   useEffect(() => {
     const fetchTickets = async () => {
       if (!userEmail) {
@@ -267,8 +242,6 @@ export default function IntegrumPortal() {
         }
 
         setTickets(data.tickets || [])
-
-        await syncPendingTickets()
       } catch (error) {
         console.error("[v0] Error fetching tickets:", error)
         setTicketsError(error instanceof Error ? error.message : "Failed to fetch tickets")
