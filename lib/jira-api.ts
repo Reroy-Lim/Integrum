@@ -297,14 +297,65 @@ export class JiraApiClient {
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error("[v0] Jira API: Resolution update error:", errorText)
-        throw new Error(`Failed to update resolution: ${response.statusText}`)
+        console.error("[v0] Jira API: Resolution update failed, trying labels fallback:", errorText)
+
+        return await this.updateLabels(ticketKey, resolutionName)
       }
 
       console.log(`[v0] Jira API: Successfully updated resolution for ${ticketKey} to "${resolutionName}"`)
       return true
     } catch (error) {
-      console.error("[v0] Jira API: Error updating resolution:", error)
+      console.error("[v0] Jira API: Error updating resolution, trying labels fallback:", error)
+      return await this.updateLabels(ticketKey, resolutionName)
+    }
+  }
+
+  async updateLabels(ticketKey: string, stage: string): Promise<boolean> {
+    try {
+      console.log(`[v0] Jira API: Updating labels for ${ticketKey} with stage "${stage}"`)
+
+      // First, get current labels
+      const getResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}?fields=labels`, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!getResponse.ok) {
+        throw new Error(`Failed to fetch current labels: ${getResponse.statusText}`)
+      }
+
+      const issueData = await getResponse.json()
+      const currentLabels = issueData.fields.labels || []
+
+      // Remove old stage labels and add new one
+      const stageLabels = ["Investigate", "Almost-there", "Done"]
+      const filteredLabels = currentLabels.filter((label: string) => !stageLabels.includes(label))
+
+      // Convert stage name to label format (replace spaces with hyphens)
+      const newLabel = stage.replace(/\s+/g, "-")
+      const updatedLabels = [...filteredLabels, newLabel]
+
+      // Update labels
+      const updateResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}`, {
+        method: "PUT",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          fields: {
+            labels: updatedLabels,
+          },
+        }),
+      })
+
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text()
+        console.error("[v0] Jira API: Labels update error:", errorText)
+        throw new Error(`Failed to update labels: ${updateResponse.statusText}`)
+      }
+
+      console.log(`[v0] Jira API: Successfully updated labels for ${ticketKey} with "${newLabel}"`)
+      return true
+    } catch (error) {
+      console.error("[v0] Jira API: Error updating labels:", error)
       return false
     }
   }
