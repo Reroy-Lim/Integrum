@@ -335,8 +335,8 @@ export function TicketChatbot({
 
       setShowResolveDialog(false)
 
-      // Refresh the page to show updated status
-      window.location.reload()
+      console.log("[v0] Navigating to dashboard to show updated ticket status")
+      window.location.href = "/"
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
       alert("Failed to resolve ticket. Please try again.")
