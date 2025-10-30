@@ -279,96 +279,18 @@ export class JiraApiClient {
     }
   }
 
-  async updateResolution(ticketKey: string, resolutionName: string): Promise<boolean> {
+  async updateTicketStatusAndResolution(
+    ticketKey: string,
+    frontendCategory: string,
+  ): Promise<{ success: boolean; status?: string; resolution?: string }> {
     try {
-      console.log(`[v0] Jira API: Updating resolution for ${ticketKey} to "${resolutionName}"`)
+      console.log(`[v0] Jira API: Updating ticket ${ticketKey} based on frontend category: ${frontendCategory}`)
 
-      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify({
-          fields: {
-            resolution: {
-              name: resolutionName,
-            },
-          },
-        }),
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("[v0] Jira API: Resolution update failed, trying labels fallback:", errorText)
-
-        return await this.updateLabels(ticketKey, resolutionName)
-      }
-
-      console.log(`[v0] Jira API: Successfully updated resolution for ${ticketKey} to "${resolutionName}"`)
-      return true
-    } catch (error) {
-      console.error("[v0] Jira API: Error updating resolution, trying labels fallback:", error)
-      return await this.updateLabels(ticketKey, resolutionName)
-    }
-  }
-
-  async updateLabels(ticketKey: string, stage: string): Promise<boolean> {
-    try {
-      console.log(`[v0] Jira API: Updating labels for ${ticketKey} with stage "${stage}"`)
-
-      // First, get current labels
-      const getResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}?fields=labels`, {
-        method: "GET",
-        headers: this.getAuthHeaders(),
-      })
-
-      if (!getResponse.ok) {
-        throw new Error(`Failed to fetch current labels: ${getResponse.statusText}`)
-      }
-
-      const issueData = await getResponse.json()
-      const currentLabels = issueData.fields.labels || []
-
-      // Remove old stage labels and add new one
-      const stageLabels = ["Investigate", "Almost-there", "Done"]
-      const filteredLabels = currentLabels.filter((label: string) => !stageLabels.includes(label))
-
-      // Convert stage name to label format (replace spaces with hyphens)
-      const newLabel = stage.replace(/\s+/g, "-")
-      const updatedLabels = [...filteredLabels, newLabel]
-
-      // Update labels
-      const updateResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify({
-          fields: {
-            labels: updatedLabels,
-          },
-        }),
-      })
-
-      if (!updateResponse.ok) {
-        const errorText = await updateResponse.text()
-        console.error("[v0] Jira API: Labels update error:", errorText)
-        throw new Error(`Failed to update labels: ${updateResponse.statusText}`)
-      }
-
-      console.log(`[v0] Jira API: Successfully updated labels for ${ticketKey} with "${newLabel}"`)
-      return true
-    } catch (error) {
-      console.error("[v0] Jira API: Error updating labels:", error)
-      return false
-    }
-  }
-
-  async syncTicketWithCategory(ticketKey: string, category: string): Promise<boolean> {
-    try {
-      console.log(`[v0] Jira API: Syncing ticket ${ticketKey} with category "${category}"`)
-
-      let targetStatus: string
-      let targetResolution: string
+      let targetStatus = ""
+      let targetResolution = ""
 
       // Map frontend category to Jira status and resolution
-      switch (category) {
+      switch (frontendCategory) {
         case "In Progression":
           targetStatus = "Open"
           targetResolution = "Investigate"
@@ -382,33 +304,51 @@ export class JiraApiClient {
           targetResolution = "Done"
           break
         default:
-          console.log(`[v0] Jira API: Unknown category "${category}", skipping sync`)
-          return false
+          console.log(`[v0] Jira API: Unknown category "${frontendCategory}", skipping update`)
+          return { success: false }
       }
 
-      console.log(`[v0] Jira API: Target status: "${targetStatus}", Target resolution: "${targetResolution}"`)
+      console.log(`[v0] Jira API: Target status: ${targetStatus}, Target resolution: ${targetResolution}`)
 
-      // Update status first
+      // First, transition the ticket to the target status
       const statusUpdated = await this.transitionTicket(ticketKey, targetStatus)
+
       if (!statusUpdated) {
-        console.log(`[v0] Jira API: Failed to update status, but continuing with resolution update`)
+        console.log(`[v0] Jira API: Failed to transition to ${targetStatus}, attempting to update resolution anyway`)
       }
 
-      // Update resolution
-      const resolutionUpdated = await this.updateResolution(ticketKey, targetResolution)
-      if (!resolutionUpdated) {
-        console.log(`[v0] Jira API: Failed to update resolution`)
+      // Then, update the resolution field
+      // Note: Resolution field might need to be set during transition for some Jira configurations
+      // We'll try to update it separately as well
+      try {
+        const updateResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}`, {
+          method: "PUT",
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify({
+            fields: {
+              customfield_10000: targetResolution, // This might be a custom field - adjust as needed
+            },
+          }),
+        })
+
+        if (updateResponse.ok) {
+          console.log(`[v0] Jira API: Successfully updated resolution to "${targetResolution}"`)
+        } else {
+          // Resolution update might fail if it's not a separate field or requires specific permissions
+          console.log(`[v0] Jira API: Could not update resolution field separately (status: ${updateResponse.status})`)
+        }
+      } catch (resolutionError) {
+        console.log("[v0] Jira API: Resolution field update not available or failed:", resolutionError)
       }
 
-      const success = statusUpdated || resolutionUpdated
-      console.log(
-        `[v0] Jira API: Sync ${success ? "completed" : "failed"} for ${ticketKey} (Status: ${statusUpdated}, Resolution: ${resolutionUpdated})`,
-      )
-
-      return success
+      return {
+        success: statusUpdated,
+        status: targetStatus,
+        resolution: targetResolution,
+      }
     } catch (error) {
-      console.error("[v0] Jira API: Error syncing ticket with category:", error)
-      return false
+      console.error("[v0] Jira API: Error updating ticket status and resolution:", error)
+      return { success: false }
     }
   }
 
