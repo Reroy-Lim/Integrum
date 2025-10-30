@@ -290,10 +290,28 @@ export default function IntegrumPortal() {
       }
     }
 
-    fetchTickets()
+    // Schedule 3 auto-refreshes at specific times
+    const timeout1 = setTimeout(() => {
+      console.log("[v0] Auto-refresh #1 (30 seconds)")
+      fetchTickets()
+    }, 30000) // 30 seconds
 
-    const intervalId = setInterval(fetchTickets, 30000)
-    return () => clearInterval(intervalId)
+    const timeout2 = setTimeout(() => {
+      console.log("[v0] Auto-refresh #2 (3 minutes)")
+      fetchTickets()
+    }, 180000) // 3 minutes
+
+    const timeout3 = setTimeout(() => {
+      console.log("[v0] Auto-refresh #3 (5 minutes)")
+      fetchTickets()
+    }, 300000) // 5 minutes
+
+    // Cleanup all timeouts on unmount or dependency change
+    return () => {
+      clearTimeout(timeout1)
+      clearTimeout(timeout2)
+      clearTimeout(timeout3)
+    }
   }, [userEmail, ticketLimit, ticketCategories])
 
   useEffect(() => {
