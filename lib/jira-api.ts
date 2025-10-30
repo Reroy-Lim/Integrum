@@ -42,35 +42,6 @@ export interface JiraConfig {
   projectKey: string
 }
 
-export interface CategoryToJiraMapping {
-  status: string
-  resolution: string
-}
-
-export function getCategoryToJiraMapping(category: string): CategoryToJiraMapping {
-  const mappings: Record<string, CategoryToJiraMapping> = {
-    "In Progress": {
-      status: "Backlog",
-      resolution: "Investigate",
-    },
-    "Pending Reply": {
-      status: "In Progress",
-      resolution: "Almost there",
-    },
-    Resolved: {
-      status: "Done",
-      resolution: "Done",
-    },
-  }
-
-  return (
-    mappings[category] || {
-      status: "Backlog",
-      resolution: "Investigate",
-    }
-  )
-}
-
 export class JiraApiClient {
   private config: JiraConfig
 
@@ -260,12 +231,8 @@ export class JiraApiClient {
     }
   }
 
-  async transitionTicket(ticketKey: string, transitionName = "Done", resolution?: string): Promise<boolean> {
+  async transitionTicket(ticketKey: string, transitionName = "Done"): Promise<boolean> {
     try {
-      console.log(
-        `[v0] Jira API: Transitioning ticket ${ticketKey} to "${transitionName}"${resolution ? ` with resolution "${resolution}"` : ""}`,
-      )
-
       const transitionsResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
         method: "GET",
         headers: this.getAuthHeaders(),
@@ -278,9 +245,9 @@ export class JiraApiClient {
       const transitionsData = await transitionsResponse.json()
       const transitions = transitionsData.transitions || []
 
-      const targetTransition = transitions.find((t: any) => t.name.toLowerCase() === transitionName.toLowerCase())
+      const doneTransition = transitions.find((t: any) => t.name.toLowerCase() === transitionName.toLowerCase())
 
-      if (!targetTransition) {
+      if (!doneTransition) {
         console.error(
           `[v0] Jira API: Transition "${transitionName}" not found. Available transitions:`,
           transitions.map((t: any) => t.name),
@@ -288,67 +255,108 @@ export class JiraApiClient {
         throw new Error(`Transition "${transitionName}" not available for this ticket`)
       }
 
-      const transitionBody: any = {
-        transition: {
-          id: targetTransition.id,
-        },
-      }
-
-      if (resolution) {
-        transitionBody.fields = {
-          resolution: {
-            name: resolution,
-          },
-        }
-        console.log(`[v0] Jira API: Including resolution field: "${resolution}"`)
-      }
-
       const transitionResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
         method: "POST",
         headers: this.getAuthHeaders(),
-        body: JSON.stringify(transitionBody),
+        body: JSON.stringify({
+          transition: {
+            id: doneTransition.id,
+          },
+        }),
       })
 
       if (!transitionResponse.ok) {
         const errorText = await transitionResponse.text()
         console.error("[v0] Jira API: Transition error:", errorText)
-
-        if (resolution && errorText.toLowerCase().includes("resolution")) {
-          console.warn(
-            `[v0] Jira API: Resolution "${resolution}" may not exist or is not valid. Retrying without resolution field...`,
-          )
-
-          const fallbackBody = {
-            transition: {
-              id: targetTransition.id,
-            },
-          }
-
-          const fallbackResponse = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}/transitions`, {
-            method: "POST",
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(fallbackBody),
-          })
-
-          if (!fallbackResponse.ok) {
-            throw new Error(`Failed to transition ticket: ${fallbackResponse.statusText}`)
-          }
-
-          console.log(
-            `[v0] Jira API: Successfully transitioned ticket ${ticketKey} to ${transitionName} (without resolution)`,
-          )
-          return true
-        }
-
         throw new Error(`Failed to transition ticket: ${transitionResponse.statusText}`)
       }
 
-      console.log(
-        `[v0] Jira API: Successfully transitioned ticket ${ticketKey} to ${transitionName}${resolution ? ` with resolution "${resolution}"` : ""}`,
-      )
+      console.log(`[v0] Jira API: Successfully transitioned ticket ${ticketKey} to ${transitionName}`)
       return true
     } catch (error) {
       console.error("[v0] Jira API: Error transitioning ticket:", error)
+      return false
+    }
+  }
+
+  async updateResolution(ticketKey: string, resolutionName: string): Promise<boolean> {
+    try {
+      console.log(`[v0] Jira API: Updating resolution for ${ticketKey} to "${resolutionName}"`)
+
+      const response = await fetch(`${this.config.baseUrl}/rest/api/3/issue/${ticketKey}`, {
+        method: "PUT",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          fields: {
+            resolution: {
+              name: resolutionName,
+            },
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("[v0] Jira API: Resolution update error:", errorText)
+        throw new Error(`Failed to update resolution: ${response.statusText}`)
+      }
+
+      console.log(`[v0] Jira API: Successfully updated resolution for ${ticketKey} to "${resolutionName}"`)
+      return true
+    } catch (error) {
+      console.error("[v0] Jira API: Error updating resolution:", error)
+      return false
+    }
+  }
+
+  async syncTicketWithCategory(ticketKey: string, category: string): Promise<boolean> {
+    try {
+      console.log(`[v0] Jira API: Syncing ticket ${ticketKey} with category "${category}"`)
+
+      let targetStatus: string
+      let targetResolution: string
+
+      // Map frontend category to Jira status and resolution
+      switch (category) {
+        case "In Progression":
+          targetStatus = "Open"
+          targetResolution = "Investigate"
+          break
+        case "Pending Reply":
+          targetStatus = "In Progress"
+          targetResolution = "Almost there"
+          break
+        case "Resolved":
+          targetStatus = "Done"
+          targetResolution = "Done"
+          break
+        default:
+          console.log(`[v0] Jira API: Unknown category "${category}", skipping sync`)
+          return false
+      }
+
+      console.log(`[v0] Jira API: Target status: "${targetStatus}", Target resolution: "${targetResolution}"`)
+
+      // Update status first
+      const statusUpdated = await this.transitionTicket(ticketKey, targetStatus)
+      if (!statusUpdated) {
+        console.log(`[v0] Jira API: Failed to update status, but continuing with resolution update`)
+      }
+
+      // Update resolution
+      const resolutionUpdated = await this.updateResolution(ticketKey, targetResolution)
+      if (!resolutionUpdated) {
+        console.log(`[v0] Jira API: Failed to update resolution`)
+      }
+
+      const success = statusUpdated || resolutionUpdated
+      console.log(
+        `[v0] Jira API: Sync ${success ? "completed" : "failed"} for ${ticketKey} (Status: ${statusUpdated}, Resolution: ${resolutionUpdated})`,
+      )
+
+      return success
+    } catch (error) {
+      console.error("[v0] Jira API: Error syncing ticket with category:", error)
       return false
     }
   }

@@ -207,6 +207,30 @@ export default function IntegrumPortal() {
 
   const isMasterAccount = userEmail === process.env.NEXT_PUBLIC_MASTER_EMAIL || userEmail === "heyroy23415@gmail.com"
 
+  const syncJiraStatus = async () => {
+    if (!userEmail) return
+
+    try {
+      console.log("[v0] Dashboard: Syncing Jira status and resolution for all tickets")
+
+      const response = await fetch("/api/sync-jira-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log(`[v0] Dashboard: Jira sync complete. Synced ${data.synced} tickets, Failed: ${data.failed}`)
+      } else {
+        console.error("[v0] Dashboard: Jira sync failed:", await response.text())
+      }
+    } catch (error) {
+      console.error("[v0] Dashboard: Error syncing Jira status:", error)
+    }
+  }
+
   const syncPendingTickets = async () => {
     if (!userEmail) return
 
@@ -268,6 +292,7 @@ export default function IntegrumPortal() {
 
         setTickets(data.tickets || [])
 
+        await syncJiraStatus()
         await syncPendingTickets()
       } catch (error) {
         console.error("[v0] Error fetching tickets:", error)
