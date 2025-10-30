@@ -832,9 +832,10 @@ export default function IntegrumPortal() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl mb-6 shadow-lg">
                 <Clock className="w-8 h-8 text-white" />
               </div>
+              <div className="text-foreground/90 font-medium text-lg mb-2">Processing Speed</div>
               <div className="text-6xl font-bold text-foreground mb-3 tracking-tight">&lt;5min</div>
-              <div className="text-foreground/90 font-medium text-lg">&lt;5-Minute Automated Processing Target</div>
-              <div className="text-sm text-foreground/60 mt-2">Enterprise SLA compliance</div>
+              <div className="text-foreground/90 font-medium text-lg">AI-Accelerated Ticket Handling</div>
+              <div className="text-sm text-foreground/60 mt-2">Enterprise-Grade Response Performance</div>
             </div>
 
             <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
