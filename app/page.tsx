@@ -207,6 +207,32 @@ export default function IntegrumPortal() {
 
   const isMasterAccount = userEmail === process.env.NEXT_PUBLIC_MASTER_EMAIL || userEmail === "heyroy23415@gmail.com"
 
+  const syncTicketWithJira = async (ticketKey: string, category: string) => {
+    try {
+      console.log(`[v0] Frontend: Syncing ticket ${ticketKey} with Jira (category: ${category})`)
+
+      const response = await fetch("/api/jira/sync-category", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ticketKey, category }),
+      })
+
+      if (!response.ok) {
+        console.error(`[v0] Frontend: Failed to sync ticket ${ticketKey}`)
+        return false
+      }
+
+      const data = await response.json()
+      console.log(`[v0] Frontend: ✅ Ticket ${ticketKey} synced successfully`)
+      return data.success
+    } catch (error) {
+      console.error(`[v0] Frontend: Error syncing ticket ${ticketKey}:`, error)
+      return false
+    }
+  }
+
   useEffect(() => {
     const fetchTickets = async () => {
       if (!userEmail) {
@@ -242,6 +268,20 @@ export default function IntegrumPortal() {
         }
 
         setTickets(data.tickets || [])
+
+        console.log("[v0] Checking tickets for Jira sync...")
+        for (const ticket of data.tickets || []) {
+          const frontendCategory = ticketCategories[ticket.key]
+          const jiraStatus = ticket.status.name
+          const mappedCategory = frontendCategory || mapStatusToCategory(jiraStatus)
+
+          if (frontendCategory && frontendCategory !== mapStatusToCategory(jiraStatus)) {
+            console.log(
+              `[v0] Ticket ${ticket.key}: Frontend category "${frontendCategory}" differs from Jira status "${jiraStatus}", syncing...`,
+            )
+            await syncTicketWithJira(ticket.key, frontendCategory)
+          }
+        }
       } catch (error) {
         console.error("[v0] Error fetching tickets:", error)
         setTicketsError(error instanceof Error ? error.message : "Failed to fetch tickets")
@@ -254,7 +294,7 @@ export default function IntegrumPortal() {
 
     const intervalId = setInterval(fetchTickets, 30000)
     return () => clearInterval(intervalId)
-  }, [userEmail, ticketLimit])
+  }, [userEmail, ticketLimit, ticketCategories])
 
   useEffect(() => {
     const fetchTicketCategories = async () => {
@@ -306,6 +346,7 @@ export default function IntegrumPortal() {
     setTicketsError(null)
 
     try {
+      console.log("[v0] Refreshing tickets...")
       const response = await fetch(`/api/jira/tickets?email=${encodeURIComponent(userEmail)}&limit=${ticketLimit}`)
 
       if (!response.ok) {
@@ -314,6 +355,22 @@ export default function IntegrumPortal() {
 
       const data = await response.json()
       setTickets(data.tickets || [])
+
+      console.log("[v0] Checking refreshed tickets for Jira sync...")
+      for (const ticket of data.tickets || []) {
+        const frontendCategory = ticketCategories[ticket.key]
+        const jiraStatus = ticket.status.name
+        const mappedCategory = frontendCategory || mapStatusToCategory(jiraStatus)
+
+        if (frontendCategory && frontendCategory !== mapStatusToCategory(jiraStatus)) {
+          console.log(
+            `[v0] Ticket ${ticket.key}: Frontend category "${frontendCategory}" differs from Jira status "${jiraStatus}", syncing...`,
+          )
+          await syncTicketWithJira(ticket.key, frontendCategory)
+        }
+      }
+
+      console.log("[v0] ✅ Tickets refreshed and synced successfully")
     } catch (error) {
       console.error("[v0] Error refreshing tickets:", error)
       setTicketsError(error instanceof Error ? error.message : "Failed to refresh tickets")
@@ -329,12 +386,16 @@ export default function IntegrumPortal() {
 
     const statusLower = status.toLowerCase()
 
-    if (statusLower.includes("progress") || statusLower.includes("development") || statusLower.includes("review")) {
-      return "In Progress"
-    }
-
     if (statusLower.includes("done") || statusLower.includes("resolved") || statusLower.includes("closed")) {
       return "Resolved"
+    }
+
+    if (statusLower.includes("in progress")) {
+      return "Pending Reply"
+    }
+
+    if (statusLower.includes("open") || statusLower.includes("development") || statusLower.includes("review")) {
+      return "In Progress"
     }
 
     if (statusLower.includes("waiting") || statusLower.includes("pending") || statusLower.includes("feedback")) {
