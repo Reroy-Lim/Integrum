@@ -410,15 +410,22 @@ export class JiraApiClient {
 
       const statusUpdated = await this.updateTicketStatus(ticketKey, statusName)
       if (!statusUpdated) {
-        console.log(`[v0] Jira API: ⚠️ Failed to update status for ${ticketKey}`)
+        console.error(`[v0] Jira API: ❌ Failed to update status for ${ticketKey} - sync failed`)
+        return false
       }
 
+      // Resolution is often set automatically by status transitions in Jira
       const resolutionUpdated = await this.updateTicketResolution(ticketKey, resolutionName)
       if (!resolutionUpdated) {
-        console.log(`[v0] Jira API: ⚠️ Failed to update resolution for ${ticketKey}`)
+        console.warn(
+          `[v0] Jira API: ⚠️ Could not update resolution for ${ticketKey} (this is often normal - resolution may be set automatically by status transition)`,
+        )
       }
 
-      return statusUpdated && resolutionUpdated
+      console.log(
+        `[v0] Jira API: ✅ Sync completed for ${ticketKey} (status: ${statusUpdated ? "✓" : "✗"}, resolution: ${resolutionUpdated ? "✓" : "⚠"})`,
+      )
+      return true
     } catch (error) {
       console.error("[v0] Jira API: Error syncing ticket with category:", error)
       return false
