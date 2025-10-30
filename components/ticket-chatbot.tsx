@@ -151,6 +151,37 @@ export function TicketChatbot({
 
       console.log("[v0] Message sent successfully")
 
+      // Only update if ticket is not already in a final state
+      const finalStates = ["done", "resolved", "closed", "cancelled"]
+      const inProgressStates = ["in progress", "in development", "in review"]
+
+      const currentStatus = ticketStatus?.toLowerCase() || ""
+      const shouldUpdateStatus = !finalStates.includes(currentStatus) && !inProgressStates.includes(currentStatus)
+
+      if (shouldUpdateStatus) {
+        console.log("[v0] Updating ticket status to In Progress:", ticketKey)
+        try {
+          const statusResponse = await fetch(`/api/jira/ticket/${ticketKey}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "in-progress" }),
+          })
+
+          if (statusResponse.ok) {
+            console.log("[v0] Ticket status updated to In Progress successfully")
+          } else {
+            console.log("[v0] Failed to update ticket status (non-critical):", await statusResponse.text())
+          }
+        } catch (statusError) {
+          console.log("[v0] Error updating ticket status (non-critical):", statusError)
+          // Don't throw - message was sent successfully, status update is secondary
+        }
+      } else {
+        console.log("[v0] Skipping status update - ticket already in appropriate state:", currentStatus)
+      }
+
       await loadMessages()
     } catch (error) {
       console.error("[v0] Error sending message:", error)

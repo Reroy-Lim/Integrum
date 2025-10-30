@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: { key: st
     const body = await request.json()
     const { action } = body
 
-    if (action !== "resolve") {
+    if (action !== "resolve" && action !== "in-progress") {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 })
     }
 
@@ -45,15 +45,20 @@ export async function POST(request: NextRequest, { params }: { params: { key: st
     }
 
     const jiraClient = new JiraApiClient(jiraConfig)
-    const success = await jiraClient.transitionTicket(ticketKey, "Done")
+
+    const transitionName = action === "resolve" ? "Done" : "In Progress"
+    const success = await jiraClient.transitionTicket(ticketKey, transitionName)
 
     if (!success) {
-      return NextResponse.json({ error: "Failed to resolve ticket" }, { status: 500 })
+      return NextResponse.json({ error: `Failed to ${action} ticket` }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, message: "Ticket resolved successfully" })
+    return NextResponse.json({
+      success: true,
+      message: `Ticket ${action === "resolve" ? "resolved" : "moved to In Progress"} successfully`,
+    })
   } catch (error) {
-    console.error("Error resolving JIRA ticket:", error)
-    return NextResponse.json({ error: "Failed to resolve ticket" }, { status: 500 })
+    console.error(`Error updating JIRA ticket:`, error)
+    return NextResponse.json({ error: "Failed to update ticket" }, { status: 500 })
   }
 }
