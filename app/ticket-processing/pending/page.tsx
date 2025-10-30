@@ -20,6 +20,38 @@ export default function PendingTicketPage() {
   const [elapsedTime, setElapsedTime] = useState(0)
   const [foundTicket, setFoundTicket] = useState(false)
   const [checkCount, setCheckCount] = useState(0)
+  const [networkSpeed, setNetworkSpeed] = useState<number | null>(null)
+
+  useEffect(() => {
+    const measureSpeed = async () => {
+      try {
+        if ("connection" in navigator && "downlink" in (navigator as any).connection) {
+          const connection = (navigator as any).connection
+          setNetworkSpeed(connection.downlink)
+          return
+        }
+
+        const startTime = performance.now()
+        const response = await fetch("/api/jira/tickets?email=" + encodeURIComponent(userEmail || ""), {
+          method: "HEAD",
+        })
+        const endTime = performance.now()
+
+        if (response.ok) {
+          const durationMs = endTime - startTime
+          const estimatedMbps = (8 / durationMs) * 1000
+          setNetworkSpeed(Math.min(estimatedMbps, 100))
+        }
+      } catch (error) {
+        console.error("[v0] Failed to measure network speed:", error)
+        setNetworkSpeed(null)
+      }
+    }
+
+    if (userEmail) {
+      measureSpeed()
+    }
+  }, [userEmail])
 
   useEffect(() => {
     if (foundTicket) return
@@ -30,6 +62,8 @@ export default function PendingTicketPage() {
 
     return () => clearInterval(timer)
   }, [foundTicket])
+
+  const [tickets, setTickets] = useState([])
 
   useEffect(() => {
     if (!userEmail) return
@@ -93,7 +127,6 @@ export default function PendingTicketPage() {
     }
   }, [userEmail, router, checkCount, submissionTime])
 
-  // Format elapsed time as MM:SS
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -119,29 +152,35 @@ export default function PendingTicketPage() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Live Timer */}
           <div className="bg-gray-50 rounded-lg p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">Processing time</p>
             <p className="text-3xl font-mono font-bold text-blue-600">{formatTime(elapsedTime)}</p>
-            <p className="text-xs text-gray-400 mt-1">Checks: {checkCount}</p>
+            <div className="flex items-center justify-center gap-4 mt-2">
+              <p className="text-xs text-gray-400">Checks: {checkCount}</p>
+              {networkSpeed !== null && (
+                <>
+                  <span className="text-xs text-gray-300">|</span>
+                  <p className="text-xs text-gray-400">Megabits per second (Mbps): {networkSpeed.toFixed(1)}</p>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Instructions */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 relative">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={handleReturnHome}
-                    className="absolute top-2 right-2 w-10 h-10 hover:scale-110 transition-transform duration-300 cursor-pointer"
+                    className="absolute top-2 right-2 w-12 h-12 rounded-full bg-gradient-to-br from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer flex items-center justify-center animate-pulse hover:animate-none hover:scale-110 ring-2 ring-red-300 ring-offset-2"
                     aria-label="Return to home"
                   >
                     <Image
                       src="/error-illustration.png"
                       alt="Return to home"
-                      width={40}
-                      height={40}
-                      className="w-full h-full object-contain"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 object-contain drop-shadow-md"
                     />
                   </button>
                 </TooltipTrigger>
