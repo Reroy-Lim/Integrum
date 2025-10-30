@@ -759,16 +759,16 @@ export default function IntegrumPortal() {
             </div>
 
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 tracking-tight text-balance">
-              <span className="text-foreground">Intelligent Support</span>
+              <span className="text-foreground">AI-Automated Support Platform</span>
               <br />
               <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                Built for Scale
+                High-Reliability, High-Volume Architecture
               </span>
             </h1>
 
             <p className="text-xl md:text-2xl text-foreground/70 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
-              Intelligent ticket management powered by AI. Submit, track, and resolve issues with unprecedented speed
-              and intelligence.
+              AI-powered support automation that converts emails into tickets, sends automatic responses, and provides
+              real-time visibility across the entire support workflow.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -812,7 +812,9 @@ export default function IntegrumPortal() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">Platform Metrics</h2>
-            <p className="text-xl text-foreground/70 max-w-2xl mx-auto">Proven performance and reliability at scale</p>
+            <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
+              Trusted for secure, scalable, and reliable enterprise operations
+            </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -831,8 +833,8 @@ export default function IntegrumPortal() {
                 <Clock className="w-8 h-8 text-white" />
               </div>
               <div className="text-6xl font-bold text-foreground mb-3 tracking-tight">&lt;5min</div>
-              <div className="text-foreground/90 font-medium text-lg">AI Response Time</div>
-              <div className="text-sm text-foreground/60 mt-2">Average processing speed</div>
+              <div className="text-foreground/90 font-medium text-lg">&lt;5-Minute Automated Processing Target</div>
+              <div className="text-sm text-foreground/60 mt-2">Enterprise SLA compliance</div>
             </div>
 
             <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
@@ -840,8 +842,8 @@ export default function IntegrumPortal() {
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <div className="text-3xl font-bold text-foreground mb-3 tracking-tight">AI-Driven</div>
-              <div className="text-foreground/90 font-medium text-lg">Smart Analysis</div>
-              <div className="text-sm text-foreground/60 mt-2">Intelligent insights & automation</div>
+              <div className="text-foreground/90 font-medium text-lg">Classification & Priority Scoring</div>
+              <div className="text-sm text-foreground/60 mt-2">Intelligent automation & routing</div>
             </div>
           </div>
         </div>
@@ -862,9 +864,9 @@ export default function IntegrumPortal() {
               <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Mail className="w-6 h-6 text-emerald-400" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">Email Integration</h3>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Secure Email-to-Support Pipeline</h3>
               <p className="text-foreground/75 leading-relaxed">
-                Seamless Gmail integration with automatic ticket creation and tracking.
+                Automated ticket creation from email with encryption & logging.
               </p>
             </div>
 
@@ -872,19 +874,19 @@ export default function IntegrumPortal() {
               <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <FileText className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">Real-time Tracking</h3>
-              <p className="text-foreground/75 leading-relaxed">
-                Monitor your ticket status and progress with live updates.
-              </p>
+              <h3 className="text-xl font-semibold text-foreground mb-3">
+                Real-Time Ticket Tracking & Communication Portal
+              </h3>
+              <p className="text-foreground/75 leading-relaxed">Live SLA Status & Resolution Tracking.</p>
             </div>
 
             <div className="p-8 rounded-2xl border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
               <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Zap className="w-6 h-6 text-emerald-400" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">Instant Responses</h3>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Immediate AI Ticket Receipt & Routing</h3>
               <p className="text-foreground/75 leading-relaxed">
-                Auto-acknowledgement and AI-powered initial responses within period of minutes.
+                Automated acknowledgement and intelligent ticket routing within minutes.
               </p>
             </div>
 
