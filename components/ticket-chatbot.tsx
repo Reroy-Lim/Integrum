@@ -297,20 +297,23 @@ export function TicketChatbot({
     try {
       console.log("[v0] Resolving ticket:", ticketKey)
 
-      const response = await fetch(`/api/jira/ticket/${ticketKey}`, {
+      const syncResponse = await fetch("/api/jira/sync-category", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ action: "resolve" }),
+        body: JSON.stringify({
+          ticketKey,
+          category: "Resolved",
+        }),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to resolve ticket")
+      if (!syncResponse.ok) {
+        const errorData = await syncResponse.json()
+        throw new Error(errorData.error || "Failed to sync ticket with Jira")
       }
 
-      console.log("[v0] Ticket resolved successfully in Jira")
+      console.log("[v0] Ticket synced successfully - Status: Done, Resolution: Done")
 
       console.log("[v0] Updating frontend category to Resolved in Supabase")
       const supabase = createClient()
@@ -328,15 +331,14 @@ export function TicketChatbot({
 
       if (supabaseError) {
         console.error("[v0] Error updating Supabase category:", supabaseError)
-        // Don't throw - Jira update succeeded, so we can continue
       } else {
         console.log("[v0] Successfully updated frontend category to Resolved")
       }
 
       setShowResolveDialog(false)
 
-      console.log("[v0] Navigating to dashboard to show updated ticket status")
-      window.location.href = "/"
+      console.log("[v0] Redirecting to dashboard with refresh flag")
+      window.location.href = "/?view=yourTickets&refresh=true"
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
       alert("Failed to resolve ticket. Please try again.")

@@ -45,10 +45,19 @@ export async function POST(request: NextRequest, { params }: { params: { key: st
     }
 
     const jiraClient = new JiraApiClient(jiraConfig)
-    const success = await jiraClient.transitionTicket(ticketKey, "Done")
 
-    if (!success) {
-      return NextResponse.json({ error: "Failed to resolve ticket" }, { status: 500 })
+    console.log("[v0] Transitioning ticket to Done status")
+    const transitionSuccess = await jiraClient.transitionTicket(ticketKey, "Done")
+
+    if (!transitionSuccess) {
+      return NextResponse.json({ error: "Failed to transition ticket to Done" }, { status: 500 })
+    }
+
+    console.log("[v0] Updating ticket resolution to Done")
+    const resolutionSuccess = await jiraClient.updateTicketResolution(ticketKey, "Done")
+
+    if (!resolutionSuccess) {
+      console.warn("[v0] Failed to update resolution, but status was updated successfully")
     }
 
     return NextResponse.json({ success: true, message: "Ticket resolved successfully" })
