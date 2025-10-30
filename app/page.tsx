@@ -502,7 +502,7 @@ export default function IntegrumPortal() {
     const ticketSent = searchParams.get("ticketSent")
     if (ticketSent === "true") {
       setShowSuccessMessage(true)
-      window.history.replaceState({}, "", "/")
+      window.history.replaceState({}, "/", window.location.pathname)
     }
   }, [searchParams])
 
@@ -819,17 +819,18 @@ export default function IntegrumPortal() {
               <span className="text-sm font-semibold text-primary tracking-wide uppercase">AI-Powered Support</span>
             </div>
 
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 tracking-tight text-balance">
-              <span className="text-foreground">Intelligent Support</span>
+            {/* Updated hero section with enterprise-focused copy */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-8 tracking-tight text-balance">
+              <span className="text-foreground">Enterprise-Grade AI Support Platform</span>
               <br />
               <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                Built for Scale
+                Engineered for Performance, Security & Scalability
               </span>
             </h1>
 
             <p className="text-xl md:text-2xl text-foreground/70 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
-              Intelligent ticket management powered by AI. Submit, track, and resolve issues with unprecedented speed
-              and intelligence.
+              Enterprise-class AI ticketing and support automation. Streamline request intake, triage, resolution, and
+              tracking with secure, scalable AI-driven workflows.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -870,120 +871,130 @@ export default function IntegrumPortal() {
       </section>
 
       <section className="py-24 px-8 bg-gradient-to-b from-background to-secondary/10">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">Platform Metrics</h2>
-            <p className="text-xl text-foreground/70 max-w-2xl mx-auto">Proven performance and reliability at scale</p>
+        {/* Updated Platform Metrics section with enterprise terminology */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+            Operational Excellence Metrics
+          </h2>
+          <p className="text-xl text-foreground/70 max-w-2xl mx-auto font-medium">
+            Validated performance, security, and reliability across enterprise environments
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Statistics cards */}
+          <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl mb-6 shadow-lg">
+              <TrendingUp className="w-8 h-8 text-white" />
+            </div>
+            <div className="text-6xl font-extrabold text-foreground mb-3 tracking-tight">99.9%</div>
+            <div className="text-foreground/90 font-semibold text-lg">Platform Uptime</div>
+            <div className="text-sm text-foreground/60 mt-2 font-medium">
+              Enterprise-grade availability & reliability
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Statistics cards */}
-            <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl mb-6 shadow-lg">
-                <TrendingUp className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-6xl font-bold text-foreground mb-3 tracking-tight">99.9%</div>
-              <div className="text-foreground/90 font-medium text-lg">System Uptime</div>
-              <div className="text-sm text-foreground/60 mt-2">Enterprise reliability</div>
+          <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl mb-6 shadow-lg">
+              <Clock className="w-8 h-8 text-white" />
             </div>
-
-            <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl mb-6 shadow-lg">
-                <Clock className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-6xl font-bold text-foreground mb-3 tracking-tight">&lt;5min</div>
-              <div className="text-foreground/90 font-medium text-lg">AI Response Time</div>
-              <div className="text-sm text-foreground/60 mt-2">Average processing speed</div>
+            <div className="text-6xl font-extrabold text-foreground mb-3 tracking-tight">&lt;5min</div>
+            <div className="text-foreground/90 font-semibold text-lg">Estimated Automated Processing</div>
+            <div className="text-sm text-foreground/60 mt-2 font-medium">
+              AI-driven classification & routing completion
             </div>
+          </div>
 
-            <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-xl mb-6 shadow-lg">
-                <Zap className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-3xl font-bold text-foreground mb-3 tracking-tight">AI-Driven</div>
-              <div className="text-foreground/90 font-medium text-lg">Smart Analysis</div>
-              <div className="text-sm text-foreground/60 mt-2">Intelligent insights & automation</div>
+          <div className="text-center p-10 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-xl mb-6 shadow-lg">
+              <Zap className="w-8 h-8 text-white" />
+            </div>
+            <div className="text-3xl font-extrabold text-foreground mb-3 tracking-tight">AI-Enhanced</div>
+            <div className="text-foreground/90 font-semibold text-lg">Ticket Intelligence</div>
+            <div className="text-sm text-foreground/60 mt-2 font-medium">
+              Advanced classification, prioritization & automation
             </div>
           </div>
         </div>
       </section>
 
       <section className="py-24 px-8 bg-gradient-to-b from-background to-secondary/10">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">AI-Driven Features</h2>
-            <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
-              Intelligent automation for modern support teams
+        {/* Updated Features section with enterprise automation focus */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+            Enterprise Automation Capabilities
+          </h2>
+          <p className="text-xl text-foreground/70 max-w-2xl mx-auto font-medium">
+            End-to-end automation for secure enterprise support operations
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Features visible to all users */}
+          <div className="p-8 rounded-2xl border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
+            <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Mail className="w-6 h-6 text-emerald-400" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-3">Secure Email-to-Ticket Automation</h3>
+            <p className="text-foreground/75 leading-relaxed">
+              Encrypted email ingestion with automated ticket creation & tracking.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Features visible to all users */}
-            <div className="p-8 rounded-2xl border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
-              <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Mail className="w-6 h-6 text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">Email Integration</h3>
-              <p className="text-foreground/75 leading-relaxed">
-                Seamless Gmail integration with automatic ticket creation and tracking.
-              </p>
+          <div className="p-8 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
+            <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <FileText className="w-6 h-6 text-primary" />
             </div>
-
-            <div className="p-8 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
-              <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <FileText className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">Real-time Tracking</h3>
-              <p className="text-foreground/75 leading-relaxed">
-                Monitor your ticket status and progress with live updates.
-              </p>
-            </div>
-
-            <div className="p-8 rounded-2xl border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
-              <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Zap className="w-6 h-6 text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">Instant Responses</h3>
-              <p className="text-foreground/75 leading-relaxed">
-                Auto-acknowledgement and AI-powered initial responses within period of minutes.
-              </p>
-            </div>
-
-            {/* Additional features for master account */}
-            {isMasterAccount && (
-              <>
-                <div className="p-8 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
-                  <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <Shield className="w-6 h-6 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Enterprise Security</h3>
-                  <p className="text-foreground/75 leading-relaxed">
-                    Bank-level encryption and compliance with industry standards.
-                  </p>
-                </div>
-
-                <div className="p-8 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
-                  <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <Lightbulb className="w-6 h-6 text-accent" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-3">AI Insights</h3>
-                  <p className="text-foreground/75 leading-relaxed">
-                    Automated categorization and intelligent routing for faster resolution.
-                  </p>
-                </div>
-
-                <div className="p-8 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
-                  <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <TrendingUp className="w-6 h-6 text-accent" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Full Admin Access</h3>
-                  <p className="text-foreground/75 leading-relaxed">
-                    Complete control over all tickets, users, and system settings.
-                  </p>
-                </div>
-              </>
-            )}
+            <h3 className="text-xl font-bold text-foreground mb-3">Real-time Support Visibility</h3>
+            <p className="text-foreground/75 leading-relaxed">
+              Live ticket tracking, SLA monitoring & performance updates.
+            </p>
           </div>
+
+          <div className="p-8 rounded-2xl border-2 border-border hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group cursor-pointer">
+            <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Zap className="w-6 h-6 text-emerald-400" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-3">Automated Acknowledgement & AI-Assisted Response</h3>
+            <p className="text-foreground/75 leading-relaxed">
+              Immediate confirmations & intelligent response initiation.
+            </p>
+          </div>
+
+          {/* Additional features for master account */}
+          {isMasterAccount && (
+            <>
+              <div className="p-8 rounded-2xl border-2 border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
+                <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Shield className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3">Enterprise Security</h3>
+                <p className="text-foreground/75 leading-relaxed">
+                  Bank-level encryption and compliance with industry standards.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
+                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Lightbulb className="w-6 h-6 text-accent" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3">AI Insights</h3>
+                <p className="text-foreground/75 leading-relaxed">
+                  Automated categorization and intelligent routing for faster resolution.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-2xl border-2 border-border hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 group cursor-pointer">
+                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="w-6 h-6 text-accent" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3">Full Admin Access</h3>
+                <p className="text-foreground/75 leading-relaxed">
+                  Complete control over all tickets, users, and system settings.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
