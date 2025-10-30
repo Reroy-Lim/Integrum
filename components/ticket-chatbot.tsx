@@ -55,6 +55,7 @@ export function TicketChatbot({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const prevMessageCountRef = useRef<number>(0)
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const [isTicketJustResolved, setIsTicketJustResolved] = useState(false)
 
   const scrollToBottom = () => {
     if (!chatContainerRef.current || !messagesEndRef.current) return
@@ -336,17 +337,23 @@ export function TicketChatbot({
       }
 
       setShowResolveDialog(false)
+      setIsTicketJustResolved(true)
 
-      console.log("[v0] Redirecting to dashboard with refresh flag")
-      window.location.href = "/?view=yourTickets&refresh=true"
+      console.log("[v0] Ticket resolved successfully, showing preview with 'Return to Your Ticket' button")
     } catch (error) {
       console.error("[v0] Error resolving ticket:", error)
       alert("Failed to resolve ticket. Please try again.")
     }
   }
 
-  // Previously was treating all non-"In Progress"/"Pending Reply" statuses as resolved (including Backlog, To Do, etc.)
-  const isResolved = ticketStatus && ["done", "resolved", "closed", "cancelled"].includes(ticketStatus.toLowerCase())
+  const handleReturnToTickets = () => {
+    console.log("[v0] Returning to dashboard with refresh flag")
+    window.location.href = "/?view=yourTickets&refresh=true"
+  }
+
+  const isResolved =
+    isTicketJustResolved ||
+    (ticketStatus && ["done", "resolved", "closed", "cancelled"].includes(ticketStatus.toLowerCase()))
 
   return (
     <>
@@ -553,6 +560,14 @@ export function TicketChatbot({
                   If you wish to continue, Please resubmit another ticket and provide the ticket number inside the chat.
                   Our live agent will get back to you asap!
                 </p>
+                {isTicketJustResolved && (
+                  <button
+                    onClick={handleReturnToTickets}
+                    className="mt-4 px-6 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Return to Your Ticket
+                  </button>
+                )}
               </div>
             </div>
           </div>

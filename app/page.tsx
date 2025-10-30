@@ -291,6 +291,17 @@ export default function IntegrumPortal() {
     }
 
     fetchTickets()
+
+    console.log("[v0] Setting up 30-second auto-refresh interval")
+    const intervalId = setInterval(() => {
+      console.log("[v0] Auto-refresh triggered (30s interval)")
+      fetchTickets()
+    }, 30000) // 30 seconds
+
+    return () => {
+      console.log("[v0] Cleaning up auto-refresh interval")
+      clearInterval(intervalId)
+    }
   }, [userEmail, ticketLimit, ticketCategories])
 
   useEffect(() => {
