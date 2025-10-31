@@ -50,6 +50,11 @@ export default function PendingTicketPage() {
 
     if (userEmail) {
       measureSpeed()
+
+      // Refresh speed every second
+      const speedInterval = setInterval(measureSpeed, 1000)
+
+      return () => clearInterval(speedInterval)
     }
   }, [userEmail])
 
@@ -160,7 +165,7 @@ export default function PendingTicketPage() {
               {networkSpeed !== null && (
                 <>
                   <span className="text-xs text-gray-300">|</span>
-                  <p className="text-xs text-gray-400">Megabits per second (Mbps): {networkSpeed.toFixed(1)}</p>
+                  <p className="text-xs text-gray-400">Internet Speed (Mbps): {networkSpeed.toFixed(1)}</p>
                 </>
               )}
             </div>
