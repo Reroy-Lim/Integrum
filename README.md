@@ -38,7 +38,7 @@ Integrum is an AI-automated enterprise support platform that seamlessly integrat
 
 - **🎫 Jira Integration**: Full bidirectional sync with Jira for ticket management
   - Single-call ticket fetching (no batch pagination)
-  - Configurable ticket limits: 50, 100, 200, 500 (master only)
+  - Configurable ticket limits: 50, 100, 200, 500 & 1000 (master only)
   - Automatic status transitions
   - Comment synchronization
   - Attachment handling
@@ -183,41 +183,41 @@ Integrum is an AI-automated enterprise support platform that seamlessly integrat
 
 \`\`\`env
 # Jira Configuration
-JIRA_BASE_URL=https://your-domain.atlassian.net
-JIRA_EMAIL=your-email@example.com
-JIRA_API_TOKEN=your-jira-api-token
+JIRA_BASE_URL=https://heyroy23415.atlassian.net
+JIRA_EMAIL=heyroy23415@gmail.com
+JIRA_API_TOKEN=ATATT3xFfGF02vlIm44Y67LnN5XRGvG14gXq4Ob5BeF0VHQM2fNThWq5yvlOncpzCFlWCebep7XcoJjZ4Ux3keQImb_9QGQwgSWaTCAtrYL2wzYk-3uTrIa2rXGjPd7Tm-EaWNhzjo4tHFg3RWwFAmxRdyixCNbAOnbEo7MWz3dnyvWlTzXqxGs=5A796E28
 JIRA_PROJECT_KEY=KST
-NEXT_PUBLIC_JIRA_BASE_URL=https://your-domain.atlassian.net
+NEXT_PUBLIC_JIRA_BASE_URL=https://heyroy23415.atlassian.net
 
 # Google OAuth
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-NEXTAUTH_SECRET=your-nextauth-secret
-NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=106334484807-n6ebmj0si2gubcq0nnbl9grpf4jjt0on.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+NEXTAUTH_SECRET=Uy/AF9/33LFTfdoljaxV90Z/cahwLGhNvuen+tn5wsc=
+NEXTAUTH_URL=Uy/AF9/33LFTfdoljaxV90Z/cahwLGhNvuen+tn5wsc=
 
 # Supabase
-SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_JWT_SECRET=your-jwt-secret
+SUPABASE_URL=https://zvymnfrejzposxwogeic.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://zvymnfrejzposxwogeic.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eW1uZnJlanpwb3N4d29nZWljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MTk3MzUsImV4cCI6MjA3NjA5NTczNX0.bgXzTxlAPFyDqesz1R6Y5lPBHWvuPczhru1BeVIWnbc
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eW1uZnJlanpwb3N4d29nZWljIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDUxOTczNSwiZXhwIjoyMDc2MDk1NzM1fQ.l834usUgzS-hLUm-v42SIiw9YFNuGiwhCQHdLY16wYw
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eW1uZnJlanpwb3N4d29nZWljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MTk3MzUsImV4cCI6MjA3NjA5NTczNX0.bgXzTxlAPFyDqesz1R6Y5lPBHWvuPczhru1BeVIWnbc
+SUPABASE_JWT_SECRET=zuibc58CryxkzET2awORpEcI+A//mv6tEKWAXcN1jJ7pP0VOiaywGHqc+BEWzak3Q99bXVWz23/ss1SL+mykaQ==
 
 # PostgreSQL (from Supabase)
-POSTGRES_URL=your-postgres-url
-POSTGRES_PRISMA_URL=your-prisma-url
-POSTGRES_URL_NON_POOLING=your-non-pooling-url
+POSTGRES_URL=zuibc58CryxkzET2awORpEcI+A//mv6tEKWAXcN1jJ7pP0VOiaywGHqc+BEWzak3Q99bXVWz23/ss1SL+mykaQ==
+POSTGRES_PRISMA_URL=postgres://postgres.zvymnfrejzposxwogeic:fcX1EoerodScJX04@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+POSTGRES_URL_NON_POOLING=postgres://postgres.zvymnfrejzposxwogeic:fcX1EoerodScJX04@aws-1-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your-password
+POSTGRES_PASSWORD=fcX1EoerodScJX04
 POSTGRES_DATABASE=postgres
-POSTGRES_HOST=your-host
+POSTGRES_HOST=db.zvymnfrejzposxwogeic.supabase.co
 
 # N8N Workflow Automation
-N8N_API_KEY=your-n8n-api-key
-N8N_API_URL=https://your-n8n-instance.com
+N8N_API_KEY=ATATT3xFfGF0_SXDA6OByZxtkD3pPpO-x0mLQW1puFprUgd9qpFsy9B8ZvSFdYhItM2dkr2GiDL8WYN7nn0n_8JxWgbTuk8CpWY9aVFkGfarYq8XyYapgkO5xeF13zgQA826OgxZRqT0olyETwaQF5Cc73Fsly8U9PgUgUPIMYiLXtZb4NIrzkg=57F96918
+N8N_API_URL=https://id.atlassian.com/manage-profile/security/api-tokens
 
 # Master Account
-NEXT_PUBLIC_MASTER_EMAIL=support@example.com
+NEXT_PUBLIC_MASTER_EMAIL=heyroy23415@gmail.com
 \`\`\`
 
 ### Getting API Keys
@@ -880,7 +880,7 @@ const isResolved = ticketStatus &&
 if (isResolved) {
   return (
     <div className="resolved-state">
-      <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-VW9yekTIz5tAHKi7QeDNuYcuvnoT1S.png" alt="Resolved" />
+      <img src="/images/design-mode/image.png" alt="Resolved" />
       <span>Resolved</span>
       <p>This ticket has been Resolved</p>
     </div>
