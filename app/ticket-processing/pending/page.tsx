@@ -21,6 +21,7 @@ export default function PendingTicketPage() {
   const [foundTicket, setFoundTicket] = useState(false)
   const [checkCount, setCheckCount] = useState(0)
   const [networkSpeed, setNetworkSpeed] = useState<number | null>(null)
+  const [displayedSpeed, setDisplayedSpeed] = useState(0)
 
   useEffect(() => {
     const measureSpeed = async () => {
@@ -64,16 +65,28 @@ export default function PendingTicketPage() {
   }, [userEmail])
 
   useEffect(() => {
-    if (foundTicket) return
+    if (networkSpeed === null) return
 
-    const timer = setInterval(() => {
-      setElapsedTime((prev) => prev + 1)
-    }, 1000)
+    const targetSpeed = networkSpeed
+    const duration = 1500 // 1.5 seconds animation
+    const steps = 60 // 60 frames
+    const increment = targetSpeed / steps
+    const intervalTime = duration / steps
 
-    return () => clearInterval(timer)
-  }, [foundTicket])
+    let currentStep = 0
 
-  const [tickets, setTickets] = useState([])
+    const animationInterval = setInterval(() => {
+      currentStep++
+      if (currentStep >= steps) {
+        setDisplayedSpeed(targetSpeed)
+        clearInterval(animationInterval)
+      } else {
+        setDisplayedSpeed(increment * currentStep)
+      }
+    }, intervalTime)
+
+    return () => clearInterval(animationInterval)
+  }, [networkSpeed])
 
   useEffect(() => {
     if (!userEmail) return
@@ -137,6 +150,18 @@ export default function PendingTicketPage() {
     }
   }, [userEmail, router, checkCount, submissionTime])
 
+  useEffect(() => {
+    if (foundTicket) return
+
+    const timer = setInterval(() => {
+      setElapsedTime((prev) => prev + 1)
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [foundTicket])
+
+  const [tickets, setTickets] = useState([])
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -171,7 +196,7 @@ export default function PendingTicketPage() {
                 {networkSpeed !== null && (
                   <>
                     <span className="text-xs text-gray-300">|</span>
-                    <p className="text-xs text-gray-400">Internet Speed: {networkSpeed.toFixed(1)} Mbps</p>
+                    <p className="text-xs text-gray-400">Internet Speed: {displayedSpeed.toFixed(1)} Mbps</p>
                   </>
                 )}
               </div>
