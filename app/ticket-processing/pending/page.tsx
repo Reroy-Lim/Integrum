@@ -28,20 +28,30 @@ export default function PendingTicketPage() {
         if ("connection" in navigator && "downlink" in (navigator as any).connection) {
           const connection = (navigator as any).connection
           setNetworkSpeed(connection.downlink)
+          console.log("[v0] Network speed from API:", connection.downlink, "Mbps")
           return
         }
 
+        const testFileSize = 50000 // 50KB test
         const startTime = performance.now()
-        const response = await fetch("/api/jira/tickets?email=" + encodeURIComponent(userEmail || ""), {
-          method: "HEAD",
-        })
-        const endTime = performance.now()
 
-        if (response.ok) {
-          const durationMs = endTime - startTime
-          const estimatedMbps = (8 / durationMs) * 1000
-          setNetworkSpeed(Math.min(estimatedMbps, 100))
-        }
+        const response = await fetch("/placeholder.svg?height=100&width=100", {
+          cache: "no-store",
+          method: "GET",
+        })
+
+        if (!response.ok) throw new Error("Speed test failed")
+
+        await response.blob()
+
+        const endTime = performance.now()
+        const durationInSeconds = (endTime - startTime) / 1000
+
+        const bitsLoaded = testFileSize * 8
+        const speedMbps = bitsLoaded / durationInSeconds / 1000000
+
+        setNetworkSpeed(Math.max(0.1, Math.min(speedMbps, 1000))) // Cap between 0.1 and 1000 Mbps
+        console.log("[v0] Measured network speed:", speedMbps.toFixed(2), "Mbps")
       } catch (error) {
         console.error("[v0] Failed to measure network speed:", error)
         setNetworkSpeed(null)
@@ -50,11 +60,6 @@ export default function PendingTicketPage() {
 
     if (userEmail) {
       measureSpeed()
-
-      // Refresh speed every second
-      const speedInterval = setInterval(measureSpeed, 1000)
-
-      return () => clearInterval(speedInterval)
     }
   }, [userEmail])
 
@@ -160,13 +165,18 @@ export default function PendingTicketPage() {
           <div className="bg-gray-50 rounded-lg p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">Processing time</p>
             <p className="text-3xl font-mono font-bold text-blue-600">{formatTime(elapsedTime)}</p>
-            <div className="flex items-center justify-center gap-4 mt-2">
-              <p className="text-xs text-gray-400">Checks: {checkCount}</p>
-              {networkSpeed !== null && (
-                <>
-                  <span className="text-xs text-gray-300">|</span>
-                  <p className="text-xs text-gray-400">Internet Speed (Mbps): {networkSpeed.toFixed(1)}</p>
-                </>
+            <div className="flex flex-col items-center gap-1 mt-3">
+              <div className="flex items-center gap-4">
+                <p className="text-xs text-gray-400">Checks: {checkCount}</p>
+                {networkSpeed !== null && (
+                  <>
+                    <span className="text-xs text-gray-300">|</span>
+                    <p className="text-xs text-gray-400">Internet Speed: {networkSpeed.toFixed(1)} Mbps</p>
+                  </>
+                )}
+              </div>
+              {networkSpeed !== null && networkSpeed < 5 && (
+                <p className="text-xs text-orange-500 mt-1">Slow internet may cause longer loading.</p>
               )}
             </div>
           </div>
