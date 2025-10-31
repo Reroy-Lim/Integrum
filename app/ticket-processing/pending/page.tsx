@@ -21,11 +21,13 @@ export default function PendingTicketPage() {
   const [foundTicket, setFoundTicket] = useState(false)
   const [checkCount, setCheckCount] = useState(0)
   const [networkSpeed, setNetworkSpeed] = useState<number | null>(null)
-  const [displayedSpeed, setDisplayedSpeed] = useState(0)
 
   useEffect(() => {
+    if (!userEmail || foundTicket) return
+
     const measureSpeed = async () => {
       try {
+        // Try Network Information API first
         if ("connection" in navigator && "downlink" in (navigator as any).connection) {
           const connection = (navigator as any).connection
           setNetworkSpeed(connection.downlink)
@@ -33,6 +35,7 @@ export default function PendingTicketPage() {
           return
         }
 
+        // Fallback: measure download speed with a small fetch
         const testFileSize = 50000 // 50KB test
         const startTime = performance.now()
 
@@ -52,41 +55,36 @@ export default function PendingTicketPage() {
         const speedMbps = bitsLoaded / durationInSeconds / 1000000
 
         setNetworkSpeed(Math.max(0.1, Math.min(speedMbps, 1000))) // Cap between 0.1 and 1000 Mbps
-        console.log("[v0] Measured network speed:", speedMbps.toFixed(2), "Mbps")
+        console.log("[v0] Measured network speed:", speedMbps.toFixed(1), "Mbps")
       } catch (error) {
         console.error("[v0] Failed to measure network speed:", error)
         setNetworkSpeed(null)
       }
     }
 
-    if (userEmail) {
-      measureSpeed()
+    // Measure immediately on mount
+    measureSpeed()
+
+    // Continue measuring every 3 seconds
+    const speedInterval = setInterval(measureSpeed, 3000)
+
+    // Cleanup: stop measuring when component unmounts or ticket is found
+    return () => {
+      clearInterval(speedInterval)
     }
-  }, [userEmail])
+  }, [userEmail, foundTicket])
 
   useEffect(() => {
-    if (networkSpeed === null) return
+    if (foundTicket) return
 
-    const targetSpeed = networkSpeed
-    const duration = 1500 // 1.5 seconds animation
-    const steps = 60 // 60 frames
-    const increment = targetSpeed / steps
-    const intervalTime = duration / steps
+    const timer = setInterval(() => {
+      setElapsedTime((prev) => prev + 1)
+    }, 1000)
 
-    let currentStep = 0
+    return () => clearInterval(timer)
+  }, [foundTicket])
 
-    const animationInterval = setInterval(() => {
-      currentStep++
-      if (currentStep >= steps) {
-        setDisplayedSpeed(targetSpeed)
-        clearInterval(animationInterval)
-      } else {
-        setDisplayedSpeed(increment * currentStep)
-      }
-    }, intervalTime)
-
-    return () => clearInterval(animationInterval)
-  }, [networkSpeed])
+  const [tickets, setTickets] = useState([])
 
   useEffect(() => {
     if (!userEmail) return
@@ -150,18 +148,6 @@ export default function PendingTicketPage() {
     }
   }, [userEmail, router, checkCount, submissionTime])
 
-  useEffect(() => {
-    if (foundTicket) return
-
-    const timer = setInterval(() => {
-      setElapsedTime((prev) => prev + 1)
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [foundTicket])
-
-  const [tickets, setTickets] = useState([])
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -193,15 +179,13 @@ export default function PendingTicketPage() {
             <div className="flex flex-col items-center gap-1 mt-3">
               <div className="flex items-center gap-4">
                 <p className="text-xs text-gray-400">Checks: {checkCount}</p>
-                {networkSpeed !== null && (
-                  <>
-                    <span className="text-xs text-gray-300">|</span>
-                    <p className="text-xs text-gray-400">Internet Speed: {displayedSpeed.toFixed(1)} Mbps</p>
-                  </>
-                )}
+                <span className="text-xs text-gray-300">|</span>
+                <p className="text-xs text-gray-400">
+                  Internet Speed: {networkSpeed !== null ? `${networkSpeed.toFixed(1)} Mbps` : "Unknown"}
+                </p>
               </div>
               {networkSpeed !== null && networkSpeed < 5 && (
-                <p className="text-xs text-orange-500 mt-1">Slow internet may cause longer loading.</p>
+                <p className="text-xs text-orange-500 mt-1">A lower speed may increase loading time.</p>
               )}
             </div>
           </div>
