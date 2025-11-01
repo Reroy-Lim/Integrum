@@ -49,7 +49,13 @@ export default function PendingTicketPage() {
     }
 
     if (userEmail) {
+      // Measure immediately on mount
       measureSpeed()
+
+      // Then measure every 5 seconds to keep the value updating
+      const speedInterval = setInterval(measureSpeed, 5000)
+
+      return () => clearInterval(speedInterval)
     }
   }, [userEmail])
 
@@ -165,7 +171,7 @@ export default function PendingTicketPage() {
               )}
             </div>
             {networkSpeed !== null && (
-              <p className="text-xs text-gray-500 mt-1">(Low speed will affect processing power)</p>
+              <p className="text-xs text-red-500 mt-1">(Low speed will affect processing power)</p>
             )}
           </div>
 
