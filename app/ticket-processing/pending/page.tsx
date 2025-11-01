@@ -52,8 +52,8 @@ export default function PendingTicketPage() {
       // Measure immediately on mount
       measureSpeed()
 
-      // Then measure every 5 seconds to keep the value updating
-      const speedInterval = setInterval(measureSpeed, 5000)
+      // Then measure every 1.5 seconds to keep the value updating
+      const speedInterval = setInterval(measureSpeed, 1500)
 
       return () => clearInterval(speedInterval)
     }
@@ -166,7 +166,7 @@ export default function PendingTicketPage() {
               {networkSpeed !== null && (
                 <>
                   <span className="text-xs text-gray-300">|</span>
-                  <p className="text-xs text-gray-400">Internet speed: {networkSpeed.toFixed(1)} Mbps</p>
+                  <p className="text-xs text-gray-400">Internet speed: {networkSpeed.toFixed(1)}</p>
                 </>
               )}
             </div>
