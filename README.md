@@ -1,6 +1,6 @@
 # Integrum Helpdesk System
 
-*An AI-powered enterprise support platform with Jira integration, real-time chat, and intelligent automation*
+*A comprehensive ticket management and support system with Jira integration, real-time chat, and intelligent automation*
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/royes-projects-6bcfe66f/v0-remix-of-agent-chain-workflow)
 [![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/UvhNKFShjip)
@@ -17,106 +17,33 @@
 - [User Guide](#user-guide)
 - [API Documentation](#api-documentation)
 - [Key Functions](#key-functions)
-- [Workflows](#workflows)
 - [Troubleshooting](#troubleshooting)
 
 ## 🎯 Overview
 
-Integrum is an AI-automated enterprise support platform that seamlessly integrates with Jira to provide a streamlined ticket management experience. It features real-time chat communication, intelligent ticket status automation, email monitoring, network performance tracking, and a beautiful user interface built with Next.js 15 and Tailwind CSS v4.
-
-### Key Highlights
-
-- **AI-Automated Support**: Intelligent ticket routing and auto-acknowledgement
-- **Enterprise-Grade Performance**: <5-minute automated processing target
-- **Real-Time Communication**: Built-in chat with instant status updates
-- **Secure Integration**: Email-to-support pipeline with encryption and logging
-- **High-Volume Architecture**: Optimized for scale with efficient polling and caching
+Integrum is a modern helpdesk system that seamlessly integrates with Jira to provide a streamlined ticket management experience. It features real-time chat communication, intelligent ticket status automation, email monitoring, and a beautiful user interface built with Next.js and Tailwind CSS.
 
 ## ✨ Features
 
 ### Core Functionality
 
 - **🎫 Jira Integration**: Full bidirectional sync with Jira for ticket management
-  - Single-call ticket fetching (no batch pagination)
-  - Configurable ticket limits: 50, 100, 200, 500 & 1000 (master only)
-  - Automatic status transitions
-  - Comment synchronization
-  - Attachment handling
-  
-- **💬 Real-time Chat**: Built-in messaging system with AI-powered support
-  - Instant message delivery
-  - File attachment support
-  - Automatic status detection
-  - Resolved ticket state handling
-  - Support/user role differentiation
-
-- **🤖 Intelligent Automation**: 
-  - Auto-transition to "In Progress" when messages are sent
-  - Auto-transition to "Pending Reply" based on chat activity
-  - Automatic ticket creation from email
-  - AI-driven classification and priority scoring
-
-- **📧 Email Monitoring**: Gmail integration for automatic ticket acknowledgment
-  - Secure email-to-support pipeline
-  - Auto-acknowledgement detection
-  - Email webhook handling
-  - N8N workflow integration
-
-- **📊 Advanced Dashboard**: 
-  - Three-column organization: "In Progress", "Pending Reply", "Resolved"
-  - Real-time category updates (10-second polling)
-  - Visual resolved indicators (green checkmark badges)
-  - Master account support for viewing all tickets
-  - Ticket limit selector with role-based restrictions
-
-- **🔐 Authentication**: Secure Google OAuth with role-based access
-  - Master account privileges
-  - Session management
-  - Secure token handling
-
-- **🎨 Modern UI**: 
-  - Beautiful, responsive interface
-  - Dark mode support
-  - Custom scrollbar styling
-  - Toast notifications with red outline for visibility
-  - Animated error buttons with gradient effects
-  - Enterprise-focused landing page
+- **💬 Real-time Chat**: Built-in messaging system with AI-powered support suggestions
+- **🤖 Intelligent Automation**: Automatic ticket status transitions based on user interactions
+- **📧 Email Monitoring**: Gmail integration for automatic ticket acknowledgment detection
+- **📎 File Attachments**: Support for uploading and managing ticket attachments
+- **🔐 Authentication**: Secure Google OAuth authentication with role-based access
+- **📊 Dashboard**: Organized ticket views with "In Progress", "Pending Reply", and "Resolved" columns
+- **🎨 Modern UI**: Beautiful, responsive interface with dark mode support
 
 ### Advanced Features
 
-- **Network Performance Monitoring**: 
-  - Real-time internet speed display (Mbps)
-  - Connection quality tracking
-  - Polling check counter
-
-- **Smart Ticket Detection**:
-  - Timestamp-based ticket tracking
-  - Prevents duplicate ticket detection
-  - Optimized polling (2-second intervals)
-  - 1-second initial check delay
-
-- **Toast Notification System**:
-  - Top-right corner positioning
-  - Manual dismiss (no auto-hide)
-  - Red outline for high visibility
-  - Success notifications for ticket creation
-
-- **Enhanced Error Handling**:
-  - Animated error button with pulse effect
-  - Gradient background (red to orange)
-  - Hover effects and shadows
-  - Clear call-to-action for users
-
-- **Frontend Category Management**: 
-  - Independent ticket categorization using Supabase
-  - Overrides Jira status when needed
-  - Real-time synchronization
-
-- **Master Account Support**: 
-  - View all tickets across all users
-  - Resolve ticket capability
-  - Support mode in chat
-  - Higher ticket limit (1000 vs 500)
+- **Frontend Category Management**: Independent ticket categorization system using Supabase
+- **Automatic Status Detection**: Monitors chat activity and updates ticket status automatically
+- **Master Account Support**: Special privileges for support team members
+- **Resolved Ticket Indicators**: Visual badges and icons for completed tickets
+- **Custom Scrollbar Styling**: Enhanced UX with themed scrollbars
+- **Responsive Design**: Optimized for desktop and mobile devices
 
 ## 🛠 Tech Stack
 
@@ -124,14 +51,13 @@ Integrum is an AI-automated enterprise support platform that seamlessly integrat
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **Database**: Supabase (PostgreSQL)
-- **Authentication**: NextAuth.js with Google OAuth
+- **Authentication**: Google OAuth
 - **External APIs**: 
   - Jira REST API v3
   - Gmail API
   - N8N Workflow Automation
 - **UI Components**: shadcn/ui
 - **State Management**: React Hooks + SWR
-- **Deployment**: Vercel
 
 ## 🚀 Getting Started
 
@@ -183,41 +109,41 @@ Integrum is an AI-automated enterprise support platform that seamlessly integrat
 
 \`\`\`env
 # Jira Configuration
-JIRA_BASE_URL=https://heyroy23415.atlassian.net
-JIRA_EMAIL=heyroy23415@gmail.com
-JIRA_API_TOKEN=ATATT3xFfGF02vlIm44Y67LnN5XRGvG14gXq4Ob5BeF0VHQM2fNThWq5yvlOncpzCFlWCebep7XcoJjZ4Ux3keQImb_9QGQwgSWaTCAtrYL2wzYk-3uTrIa2rXGjPd7Tm-EaWNhzjo4tHFg3RWwFAmxRdyixCNbAOnbEo7MWz3dnyvWlTzXqxGs=5A796E28
+JIRA_BASE_URL=https://your-domain.atlassian.net
+JIRA_EMAIL=your-email@example.com
+JIRA_API_TOKEN=your-jira-api-token
 JIRA_PROJECT_KEY=KST
-NEXT_PUBLIC_JIRA_BASE_URL=https://heyroy23415.atlassian.net
+NEXT_PUBLIC_JIRA_BASE_URL=https://your-domain.atlassian.net
 
 # Google OAuth
-GOOGLE_CLIENT_ID=106334484807-n6ebmj0si2gubcq0nnbl9grpf4jjt0on.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
-NEXTAUTH_SECRET=Uy/AF9/33LFTfdoljaxV90Z/cahwLGhNvuen+tn5wsc=
-NEXTAUTH_URL=Uy/AF9/33LFTfdoljaxV90Z/cahwLGhNvuen+tn5wsc=
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+NEXTAUTH_SECRET=your-nextauth-secret
+NEXTAUTH_URL=http://localhost:3000
 
 # Supabase
-SUPABASE_URL=https://zvymnfrejzposxwogeic.supabase.co
-NEXT_PUBLIC_SUPABASE_URL=https://zvymnfrejzposxwogeic.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eW1uZnJlanpwb3N4d29nZWljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MTk3MzUsImV4cCI6MjA3NjA5NTczNX0.bgXzTxlAPFyDqesz1R6Y5lPBHWvuPczhru1BeVIWnbc
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eW1uZnJlanpwb3N4d29nZWljIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDUxOTczNSwiZXhwIjoyMDc2MDk1NzM1fQ.l834usUgzS-hLUm-v42SIiw9YFNuGiwhCQHdLY16wYw
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eW1uZnJlanpwb3N4d29nZWljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MTk3MzUsImV4cCI6MjA3NjA5NTczNX0.bgXzTxlAPFyDqesz1R6Y5lPBHWvuPczhru1BeVIWnbc
-SUPABASE_JWT_SECRET=zuibc58CryxkzET2awORpEcI+A//mv6tEKWAXcN1jJ7pP0VOiaywGHqc+BEWzak3Q99bXVWz23/ss1SL+mykaQ==
+SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_JWT_SECRET=your-jwt-secret
 
 # PostgreSQL (from Supabase)
-POSTGRES_URL=zuibc58CryxkzET2awORpEcI+A//mv6tEKWAXcN1jJ7pP0VOiaywGHqc+BEWzak3Q99bXVWz23/ss1SL+mykaQ==
-POSTGRES_PRISMA_URL=postgres://postgres.zvymnfrejzposxwogeic:fcX1EoerodScJX04@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
-POSTGRES_URL_NON_POOLING=postgres://postgres.zvymnfrejzposxwogeic:fcX1EoerodScJX04@aws-1-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+POSTGRES_URL=your-postgres-url
+POSTGRES_PRISMA_URL=your-prisma-url
+POSTGRES_URL_NON_POOLING=your-non-pooling-url
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=fcX1EoerodScJX04
+POSTGRES_PASSWORD=your-password
 POSTGRES_DATABASE=postgres
-POSTGRES_HOST=db.zvymnfrejzposxwogeic.supabase.co
+POSTGRES_HOST=your-host
 
 # N8N Workflow Automation
-N8N_API_KEY=ATATT3xFfGF0_SXDA6OByZxtkD3pPpO-x0mLQW1puFprUgd9qpFsy9B8ZvSFdYhItM2dkr2GiDL8WYN7nn0n_8JxWgbTuk8CpWY9aVFkGfarYq8XyYapgkO5xeF13zgQA826OgxZRqT0olyETwaQF5Cc73Fsly8U9PgUgUPIMYiLXtZb4NIrzkg=57F96918
-N8N_API_URL=https://id.atlassian.com/manage-profile/security/api-tokens
+N8N_API_KEY=your-n8n-api-key
+N8N_API_URL=https://your-n8n-instance.com
 
 # Master Account
-NEXT_PUBLIC_MASTER_EMAIL=heyroy23415@gmail.com
+NEXT_PUBLIC_MASTER_EMAIL=support@example.com
 \`\`\`
 
 ### Getting API Keys
@@ -312,23 +238,14 @@ integrum-helpdesk/
 │   │   ├── auth/                 # Authentication endpoints
 │   │   ├── chat-messages/        # Chat messaging API
 │   │   ├── jira/                 # Jira integration endpoints
-│   │   │   ├── tickets/          # Ticket fetching
-│   │   │   └── ticket/[key]/     # Individual ticket operations
 │   │   ├── tickets/              # Ticket management
 │   │   └── email/                # Email webhook handlers
 │   ├── jira-ticket/[key]/        # Individual ticket view
-│   ├── ticket-processing/        # Ticket creation flow
-│   │   ├── pending/              # Loading/polling page
-│   │   └── [ticketId]/           # Success page
-│   ├── submit-ticket/            # Email compose page
-│   ├── page.tsx                  # Landing page
-│   └── globals.css               # Global styles with design tokens
+│   ├── page.tsx                  # Main dashboard (Your Ticket Page)
+│   └── globals.css               # Global styles
 ├── components/                   # React Components
 │   ├── ticket-chatbot.tsx        # Chat interface component
 │   ├── ui/                       # shadcn/ui components
-│   │   ├── toast.tsx             # Toast notification system
-│   │   ├── toaster.tsx           # Toast container
-│   │   └── ...
 │   └── ...
 ├── lib/                          # Utility Libraries
 │   ├── jira-api.ts               # Jira API client
@@ -347,101 +264,55 @@ integrum-helpdesk/
 - Real-time messaging interface
 - AI-powered support suggestions
 - File upload support
-- Automatic status detection and transitions
-- Resolved ticket state handling with visual indicators
-- Auto-updates Jira status to "In Progress" on first message
+- Automatic status detection
+- Resolved ticket state handling
 
-#### 2. **Landing Page** (`app/page.tsx`)
-- Enterprise-focused design with professional copy
-- Platform metrics display:
-  - Processing Speed: <5min
-  - AI-Accelerated Ticket Handling
-  - Enterprise-Grade Response Performance
-- Feature showcase with modern SaaS design language
-- Ticket dashboard with three columns
+#### 2. **Your Ticket Page** (`app/page.tsx`)
+- Main dashboard with three columns:
+  - **In Progress**: Active tickets being worked on
+  - **Pending Reply**: Tickets awaiting response
+  - **Resolved**: Completed tickets with visual indicators
 - Real-time category updates
-- Ticket limit selector (50, 100, 200, 500, 1000)
+- Ticket filtering and organization
 
-#### 3. **Pending Page** (`app/ticket-processing/pending/page.tsx`)
-- Loading state during ticket creation
-- Network speed monitoring (Mbps display)
-- Polling check counter
-- Optimized polling (2-second intervals)
-- Timestamp-based ticket detection
-- Animated error button with gradient effect
-- Auto-redirect to ticket page on success
-
-#### 4. **Jira API Client** (`lib/jira-api.ts`)
+#### 3. **Jira API Client** (`lib/jira-api.ts`)
 - Full Jira REST API integration
-- Single-call ticket fetching (no batch pagination)
-- Configurable maxResults with fallback handling
-- Status transitions (In Progress, Done, etc.)
+- Ticket fetching and filtering
+- Status transitions
 - Comment management
 - Attachment handling
-- Master account detection
-
-#### 5. **Toast System** (`components/ui/toast.tsx`, `components/ui/toaster.tsx`)
-- Top-right corner positioning
-- Red outline for high visibility
-- Manual dismiss only (no auto-hide)
-- Success notifications for ticket creation
-- Accessible close button
 
 ## 📖 User Guide
 
 ### For End Users
 
-#### 1. **Submitting a Ticket**
-
-1. Click "Submit Ticket" button on the landing page
-2. Compose your email with ticket details
-3. Click "Send" to submit
-4. You'll see a loading page with:
-   - Processing timer
-   - Network speed indicator
-   - Polling check counter
-   - Animated error button (if needed to return home)
-5. Once created, you'll be automatically redirected to your ticket
-6. A toast notification will appear: "You have created new ticket: [Ticket No.]"
-
-#### 2. **Viewing Your Tickets**
+#### 1. **Viewing Your Tickets**
 
 1. Log in with your Google account
 2. You'll see your tickets organized in three columns:
-   - **In Progress**: Active tickets being worked on
-   - **Pending Reply**: Tickets waiting for response
-   - **Resolved**: Completed tickets (marked with green checkmark icon)
-3. Use the ticket limit dropdown to show 50, 100, 200, or 500 tickets
+   - **In Progress**: Tickets currently being worked on
+   - **Pending Reply**: Tickets waiting for your response or support's response
+   - **Resolved**: Completed tickets (marked with a green checkmark icon)
 
-#### 3. **Opening a Ticket**
+#### 2. **Opening a Ticket**
 
 1. Click "View Ticket Info" on any ticket card
 2. You'll see:
-   - Left panel: Ticket details, description, steps to reproduce
+   - Left panel: Ticket details, description, steps to reproduce, etc.
    - Right panel: Chat interface for communication
 
-#### 4. **Chatting with Support**
+#### 3. **Chatting with Support**
 
 1. Type your message in the chat input at the bottom
 2. Click the send button or press Enter
-3. **First message automatically updates ticket to "In Progress"**
-4. Support will respond in real-time
-5. You can attach files by clicking the attachment icon
-6. When you send a message, ticket moves to "Pending Reply"
+3. Support will respond in real-time
+4. You can attach files by clicking the attachment icon
 
-#### 5. **Automatic Status Updates**
+#### 4. **Automatic Status Updates**
 
-- **First message**: Ticket automatically transitions to "In Progress" in Jira
-- **Subsequent messages**: Ticket moves to "Pending Reply" category
-- **Support resolves**: Ticket moves to "Resolved" column
-- **Resolved tickets**: Show green checkmark icon and disable chat
-
-#### 6. **Multiple Ticket Submissions**
-
-- You can submit multiple tickets in succession
-- Each submission is tracked with a unique timestamp
-- The system won't confuse new tickets with old ones
-- Loading page will display for each new ticket
+- When you send a message on an "In Progress" ticket, it automatically moves to "Pending Reply"
+- When support resolves your ticket, it moves to the "Resolved" column
+- Resolved tickets show a green checkmark icon and disable the chat interface
 
 ### For Support Team (Master Account)
 
@@ -451,23 +322,19 @@ integrum-helpdesk/
 - Ability to resolve tickets
 - Support mode in chat interface
 - Special "Resolve Ticket" button
-- Higher ticket limit (up to 1000 tickets)
 
 #### 2. **Resolving Tickets**
 
 1. Open a ticket
 2. Click "Resolve Ticket" button in the chat header
 3. Confirm the resolution
-4. The ticket transitions to "Done" in Jira
-5. The ticket moves to "Resolved" column for the user
-6. Chat interface is disabled for the user
+4. The ticket moves to "Resolved" column for the user
 
 #### 3. **Viewing All Tickets**
 
 - Master accounts see all tickets in the system
-- Tickets are organized by category
-- Can select up to 1000 tickets in the dropdown
-- Real-time updates every 10 seconds
+- Tickets are organized by status
+- Can filter and search across all users
 
 ## 🔌 API Documentation
 
@@ -497,27 +364,28 @@ Signs out the current user.
 ### Ticket Endpoints
 
 #### `GET /api/jira/tickets`
-Fetches tickets for the authenticated user with optimized single-call fetching.
+Fetches all tickets for the authenticated user.
 
 **Query Parameters:**
-- `userEmail`: User's email address (required)
-- `limit`: Number of tickets to fetch (default: 50, max: 500 for users, 1000 for master)
+- `userEmail`: User's email address
 
 **Response:**
 \`\`\`json
 {
-  "tickets": [...],
-  "total": 150,
-  "requested": 100,
-  "returned": 100
+  "tickets": [
+    {
+      "key": "KST-123",
+      "summary": "Ticket title",
+      "status": "In Progress",
+      "category": "In Progress",
+      "created": "2025-01-01T00:00:00Z",
+      "updated": "2025-01-02T00:00:00Z",
+      "description": "Ticket description",
+      "reporter": "user@example.com"
+    }
+  ]
 }
 \`\`\`
-
-**Features:**
-- Single API call (no batch pagination)
-- Automatic fallback if Jira limits maxResults
-- Master account detection for higher limits
-- Comprehensive logging
 
 #### `GET /api/jira/ticket/[key]`
 Fetches a single ticket by key.
@@ -534,33 +402,10 @@ Fetches a single ticket by key.
 }
 \`\`\`
 
-#### `POST /api/jira/ticket/[key]`
-Updates ticket status or performs actions.
-
-**Request:**
-\`\`\`json
-{
-  "action": "in-progress" | "resolve",
-  "transitionName": "In Progress" | "Done"
-}
-\`\`\`
-
-**Actions:**
-- `in-progress`: Transitions ticket to "In Progress" status
-- `resolve`: Transitions ticket to "Done" status
-
-**Response:**
-\`\`\`json
-{
-  "success": true,
-  "message": "Ticket status updated successfully"
-}
-\`\`\`
-
 ### Chat Endpoints
 
 #### `POST /api/chat-messages`
-Sends a chat message and automatically updates ticket status.
+Sends a chat message.
 
 **Request (FormData):**
 - `ticketKey`: Ticket key (e.g., "KST-123")
@@ -578,11 +423,10 @@ Sends a chat message and automatically updates ticket status.
 \`\`\`
 
 **Automatic Behavior:**
-1. Saves message to Supabase `chat_messages` table
-2. Posts comment to Jira ticket
-3. **First message**: Updates Jira status to "In Progress"
-4. **Subsequent messages**: Updates category to "Pending Reply" if currently "In Progress"
-5. Uploads file attachments to Jira if provided
+- Saves message to Supabase `chat_messages` table
+- Posts comment to Jira ticket
+- If ticket is "In Progress", updates category to "Pending Reply"
+- Uploads file attachments to Jira if provided
 
 #### `GET /api/chat-messages?ticketKey=KST-123`
 Fetches all messages for a ticket.
@@ -611,7 +455,7 @@ Transitions a ticket to a new status.
 **Request:**
 \`\`\`json
 {
-  "transitionName": "Done" | "In Progress" | "Pending Reply"
+  "transitionName": "Done"
 }
 \`\`\`
 
@@ -625,38 +469,7 @@ Transitions a ticket to a new status.
 
 ## 🔧 Key Functions
 
-### 1. Automatic Ticket Status Transition to "In Progress"
-
-**Location**: `components/ticket-chatbot.tsx`, `app/api/jira/ticket/[key]/route.ts`
-
-**How it works:**
-1. When a user sends their first message in the chat
-2. The chatbot checks if the ticket is not already "In Progress", "Done", "Resolved", or "Closed"
-3. If eligible, it calls the API to transition the ticket to "In Progress"
-4. The Jira ticket status is updated immediately
-5. The UI reflects the change in real-time
-
-**Code Flow:**
-\`\`\`typescript
-// 1. User sends message
-handleSubmit() {
-  // ... send message logic ...
-  
-  // 2. Check if we should update status
-  const shouldUpdateStatus = ticketStatus && 
-    !['in progress', 'done', 'resolved', 'closed'].includes(ticketStatus.toLowerCase())
-  
-  // 3. Update to In Progress
-  if (shouldUpdateStatus) {
-    await fetch(`/api/jira/ticket/${ticketKey}`, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'in-progress' })
-    })
-  }
-}
-\`\`\`
-
-### 2. Automatic Category Update to "Pending Reply"
+### 1. Automatic Ticket Status Transition
 
 **Location**: `app/api/chat-messages/route.ts`
 
@@ -691,132 +504,7 @@ if (!existingCategory || existingCategory.category === 'In Progress') {
 }
 \`\`\`
 
-### 3. Optimized Ticket Fetching (Single Call)
-
-**Location**: `lib/jira-api.ts`, `app/api/jira/tickets/route.ts`
-
-**How it works:**
-1. User selects ticket limit from dropdown (50, 100, 200, 500, 1000)
-2. System checks if user is master account
-3. Enforces limit: 500 for regular users, 1000 for master
-4. Makes a SINGLE API call to Jira with the exact limit
-5. If Jira restricts maxResults (e.g., 100 for free plan), automatically reduces
-6. Returns tickets with metadata about requested vs returned count
-
-**Code Flow:**
-\`\`\`typescript
-// 1. Enforce limits
-const maxAllowed = isMasterAccount ? 1000 : 500
-const finalLimit = Math.min(requestedLimit, maxAllowed)
-
-// 2. Single API call
-const response = await fetch(
-  `${JIRA_BASE_URL}/rest/api/3/search?jql=${jql}&maxResults=${finalLimit}`
-)
-
-// 3. Handle Jira limits
-if (response.status === 400) {
-  // Retry with maxResults=100
-  const fallbackResponse = await fetch(
-    `${JIRA_BASE_URL}/rest/api/3/search?jql=${jql}&maxResults=100`
-  )
-}
-
-// 4. Return with metadata
-return {
-  tickets: data.issues,
-  total: data.total ?? data.issues?.length ?? 0,
-  requested: finalLimit,
-  returned: data.issues?.length ?? 0
-}
-\`\`\`
-
-### 4. Timestamp-Based Ticket Detection
-
-**Location**: `app/submit-ticket/page.tsx`, `app/ticket-processing/pending/page.tsx`
-
-**How it works:**
-1. When user clicks "Send" to submit a ticket, current timestamp is captured
-2. User is redirected to pending page with `submittedAt` parameter
-3. Pending page polls for tickets created AFTER that timestamp
-4. This prevents finding old tickets when submitting multiple tickets quickly
-5. Ensures each submission waits for its own ticket
-
-**Code Flow:**
-\`\`\`typescript
-// 1. Capture timestamp on submit
-router.push(`/ticket-processing/pending?submittedAt=${Date.now()}`)
-
-// 2. Parse timestamp on pending page
-const submittedAt = searchParams.get('submittedAt')
-const submissionTime = submittedAt ? parseInt(submittedAt) : Date.now()
-
-// 3. Only accept tickets created after submission
-const ticketCreatedAt = new Date(ticket.fields.created).getTime()
-if (ticketCreatedAt > submissionTime) {
-  // This is the new ticket!
-  router.push(`/jira-ticket/${ticket.key}?newTicket=true`)
-}
-\`\`\`
-
-### 5. Network Speed Monitoring
-
-**Location**: `app/ticket-processing/pending/page.tsx`
-
-**How it works:**
-1. Uses Network Information API if available (`navigator.connection.downlink`)
-2. Fallback: Estimates speed by timing a small fetch request
-3. Displays speed in Mbps next to polling check counter
-4. Updates on component mount
-
-**Code Flow:**
-\`\`\`typescript
-// 1. Check for Network Information API
-if ('connection' in navigator && 'downlink' in (navigator as any).connection) {
-  const downlink = (navigator as any).connection.downlink
-  setNetworkSpeed(downlink)
-} else {
-  // 2. Fallback: estimate with fetch timing
-  const startTime = performance.now()
-  await fetch('/api/ping', { method: 'HEAD' })
-  const endTime = performance.now()
-  const duration = endTime - startTime
-  const estimatedSpeed = (1 / duration) * 1000 * 8 // Convert to Mbps
-  setNetworkSpeed(estimatedSpeed)
-}
-\`\`\`
-
-### 6. Toast Notification System
-
-**Location**: `app/jira-ticket/[key]/page.tsx`, `components/ui/toast.tsx`
-
-**How it works:**
-1. When ticket page loads with `newTicket=true` parameter
-2. Displays toast notification in top-right corner
-3. Shows "You have created new ticket: [Ticket No.]"
-4. Toast has red outline for high visibility
-5. Remains visible until user manually closes it
-6. URL parameter is cleaned up after showing toast
-
-**Code Flow:**
-\`\`\`typescript
-// 1. Check for new ticket parameter
-const isNewTicket = searchParams.get('newTicket') === 'true'
-
-// 2. Show toast
-if (isNewTicket) {
-  toast({
-    title: "Ticket Successfully Created!",
-    description: `You have created new ticket: ${ticketKey}`,
-    duration: Infinity, // No auto-dismiss
-  })
-  
-  // 3. Clean up URL
-  router.replace(`/jira-ticket/${ticketKey}`)
-}
-\`\`\`
-
-### 7. Frontend Category Management
+### 2. Frontend Category Management
 
 **Location**: `app/page.tsx`
 
@@ -826,12 +514,11 @@ if (isNewTicket) {
 3. If an override exists, it uses that category
 4. Otherwise, it maps the Jira status to a category
 5. Tickets are displayed in columns based on their category
-6. Real-time updates every 10 seconds
 
 **Code Flow:**
 \`\`\`typescript
 // 1. Fetch tickets from Jira
-const jiraTickets = await fetchJiraTickets(userEmail, ticketLimit)
+const jiraTickets = await fetchJiraTickets(userEmail)
 
 // 2. Fetch category overrides from Supabase
 const { data: categories } = await supabase
@@ -853,15 +540,9 @@ const grouped = {
   'Pending Reply': ticketsWithCategories.filter(t => t.category === 'Pending Reply'),
   'Resolved': ticketsWithCategories.filter(t => t.category === 'Resolved')
 }
-
-// 5. Real-time updates
-useEffect(() => {
-  const interval = setInterval(fetchCategories, 10000)
-  return () => clearInterval(interval)
-}, [])
 \`\`\`
 
-### 8. Resolved Ticket Detection
+### 3. Resolved Ticket Detection
 
 **Location**: `components/ticket-chatbot.tsx`
 
@@ -880,7 +561,7 @@ const isResolved = ticketStatus &&
 if (isResolved) {
   return (
     <div className="resolved-state">
-      <img src="/images/design-mode/image.png" alt="Resolved" />
+      <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-VW9yekTIz5tAHKi7QeDNuYcuvnoT1S.png" alt="Resolved" />
       <span>Resolved</span>
       <p>This ticket has been Resolved</p>
     </div>
@@ -888,18 +569,44 @@ if (isResolved) {
 }
 \`\`\`
 
-### 9. Master Account Detection
+### 4. Jira Status to Category Mapping
 
-**Location**: `lib/jira-api.ts`, `components/ticket-chatbot.tsx`, `app/page.tsx`
+**Location**: `lib/jira-api.ts`
+
+**How it works:**
+Maps Jira status names to frontend categories.
+
+**Mapping:**
+\`\`\`typescript
+function mapStatusToCategory(status: string): TicketCategory {
+  const statusLower = status.toLowerCase()
+  
+  // Resolved statuses
+  if (['done', 'resolved', 'closed', 'cancelled'].includes(statusLower)) {
+    return 'Resolved'
+  }
+  
+  // Pending statuses
+  if (['pending reply', 'waiting for customer', 'pending'].includes(statusLower)) {
+    return 'Pending Reply'
+  }
+  
+  // Default to In Progress
+  return 'In Progress'
+}
+\`\`\`
+
+### 5. Master Account Detection
+
+**Location**: `lib/jira-api.ts`, `components/ticket-chatbot.tsx`
 
 **How it works:**
 1. Compares user email with `NEXT_PUBLIC_MASTER_EMAIL` environment variable
 2. If match, grants master account privileges
 3. Master accounts can:
-   - View all tickets (not just their own)
+   - View all tickets
    - Resolve tickets
    - Access support mode in chat
-   - Select up to 1000 tickets in dropdown
 
 **Code Flow:**
 \`\`\`typescript
@@ -910,132 +617,58 @@ if (isMasterAccount) {
   // Show all tickets
   // Enable resolve button
   // Set role to 'support'
-  // Allow up to 1000 tickets
 }
 \`\`\`
 
-## 🔄 Workflows
+### 6. File Upload Handling
 
-### Ticket Submission Workflow
+**Location**: `app/api/chat-messages/route.ts`, `components/ticket-chatbot.tsx`
 
-\`\`\`
-1. User clicks "Submit Ticket" button
-   ↓
-2. Redirected to /submit-ticket page
-   ↓
-3. Gmail compose window opens
-   ↓
-4. User writes email and clicks "Send"
-   ↓
-5. Timestamp captured: submittedAt = Date.now()
-   ↓
-6. Redirected to /ticket-processing/pending?submittedAt=[timestamp]
-   ↓
-7. Pending page displays:
-   - Processing timer
-   - Network speed (Mbps)
-   - Polling check counter
-   - Animated error button
-   ↓
-8. System polls every 2 seconds for new ticket
-   - Checks for tickets created AFTER submittedAt timestamp
-   - Prevents finding old tickets
-   ↓
-9. Ticket detected!
-   ↓
-10. Auto-redirect to /jira-ticket/[key]?newTicket=true
-    ↓
-11. Toast notification appears:
-    "You have created new ticket: [Ticket No.]"
-    ↓
-12. User can now chat with support
+**How it works:**
+1. User selects file in chat interface
+2. File is sent as FormData to API
+3. API uploads file to Jira as attachment
+4. File is linked to the ticket
+
+**Code Flow:**
+\`\`\`typescript
+// Frontend
+const formData = new FormData()
+formData.append('file', selectedFile)
+formData.append('ticketKey', ticketKey)
+formData.append('message', message)
+
+// Backend
+const file = formData.get('file') as File
+if (file) {
+  const jiraClient = new JiraApiClient(jiraConfig)
+  await jiraClient.addAttachment(ticketKey, file)
+}
 \`\`\`
 
-### Chat Message Workflow
+### 7. Real-time Category Updates
 
-\`\`\`
-1. User types message in chat
-   ↓
-2. User clicks send or presses Enter
-   ↓
-3. Message sent to /api/chat-messages
-   ↓
-4. API checks: Is this the first message?
-   ↓
-5a. If first message:
-    - Update Jira status to "In Progress"
-    - Save message to Supabase
-    - Post comment to Jira
-    ↓
-5b. If subsequent message:
-    - Check current category
-    - If "In Progress", update to "Pending Reply"
-    - Save message to Supabase
-    - Post comment to Jira
-    ↓
-6. Frontend refreshes messages
-   ↓
-7. Dashboard updates ticket category (10-second polling)
-   ↓
-8. Ticket appears in correct column
-\`\`\`
+**Location**: `app/page.tsx`
 
-### Ticket Resolution Workflow
+**How it works:**
+1. Uses `setInterval` to poll Supabase every 10 seconds
+2. Fetches latest category overrides
+3. Updates ticket display automatically
+4. Ensures UI stays in sync with database
 
-\`\`\`
-1. Support opens ticket
-   ↓
-2. Support clicks "Resolve Ticket" button
-   ↓
-3. Confirmation dialog appears
-   ↓
-4. Support confirms resolution
-   ↓
-5. API call to /api/jira/ticket/[key]
-   - action: "resolve"
-   - transitionName: "Done"
-   ↓
-6. Jira ticket status updated to "Done"
-   ↓
-7. Frontend category updated to "Resolved"
-   ↓
-8. Ticket moves to "Resolved" column
-   ↓
-9. Green checkmark icon appears
-   ↓
-10. Chat interface disabled for user
-    ↓
-11. User sees "This ticket has been Resolved" message
-\`\`\`
-
-### Multiple Ticket Submission Workflow
-
-\`\`\`
-Scenario: User submits Ticket A, then immediately submits Ticket B
-
-1. User submits Ticket A at time T1
-   ↓
-2. Pending page polls for tickets created after T1
-   ↓
-3. Ticket A created at T1+30s
-   ↓
-4. System detects Ticket A (created after T1)
-   ↓
-5. User redirected to Ticket A page
-   ↓
-6. User returns to home and submits Ticket B at time T2
-   ↓
-7. Pending page polls for tickets created after T2
-   ↓
-8. System ignores Ticket A (created before T2)
-   ↓
-9. Ticket B created at T2+30s
-   ↓
-10. System detects Ticket B (created after T2)
-    ↓
-11. User redirected to Ticket B page
-    ↓
-Result: No confusion between tickets!
+**Code Flow:**
+\`\`\`typescript
+useEffect(() => {
+  const interval = setInterval(async () => {
+    const { data } = await supabase
+      .from('ticket_categories')
+      .select('*')
+    
+    setTicketCategories(data || [])
+  }, 10000) // Every 10 seconds
+  
+  return () => clearInterval(interval)
+}, [])
 \`\`\`
 
 ## 🐛 Troubleshooting
@@ -1049,7 +682,6 @@ Result: No confusion between tickets!
 **Solution**: 
 - Ensure `app/api/chat-messages/route.ts` is parsing FormData correctly
 - Check that the chatbot component is sending FormData, not JSON
-- Verify file upload handling if attachments are involved
 
 #### 2. Tickets Not Moving to "Pending Reply"
 
@@ -1063,84 +695,8 @@ Result: No confusion between tickets!
 - Check Supabase logs for errors
 - Add console.log statements to trace execution
 - Verify environment variables are set correctly
-- Check that `SUPABASE_SERVICE_ROLE_KEY` is set
 
-#### 3. Ticket Not Transitioning to "In Progress"
-
-**Cause**:
-- Jira workflow doesn't have "In Progress" transition
-- API call failing
-- Ticket already in a final state
-
-**Solution**:
-- Check Jira workflow for available transitions
-- Verify ticket status in Jira
-- Check browser console for API errors
-- Ensure `JIRA_API_TOKEN` has correct permissions
-
-#### 4. Multiple Tickets Showing Same Ticket
-
-**Cause**: Timestamp parameter not being passed or parsed correctly
-
-**Solution**:
-- Verify `submittedAt` parameter in URL
-- Check that pending page is parsing the timestamp
-- Ensure ticket detection logic compares timestamps correctly
-- Clear browser cache and try again
-
-#### 5. Toast Notification Not Appearing
-
-**Cause**:
-- `newTicket` parameter not in URL
-- Toast system not initialized
-- Toaster component not rendered
-
-**Solution**:
-- Check URL for `?newTicket=true` parameter
-- Verify `<Toaster />` component is in layout
-- Check browser console for errors
-- Ensure `useToast` hook is imported correctly
-
-#### 6. Network Speed Not Displaying
-
-**Cause**:
-- Network Information API not supported
-- Fetch timing estimation failing
-- State not updating
-
-**Solution**:
-- Check browser compatibility (Chrome/Edge recommended)
-- Verify `/api/ping` endpoint exists
-- Check browser console for errors
-- Ensure state is initialized correctly
-
-#### 7. Error Button Not Visible
-
-**Cause**:
-- CSS classes not applied
-- Tailwind not compiling animations
-- Z-index issues
-
-**Solution**:
-- Check that Tailwind CSS is loaded
-- Verify `animate-pulse` class is available
-- Inspect element to see applied styles
-- Check for conflicting CSS
-
-#### 8. Ticket Limit Not Working
-
-**Cause**:
-- API not receiving limit parameter
-- Jira API restricting maxResults
-- Master account detection failing
-
-**Solution**:
-- Check network tab for API call parameters
-- Verify `limit` query parameter is sent
-- Check if Jira free plan limits apply
-- Verify `NEXT_PUBLIC_MASTER_EMAIL` is set correctly
-
-#### 9. Authentication Issues
+#### 3. Authentication Issues
 
 **Cause**:
 - Google OAuth not configured
@@ -1153,7 +709,7 @@ Result: No confusion between tickets!
 - Ensure NEXTAUTH_SECRET is set
 - Clear browser cookies and try again
 
-#### 10. Jira API Errors
+#### 4. Jira API Errors
 
 **Cause**:
 - Invalid API token
@@ -1170,6 +726,15 @@ Result: No confusion between tickets!
     https://your-domain.atlassian.net/rest/api/3/myself
   \`\`\`
 
+#### 5. Resolved Tickets Still Showing Chat
+
+**Cause**: Resolved status check not working
+
+**Solution**:
+- Check ticket status in Jira
+- Verify `isResolved` logic in `ticket-chatbot.tsx`
+- Ensure status names match (case-insensitive)
+
 ### Debug Mode
 
 Enable detailed logging by checking the browser console for `[v0]` prefixed messages:
@@ -1178,23 +743,7 @@ Enable detailed logging by checking the browser console for `[v0]` prefixed mess
 console.log("[v0] Message sent:", messageData)
 console.log("[v0] Category updated:", category)
 console.log("[v0] Ticket status:", status)
-console.log("[v0] Network speed:", speed)
-console.log("[v0] Polling check:", checkCount)
 \`\`\`
-
-### Performance Optimization
-
-**Slow Ticket Loading:**
-- Reduce ticket limit in dropdown
-- Check network speed indicator
-- Verify Jira API response time
-- Consider caching strategies
-
-**Slow Polling:**
-- Polling interval is 2 seconds (optimized)
-- Check network speed
-- Verify API endpoint performance
-- Consider WebSocket for real-time updates
 
 ## 📝 License
 
@@ -1205,8 +754,7 @@ This project is built with [v0.app](https://v0.app) and deployed on Vercel.
 For issues or questions:
 1. Check the [Troubleshooting](#troubleshooting) section
 2. Review the [API Documentation](#api-documentation)
-3. Check the [Workflows](#workflows) section
-4. Contact the development team
+3. Contact the development team
 
 ## 🔗 Links
 
@@ -1217,4 +765,4 @@ For issues or questions:
 
 ---
 
-**Built with ❤️ using v0.app, Next.js 15, and Supabase**
+**Built with ❤️ using v0.app, Next.js, and Supabase**

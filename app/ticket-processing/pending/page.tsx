@@ -23,56 +23,31 @@ export default function PendingTicketPage() {
   const [networkSpeed, setNetworkSpeed] = useState<number | null>(null)
 
   useEffect(() => {
-    if (!userEmail || foundTicket) return
-
     const measureSpeed = async () => {
       try {
-        // Try Network Information API first
-        if ("connection" in navigator && "downlink" in (navigator as any).connection) {
-          const connection = (navigator as any).connection
-          setNetworkSpeed(connection.downlink)
-          console.log("[v0] Network speed from API:", connection.downlink, "Mbps")
-          return
-        }
+        // Use a small test image from a CDN (approximately 100KB)
+        const testFileUrl = "https://via.placeholder.com/500x500.png"
+        const fileSizeBytes = 100000 // Approximate size in bytes
 
-        // Fallback: measure download speed with a small fetch
-        const testFileSize = 50000 // 50KB test
         const startTime = performance.now()
-
-        const response = await fetch("/placeholder.svg?height=100&width=100", {
-          cache: "no-store",
-          method: "GET",
-        })
-
-        if (!response.ok) throw new Error("Speed test failed")
-
-        await response.blob()
-
+        const response = await fetch(testFileUrl, { cache: "no-store" })
+        const blob = await response.blob()
         const endTime = performance.now()
-        const durationInSeconds = (endTime - startTime) / 1000
 
-        const bitsLoaded = testFileSize * 8
-        const speedMbps = bitsLoaded / durationInSeconds / 1000000
+        const durationSeconds = (endTime - startTime) / 1000
+        const fileSizeBits = blob.size * 8
+        const speedMbps = fileSizeBits / durationSeconds / 1000000
 
-        setNetworkSpeed(Math.max(0.1, Math.min(speedMbps, 1000))) // Cap between 0.1 and 1000 Mbps
-        console.log("[v0] Measured network speed:", speedMbps.toFixed(1), "Mbps")
+        setNetworkSpeed(speedMbps)
+        console.log("[v0] Measured internet speed:", speedMbps.toFixed(2), "Mbps")
       } catch (error) {
         console.error("[v0] Failed to measure network speed:", error)
         setNetworkSpeed(null)
       }
     }
 
-    // Measure immediately on mount
     measureSpeed()
-
-    // Continue measuring every 3 seconds
-    const speedInterval = setInterval(measureSpeed, 3000)
-
-    // Cleanup: stop measuring when component unmounts or ticket is found
-    return () => {
-      clearInterval(speedInterval)
-    }
-  }, [userEmail, foundTicket])
+  }, [])
 
   useEffect(() => {
     if (foundTicket) return
@@ -176,18 +151,18 @@ export default function PendingTicketPage() {
           <div className="bg-gray-50 rounded-lg p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">Processing time</p>
             <p className="text-3xl font-mono font-bold text-blue-600">{formatTime(elapsedTime)}</p>
-            <div className="flex flex-col items-center gap-1 mt-3">
-              <div className="flex items-center gap-4">
-                <p className="text-xs text-gray-400">Checks: {checkCount}</p>
-                <span className="text-xs text-gray-300">|</span>
-                <p className="text-xs text-gray-400">
-                  Internet Speed: {networkSpeed !== null ? `${networkSpeed.toFixed(1)} Mbps` : "Unknown"}
-                </p>
-              </div>
-              {networkSpeed !== null && networkSpeed < 5 && (
-                <p className="text-xs text-orange-500 mt-1">A lower speed may increase loading time.</p>
+            <div className="flex items-center justify-center gap-4 mt-2">
+              <p className="text-xs text-gray-400">Checks: {checkCount}</p>
+              {networkSpeed !== null && (
+                <>
+                  <span className="text-xs text-gray-300">|</span>
+                  <p className="text-xs text-gray-400">Internet speed: {networkSpeed.toFixed(1)} Mbps</p>
+                </>
               )}
             </div>
+            {networkSpeed !== null && (
+              <p className="text-xs text-gray-500 mt-1">(Low speed will affect processing power)</p>
+            )}
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 relative">
