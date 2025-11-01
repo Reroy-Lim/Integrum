@@ -25,29 +25,33 @@ export default function PendingTicketPage() {
   useEffect(() => {
     const measureSpeed = async () => {
       try {
-        // Use a small test image from a CDN (approximately 100KB)
-        const testFileUrl = "https://via.placeholder.com/500x500.png"
-        const fileSizeBytes = 100000 // Approximate size in bytes
+        if ("connection" in navigator && "downlink" in (navigator as any).connection) {
+          const connection = (navigator as any).connection
+          setNetworkSpeed(connection.downlink)
+          return
+        }
 
         const startTime = performance.now()
-        const response = await fetch(testFileUrl, { cache: "no-store" })
-        const blob = await response.blob()
+        const response = await fetch("/api/jira/tickets?email=" + encodeURIComponent(userEmail || ""), {
+          method: "HEAD",
+        })
         const endTime = performance.now()
 
-        const durationSeconds = (endTime - startTime) / 1000
-        const fileSizeBits = blob.size * 8
-        const speedMbps = fileSizeBits / durationSeconds / 1000000
-
-        setNetworkSpeed(speedMbps)
-        console.log("[v0] Measured internet speed:", speedMbps.toFixed(2), "Mbps")
+        if (response.ok) {
+          const durationMs = endTime - startTime
+          const estimatedMbps = (8 / durationMs) * 1000
+          setNetworkSpeed(Math.min(estimatedMbps, 100))
+        }
       } catch (error) {
         console.error("[v0] Failed to measure network speed:", error)
         setNetworkSpeed(null)
       }
     }
 
-    measureSpeed()
-  }, [])
+    if (userEmail) {
+      measureSpeed()
+    }
+  }, [userEmail])
 
   useEffect(() => {
     if (foundTicket) return
